@@ -70,9 +70,10 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 		// Route::get('class-access', 'AccountController@classAccess')->name('admin.account.classAccess');
 
-		// Route::get('DistrictsAssign', 'AccountController@DistrictsAssign')->name('admin.account.DistrictsAssign');	//OK Done------------
-		// Route::get('StateDistrictsSelect', 'AccountController@StateDistrictsSelect')->name('admin.account.StateDistrictsSelect'); 	//OK-----------
-		//  Route::post('DistrictsAssignStore', 'AccountController@DistrictsAssignStore')->name('admin.Master.DistrictsAssignStore');	//OK---------
+		// District Assign to User (3)
+		Route::get('DistrictsAssign', 'AccountController@DistrictsAssign')->name('admin.account.DistrictsAssign');	//OK Done------------
+		Route::get('StateDistrictsSelect', 'AccountController@StateDistrictsSelect')->name('admin.account.StateDistrictsSelect'); 	//OK-----------
+		Route::post('DistrictsAssignStore', 'AccountController@DistrictsAssignStore')->name('admin.Master.DistrictsAssignStore');	//OK---------
 		//  Route::get('DistrictsAssignDelete/{id}', 'AccountController@DistrictsAssignDelete')->name('admin.Master.DistrictsAssignDelete');	//OK---------
 
 

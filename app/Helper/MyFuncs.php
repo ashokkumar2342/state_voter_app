@@ -98,6 +98,11 @@ class MyFuncs {
     return $user = Auth::guard('admin')->user()->id;  
   }
 
+  public static function getUserRoleId()
+  {
+    return $role_id = Auth::guard('admin')->user()->role_id;  
+  }
+
   public static function check_password_strength($password, $user_id) 
   {
     $passwordError = "";

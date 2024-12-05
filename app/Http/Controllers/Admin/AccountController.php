@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 // use PDF;
 // use Symfony\Component\HttpKernel\DataCollector\collect;
 use App\Helper\MyFuncs;
+use App\Helper\SelectBox;
 use Session;
 
 class AccountController extends Controller
@@ -234,6 +235,83 @@ class AccountController extends Controller
         }   
     }   
 
+    Public function DistrictsAssign()
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(3);
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            $user_id = MyFuncs::getUserId();
+            $role_id = 2;
+            $users = SelectBox::get_user_list_v1($role_id, $user_id); 
+            return view('admin.account.assign.district.index',compact('users'));
+        } catch (\Exception $e) {
+            $e_method = "DistrictsAssign";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    Public function StateDistrictsSelect(Request $request)
+    {  
+        try {
+            $permission_flag = MyFuncs::isPermission_route(3);
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            
+            $rs_district = SelectBox::get_district_access_list_v1();
+
+            $r_user_id = intval(Crypt::decrypt($request->id));
+
+            $DistrictBlockAssigns = DB::select(DB::raw("SELECT `uda`.`id`, `dis`.`name_e` from `user_district_assigns` `uda` inner join `districts` `dis` on `dis`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $r_user_id;"));
+            
+            $data= view('admin.account.assign.district.select_box',compact('DistrictBlockAssigns', 'rs_district'))->render(); 
+            return response($data);
+        } catch (\Exception $e) {
+            $e_method = "StateDistrictsSelect";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    Public function DistrictsAssignStore(Request $request)
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(3);
+            if(!$permission_flag){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }
+            
+            $rules=[
+                'district' => 'required', 
+                'user' => 'required',  
+            ]; 
+            $customMessages = [
+                'district.required'=> 'Please Select District',                
+                'user.required'=> 'Please Select User',
+            ];
+            $validator = Validator::make($request->all(),$rules, $customMessages);
+            if ($validator->fails()) {
+                $errors = $validator->errors()->all();
+                $response=array();
+                $response["status"]=0;
+                $response["msg"]=$errors[0];
+                return response()->json($response);// response as json
+            }
+            $district_id = intval(Crypt::decrypt($request->district));
+            $user_id = intval(Crypt::decrypt($request->user));
+
+            $rs_save = DB::select(DB::raw("call `up_save_assign_district` ($user_id, $district_id);"));  
+            $response['msg'] = 'District Assigned Successfully';
+            $response['status'] = 1;
+            return response()->json($response);
+        } catch (\Exception $e) {
+            $e_method = "DistrictsAssignStore";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }  
+    }
+
     public function exception_handler()
     {
         try {
@@ -340,40 +418,7 @@ class AccountController extends Controller
 //         return redirect()->back()->with(['message'=>'Account Deleted Successfully','class'=>'success']);
 //     }
 
-//     Public function DistrictsAssign(){
-//         $admin=Auth::guard('admin')->user(); 
-//         $users=DB::select(DB::raw("select `id`, `first_name`, `last_name`, `email`, `mobile` from `admins`where `status` = 1 and `role_id` = 2 and `created_by` = $admin->id Order By `first_name`")); 
-//         return view('admin.account.assign.district.index',compact('users'));
-       
-//     }
 
-//     Public function StateDistrictsSelect(Request $request){  
-//         $States = DB::select(DB::raw("select * from `states` Order By `name_e`"));   
-        
-//         $DistrictBlockAssigns = DB::select(DB::raw("select `uda`.`id`, `dis`.`name_e` from `user_district_assigns` `uda` inner join `districts` `dis` on `dis`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $request->id;"));
-        
-//         $data= view('admin.account.assign.district.select_box',compact('DistrictBlockAssigns','States'))->render(); 
-//         return response($data);
-//     }
-
-//     Public function DistrictsAssignStore(Request $request){    
-//         $rules=[
-//             'district' => 'required', 
-//             'user' => 'required',  
-//         ]; 
-//         $validator = Validator::make($request->all(),$rules);
-//         if ($validator->fails()) {
-//             $errors = $validator->errors()->all();
-//             $response=array();
-//             $response["status"]=0;
-//             $response["msg"]=$errors[0];
-//             return response()->json($response);// response as json
-//         }
-//         $rs_save = DB::select(DB::raw("call `up_save_assign_district` ($request->user, $request->district);"));  
-//         $response['msg'] = 'District Assigned Successfully';
-//         $response['status'] = 1;
-//         return response()->json($response);  
-//     }
 
 //     public function DistrictsAssignDelete($id)
 //     {
