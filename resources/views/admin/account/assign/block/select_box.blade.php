@@ -3,6 +3,7 @@
         <label for="exampleInputEmail1">District</label>
         <span class="fa fa-asterisk"></span>
         <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('admin.Master.DistrictWiseBlock') }}','block_select_box')" required>
+            <option selected disabled>Select District</option>
             @foreach ($rs_district as $val_rec)
                 <option value="{{ Crypt::encrypt($val_rec->opt_id) }}">{{ $val_rec->opt_text }}</option>    
             @endforeach

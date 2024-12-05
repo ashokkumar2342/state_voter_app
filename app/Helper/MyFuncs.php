@@ -176,6 +176,60 @@ class MyFuncs {
     return $newString;
   }
 
+  public static function check_district_access($d_id)
+  { 
+    $user_id = MyFuncs::getUserId();
+    $role_id = MyFuncs::getUserRoleId();
+    $result = 0;
+
+    if($role_id == 1){
+      $result = 1;
+    }elseif($role_id == 2){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_district_assigns` where `user_id` = $user_id and `district_id` = $d_id and `status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }elseif($role_id == 3){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_block_assigns` where `user_id` = $user_id and `district_id` = $d_id and `status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }elseif($role_id == 4){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_village_assigns` where `user_id` = $user_id and `district_id` = $d_id and `status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }
+    return $result;
+  }
+
+  public static function check_block_access($bl_id)
+  { 
+    $user_id = MyFuncs::getUserId();
+    $role_id = MyFuncs::getUserRoleId();
+    $result = 0;
+
+    if($role_id == 1){
+      $result = 1;
+    }elseif($role_id == 2){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_district_assigns` `uda` inner join `blocks_mcs` `bl` on `bl`.`districts_id` = `uda`.`district_id` and `bl`.`id` = $bl_id where `uda`.`user_id` = $user_id and `uda`.`status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }elseif($role_id == 3){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_block_assigns` where `user_id` = $user_id and `block_id` = $bl_id and `status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }elseif($role_id == 4){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_village_assigns` where `user_id` = $user_id and `block_id` = $bl_id and `status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }
+    return $result;
+  }
+
   // ----------------------- End -------------------------
 
   // all permission check

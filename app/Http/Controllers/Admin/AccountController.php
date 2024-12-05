@@ -373,7 +373,83 @@ class AccountController extends Controller
             $e_method = "DistrictBlockAssign";
             return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
         }
-    }    
+    }
+
+    Public function DistrictBlockAssignStore(Request $request)
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(4);
+            if(!$permission_flag){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }
+
+            $rules=[
+                'district' => 'required', 
+                'block' => 'required', 
+                'user' => 'required',  
+            ]; 
+            $customMessages = [
+                'district.required'=> 'Please Select District',                
+                'block.required'=> 'Please Select Block/MC',
+                'user.required'=> 'Please Select User',
+            ];
+            $validator = Validator::make($request->all(),$rules, $customMessages);
+            if ($validator->fails()) {
+                $errors = $validator->errors()->all();
+                $response=array();
+                $response["status"]=0;
+                $response["msg"]=$errors[0];
+                return response()->json($response);// response as json
+            }
+
+            $district_id = intval(Crypt::decrypt($request->district));
+            $block_id = intval(Crypt::decrypt($request->block));
+            $r_user_id = intval(Crypt::decrypt($request->user));
+
+            $permission_flag = MyFuncs::check_district_access($district_id);
+            if($permission_flag == 0){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }            
+
+            $permission_flag = MyFuncs::check_block_access($block_id);
+            if($permission_flag == 0){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }            
+
+            $user_id = MyFuncs::getUserId();
+
+            $rs_save = DB::select(DB::raw("call `up_save_assign_block` ($r_user_id, $block_id, $user_id);"));  
+            $response['msg'] = $rs_save[0]->result;
+            $response['status'] = $rs_save[0]->s_status;
+            return response()->json($response);
+
+        } catch (\Exception $e) {
+            $e_method = "DistrictBlockAssignStore";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    public function DistrictBlockAssignDelete($id)
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(4);
+            if(!$permission_flag){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }
+            $assigned_id = intval(Crypt::decrypt($id));
+            $rs_delete = DB::select(DB::raw("UPDATE `user_block_assigns` set `status` = 0 where `id` = $assigned_id limit 1;"));
+            $response['msg'] = 'District Removed Successfully';
+            $response['status'] = 1;
+            return response()->json($response);
+        } catch (\Exception $e) {
+            $e_method = "DistrictBlockAssignDelete";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
 
     public function exception_handler()
     {
@@ -489,39 +565,9 @@ class AccountController extends Controller
 
 
 
-//     Public function DistrictBlockAssignStore(Request $request){     
-//         $rules=[
-//             'district' => 'required', 
-//             'block' => 'required', 
-//             'user' => 'required',  
-//         ]; 
-//         $validator = Validator::make($request->all(),$rules);
-//         if ($validator->fails()) {
-//             $errors = $validator->errors()->all();
-//             $response=array();
-//             $response["status"]=0;
-//             $response["msg"]=$errors[0];
-//             return response()->json($response);// response as json
-//         }
-        
-//         try {
-//             $rs_save = DB::select(DB::raw("call `up_save_assign_block` ($request->user, $request->district, $request->block);"));
-//             $response['msg'] = 'Block Assigned Successfully';
-//             $response['status'] = 1;
-//             return response()->json($response);  
-//         } catch (Exception $e) {}
-//     }
 
-//     public function DistrictBlockAssignDelete($id)
-//     {
-//         try {
-//             $assigned_id = Crypt::decrypt($id);
-//             $rs_delete = DB::select(DB::raw("delete from `user_block_assigns` where `id` = $assigned_id;"));
-//             $response['msg'] = 'Block Removed Successfully';
-//             $response['status'] = 1;
-//             return response()->json($response);   
-//          } catch (Exception $e) {}
-//     }
+
+
 
 // // ///------village-Assign-----------------------------------
 //     Public function VillageAssign(){
