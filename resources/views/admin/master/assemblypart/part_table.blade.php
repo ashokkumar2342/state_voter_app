@@ -1,18 +1,31 @@
-<table id="part_no_datatable" class="table table-striped table-hover control-label">
-<thead>
-<tr> 
-<th>Part No.</th> 
-<th>Action</th> 
-</tr>
-</thead>
-<tbody> 
-@foreach ($assemblyParts as $assemblyPart)
-<tr>  
-<td>{{ $assemblyPart->part_no }}</td> 
-<td class="text-nowrap">
-<a href="{{ route('admin.Master.AssemblyPart.delete',$assemblyPart->id) }}" title="" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
-</td>
-</tr> 
-@endforeach
-</tbody>
-</table>
+<div class="col-lg-12">
+    <fieldset class="fieldset_border">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="ajax_data_table">
+                <thead class="thead-dark">
+                    <tr> 
+                        <th>Sr. No.</th>
+                        <th>Part No.</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                @php
+                    $srno = 1;
+                @endphp
+                <tbody> 
+                    @foreach ($rs_assemblys_part as $rs_val)
+                        <tr>
+                            <td>{{ $srno++ }}</td>
+                            <td>{{ $rs_val->part_no }}</td>
+                            <td class="text-nowrap">                                
+                                @if ($role_id == 1)
+                                    <button type="button" success-popup="true" select-triger="assembly_select_box" onclick="if(confirm('Are you sure you want to delete this record?')==true){callAjax(this,'{{ route('admin.Master.AssemblyPart.delete', Crypt::encrypt($rs_val->id)) }}')}" title="" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Delete</button>
+                                @endif
+                            </td>
+                        </tr> 
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</div>

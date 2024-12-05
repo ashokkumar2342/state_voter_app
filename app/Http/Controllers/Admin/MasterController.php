@@ -600,6 +600,227 @@ class MasterController extends Controller
     }
   }
 
+  public function Assembly(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(19);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();  
+      return view('admin.master.assembly.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "Assembly";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyTable(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(19);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $role_id = MyFuncs::getUserRoleId();
+      $d_id = intval(Crypt::decrypt($request->id));
+      $rs_assemblys = DB::select(DB::raw("SELECT `asm`.`id`, `asm`.`code`, `asm`.`name_e`, `asm`.`name_l`, (select count(*) from `assembly_parts` where `assembly_id` = `asm`.`id`) as `tcount` from `assemblys` `asm` where `asm`.`district_id` = $d_id order by `asm`.`code`;"));  
+      return view('admin.master.assembly.assembly_table',compact('rs_assemblys', 'role_id')); 
+    } catch (\Exception $e) {
+      $e_method = "AssemblyTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyStore(Request $request, $id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(19);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[        
+        'district' => 'required', 
+        'code' => 'required|max:5', 
+        'name_english' => 'required|max:50', 
+        'name_local_language' => 'required|max:100', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+
+        'code.required'=> 'Please Enter Assembly Code',                
+        'code.max'=> 'Assembly Code Should Be Maximum of 5 Character',
+
+        'name_english.required'=> 'Please Enter Assembly Name English',                
+        'name_english.max'=> 'Assembly Name English Should Be Maximum of 50 Character',
+
+        'name_local_language.required'=> 'Please Enter Assembly Name Local Language',                
+        'name_local_language.max'=> 'Assembly Name Local Language Should Be Maximum of 100 Character',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $userid = MyFuncs::getUserId();
+      $d_id = intval(Crypt::decrypt($request->district));
+      
+      $code = substr(MyFuncs::removeSpacialChr($request->code), 0, 5);
+      $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+      $name_l = MyFuncs::removeSpacialChr($request->name_local_language);
+
+      $asmb_id = 0;
+      $asmb_parts = 0;
+      if ($rec_id == 0){
+        $asmb_parts = intval(substr(MyFuncs::removeSpacialChr($request->part_no), 0, 3));
+      }else{
+        $asmb_id = $rec_id;  
+      }
+      $rs_save = DB::select(DB::raw("call `up_save_assembly` ($asmb_id, $userid, $d_id, '$code', '$name_e', '$name_l', $asmb_parts);"));
+      
+      $response=['status'=>$rs_save[0]->save_status,'msg'=>$rs_save[0]->remarks];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "AssemblyStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }     
+  }
+
+  public function AssemblyEdit($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(19);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $userid = MyFuncs::getUserId();  
+      $assembly = DB::select(DB::raw("SELECT * from `assemblys` where `id` = $rec_id limit 1;"));
+      return view('admin.master.assembly.edit',compact('assembly'));
+    } catch (Exception $e) {
+      $e_method = "AssemblyEdit";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyDelete($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(19);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $rs_delete = DB::select(DB::raw("DELETE from `assemblys` where `id` = $rec_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Assembly Deleted Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "AssemblyDelete";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }    
+  }
+
+  public function AssemblyPartAdd($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(19);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $ac_id = intval(Crypt::decrypt($id));
+      $assembly = DB::select(DB::raw("SELECT * from `assemblys` where `id` = $ac_id limit 1;"));
+      return view('admin.master.assemblypart.add_form',compact('assembly'));
+    } catch (\Exception $e) {
+      $e_method = "AssemblyPartAdd";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyPart(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(18);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.assemblypart.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "AssemblyPart";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyPartTable(Request $request)
+  {  
+    try {
+      $permission_flag = MyFuncs::isPermission_route(18);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $role_id = MyFuncs::getUserRoleId();
+      $ac_id = intval(Crypt::decrypt($request->id));
+      $rs_assemblys_part = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id order by `part_no`;"));
+      return view('admin.master.assemblypart.part_table',compact('rs_assemblys_part', 'role_id'));
+    } catch (\Exception $e) {
+      $e_method = "AssemblyPartTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyPartStore(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route("18, 19");
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[      
+        'assembly' => 'required', 
+        'part_no' => 'required',
+      ];
+      $validator = Validator::make($request->all(),$rules);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $ac_id = intval(Crypt::decrypt($request->assembly));
+      $asmb_parts = intval(substr(MyFuncs::removeSpacialChr($request->part_no), 0, 3));
+      $rs_save = DB::select(DB::raw("call up_create_assembly_part ($ac_id, $asmb_parts, 0);"));
+      $response=['status'=>1,'msg'=>'Submit Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "AssemblyPartStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyPartDelete($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(18);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $rs_delete = DB::select(DB::raw("DELETE from `assembly_parts` where `id` = $rec_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Part Deleted Successfully'];
+      return response()->json($response);  
+    } catch (\Exception $e) {
+      $e_method = "AssemblyPartDelete";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function exception_handler()
   {
     try {
@@ -809,151 +1030,15 @@ class MasterController extends Controller
 
 // //     //------------Assembly----------------------------//
 
-//   public function Assembly(Request $request)
-//   {
-//     try {
-//       $admin = Auth::guard('admin')->user();
-//       $userid = $admin->id;  
-//       $Districts= DB::select(DB::raw("call `up_fetch_district_access` ($userid, 0);"));  
-//       return view('admin.master.assembly.index',compact('Districts'));
-//     } catch (Exception $e) {}
-//   }
 
-//   public function AssemblyTable(Request $request)
-//   {
-//     try {
-//       $assemblys = DB::select(DB::raw("select `asm`.`id`, `asm`.`code`, `asm`.`name_e`, `asm`.`name_l`, (select count(*) from `assembly_parts` where `assembly_id` = `asm`.`id`) as `tcount` from `assemblys` `asm` where `asm`.`district_id` = $request->id order by `asm`.`code`;"));  
-//       return view('admin.master.assembly.assembly_table',compact('assemblys')); 
-//     } catch (Exception $e) {}
-//   }
-
-//   public function AssemblyStore(Request $request,$id=null)
-//   {    
-//     $rules=[        
-//       'district' => 'required', 
-//       'code' => 'required', 
-//       'name_english' => 'required', 
-//       'name_local_language' => 'required', 
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//       $errors = $validator->errors()->all();
-//       $response=array();
-//       $response["status"]=0;
-//       $response["msg"]=$errors[0];
-//       return response()->json($response);// response as json
-//     }
-    
-//     try {
-//       $admin = Auth::guard('admin')->user();
-//       $userid = $admin->id;  
-//       $asmb_id = 0;
-//       $asmb_parts = 0;
-//       if (empty($id)){
-//         $asmb_parts = $request->part_no;
-//       }else{
-//         $asmb_id = $id;  
-//       }
-//       $d_id = $request->district;
-//       $code = trim(str_replace('\'', '', $request->code));
-//       $name_e = trim(str_replace('\'', '', $request->name_english));
-//       $name_l = trim(str_replace('\'', '', $request->name_local_language));
-
-//       $rs_save = DB::select(DB::raw("call `up_save_assembly` ($asmb_id, $userid, $d_id, '$code', '$name_e', '$name_l', $asmb_parts);"));
-      
-//       $response=['status'=>$rs_save[0]->save_status,'msg'=>$rs_save[0]->remarks];
-//       return response()->json($response);
-//     } catch (Exception $e) {}      
-//   }
-
-//   public function AssemblyPartEdit($id)
-//   {
-//     try {
-//       $assembly = DB::select(DB::raw("select * from `assemblys` where `id` = $id limit 1;"));
-//       return view('admin.master.assemblypart.edit',compact('assembly'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function AssemblyPartStore(Request $request,$id=null)
-//   {    
-//     $rules=[      
-//       'assembly' => 'required', 
-//       'part_no' => 'required',
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
-
-//     try {
-//       DB::select(DB::raw("call up_create_assembly_part ('$request->assembly','$request->part_no','0')"));
-//       $response=['status'=>1,'msg'=>'Submit Successfully'];
-//       return response()->json($response);
-//     } catch (Exception $e) {}
-//   }
-
-//   public function AssemblyEdit($id)
-//   {
-//     try {
-//       $admin = Auth::guard('admin')->user();
-//       $userid = $admin->id;  
-//       $Districts= DB::select(DB::raw("call `up_fetch_district_access` ($userid, 0);"));
-//       $assembly = DB::select(DB::raw("select * from `assemblys` where `id` = $id limit 1;"));
-
-//       return view('admin.master.assembly.edit',compact('Districts', 'assembly'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function AssemblyDelete($id)
-//   {
-//     try {
-//       $assembly = DB::select(DB::raw("delete from `assemblys` where `id` = $id limit 1;"));
-//       $response=['status'=>1,'msg'=>'Assembly Deleted Successfully'];
-//       return response()->json($response);
-      
-//     } catch (Exception $e) {}     
-//   }   
+     
 
 // //     //------------AssemblyPart----------------------------//
 
-//   public function AssemblyPart(Request $request)
-//   {
-//     try {
-//       $admin = Auth::guard('admin')->user();
-//       $userid = $admin->id;  
-//       $Districts= DB::select(DB::raw("call `up_fetch_district_access` ($userid, 0);"));
-//       return view('admin.master.assemblypart.index',compact('Districts'));
-//     } catch (Exception $e) {}
-//   }
 
-//   public function AssemblyPartbtnclickBypartNo($value='')
-//   {
-//     try {
-//       return view('admin.master.assemblypart.part_no_div');
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function AssemblyPartTable(Request $request)
-//   {  
-//     try {
-//       $assemblyParts = DB::select(DB::raw("select * from `assembly_parts` where `assembly_id` = $request->assembly_id order by `part_no`;"));
-//       return view('admin.master.assemblypart.part_table',compact('assemblyParts'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function AssemblyPartDelete($id)
-//   {
-//     try {
-//       $rs_delete = DB::select(DB::raw("delete from `assembly_parts` where `id` = $id;"));
-//       return redirect()->back()->with(['message'=>'Part Deleted Successfully','class'=>'success']);   
-//     } catch (Exception $e) {}
-//   }
+  
 
 // //     //------------z-p-ward---------------------------//
 

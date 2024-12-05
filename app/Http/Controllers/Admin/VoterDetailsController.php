@@ -24,6 +24,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Crypt;
 use Imagick;
 use PDF;
 use TCPDF;
@@ -35,7 +36,8 @@ class VoterDetailsController extends Controller
   	public function districtWiseAssembly(Request $request)
   	{
   		try{
-    		$assemblys = DB::select(DB::raw("select * from `assemblys` where `district_id` = $request->id order by `code`;"));
+        $d_id = intval(Crypt::decrypt($request->id));
+    		$assemblys = DB::select(DB::raw("SELECT * from `assemblys` where `district_id` = $d_id order by `code`;"));
     		return view('admin.master.assembly.assembly_value_select_box',compact('assemblys'));
     	} catch (Exception $e) {}
   	}

@@ -193,19 +193,18 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	    Route::get('VillageWardDelete/{id}', 'MasterController@villageWardDelete')->name('admin.Master.VillageWardDelete');	//OK-------------	 
 	    
 // 	    //-Assembly--//
-// 	    Route::get('Assembly', 'MasterController@Assembly')->name('admin.Master.Assembly');  //OK Done--
-// 	    Route::post('Assembly-store{id?}', 'MasterController@AssemblyStore')->name('admin.Master.Assembly.store');	//OK----------   	    
-// 	    Route::get('AssemblyTable', 'MasterController@AssemblyTable')->name('admin.Master.AssemblyTable');	//OK---------------
-// 	    Route::get('Assembly-edit/{id}', 'MasterController@AssemblyEdit')->name('admin.Master.Assembly.edit');	//OK--------------
-// 	    Route::get('Assembly-delete/{id}', 'MasterController@AssemblyDelete')->name('admin.Master.Assembly.delete'); 	//OK-------------
+	    Route::get('assembly', 'MasterController@Assembly')->name('admin.Master.Assembly');
+	    Route::get('assembly-table', 'MasterController@AssemblyTable')->name('admin.Master.AssemblyTable');
+	    Route::post('assembly-store{id}', 'MasterController@AssemblyStore')->name('admin.Master.Assembly.store');    
+	    Route::get('assembly-edit/{id}', 'MasterController@AssemblyEdit')->name('admin.Master.Assembly.edit');
+	    Route::get('assembly-delete/{id}', 'MasterController@AssemblyDelete')->name('admin.Master.Assembly.delete');
+	    Route::get('assembly-part-add/{id}', 'MasterController@AssemblyPartAdd')->name('admin.Master.AssemblyPart.add');
 
 // 	    //-Assembly Part--//
-// 	    Route::get('AssemblyPart', 'MasterController@AssemblyPart')->name('admin.Master.AssemblyPart');		//OK Done--------
-// 	    Route::get('AssemblyPartbtnclickBypartNo', 'MasterController@AssemblyPartbtnclickBypartNo')->name('admin.Master.AssemblyPartbtnclickBypartNo');	//OK-----
-// 	    Route::post('AssemblyPart-store{id?}', 'MasterController@AssemblyPartStore')->name('admin.Master.AssemblyPart.store');		//OK-----------
-// 	    Route::get('AssemblyPartTable', 'MasterController@AssemblyPartTable')->name('admin.Master.AssemblyPartTable');		//OK-------------
-// 	    Route::get('AssemblyPart-edit/{id}', 'MasterController@AssemblyPartEdit')->name('admin.Master.AssemblyPart.edit');		//OK-----------
-// 	    Route::get('AssemblyPart-delete/{id}', 'MasterController@AssemblyPartDelete')->name('admin.Master.AssemblyPart.delete');	//OK-----------
+	    Route::get('AssemblyPart', 'MasterController@AssemblyPart')->name('admin.Master.AssemblyPart');
+	    Route::get('AssemblyPartTable', 'MasterController@AssemblyPartTable')->name('admin.Master.AssemblyPartTable');
+	    Route::post('assembly-part-store', 'MasterController@AssemblyPartStore')->name('admin.Master.AssemblyPart.store');
+	    Route::get('assembly-part-delete/{id}', 'MasterController@AssemblyPartDelete')->name('admin.Master.AssemblyPart.delete');
 
 
 // 	    //-Mapping---//
@@ -364,7 +363,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //     Route::group(['prefix' => 'VoterDetails'], function() {
 //            Route::get('/', 'VoterDetailsController@index')->name('admin.voter.details');	//OK---------
            
-//            Route::get('districtWiseAssembly', 'VoterDetailsController@districtWiseAssembly')->name('admin.voter.districtWiseAssembly');		//OK-------------
+           Route::get('districtWiseAssembly', 'VoterDetailsController@districtWiseAssembly')->name('admin.voter.districtWiseAssembly');		//OK-------------
 
 //            Route::get('districtWiseVillage', 'VoterDetailsController@districtWiseVillage')->name('admin.voter.districtWiseVillage');
 
