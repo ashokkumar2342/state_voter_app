@@ -18,12 +18,9 @@
           <div class="row"> 
             <div class="col-md-12"> 
               {{ Form::label('User','Users',['class'=>' control-label']) }}
-              <select class="form-control select2"  duallistbox="true" data-table-all-record="class_section_list" name="user" id="user_id"  onchange="callAjax(this,'{{route('admin.account.DistrictBlockAssign')}}'+'?id='+this.value,'state_select_box')" > 
-                <option value="" disabled selected>Select User</option>
-                @foreach ($users as $user)
-                 
-                <option value="{{ $user->id }}">{{ $user->email }} &nbsp;&nbsp;&nbsp;&nbsp;( {{ $user->first_name }} )</option>
-               
+              <select class="form-control select2"  duallistbox="true" data-table-all-record="class_section_list" name="user" id="user_id"  onchange="callAjax(this,'{{route('admin.account.DistrictBlockAssign')}}'+'?id='+this.value,'state_select_box')" required> 
+                @foreach ($users as $val_rec)
+                  <option value="{{ Crypt::encrypt($val_rec->opt_id) }}">{{ $val_rec->opt_text }}</option>
                 @endforeach  
               </select> 
               <p class="text-danger">{{ $errors->first('user') }}</p>

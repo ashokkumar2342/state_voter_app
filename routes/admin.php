@@ -74,13 +74,13 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 		Route::get('DistrictsAssign', 'AccountController@DistrictsAssign')->name('admin.account.DistrictsAssign');	//OK Done------------
 		Route::get('StateDistrictsSelect', 'AccountController@StateDistrictsSelect')->name('admin.account.StateDistrictsSelect'); 	//OK-----------
 		Route::post('DistrictsAssignStore', 'AccountController@DistrictsAssignStore')->name('admin.Master.DistrictsAssignStore');	//OK---------
-		//  Route::get('DistrictsAssignDelete/{id}', 'AccountController@DistrictsAssignDelete')->name('admin.Master.DistrictsAssignDelete');	//OK---------
+		Route::get('DistrictsAssignDelete/{id}', 'AccountController@DistrictsAssignDelete')->name('admin.Master.DistrictsAssignDelete');	//OK---------
 
-
-		// Route::get('BlockAssign', 'AccountController@BlockAssign')->name('admin.account.BlockAssign');		//OK Done-------
-		// Route::get('DistrictBlockAssign', 'AccountController@DistrictBlockAssign')->name('admin.account.DistrictBlockAssign'); 	//OK---------
-		// Route::post('DistrictBlockAssignStore', 'AccountController@DistrictBlockAssignStore')->name('admin.Master.DistrictBlockAssignStore');	//OK---------
-		// Route::get('DistrictBlockAssignDelete/{id}', 'AccountController@DistrictBlockAssignDelete')->name('admin.Master.DistrictBlockAssignDelete');	//OK--------
+		// District Assign to User (4)
+		Route::get('BlockAssign', 'AccountController@BlockAssign')->name('admin.account.BlockAssign');		//OK Done-------
+		Route::get('DistrictBlockAssign', 'AccountController@DistrictBlockAssign')->name('admin.account.DistrictBlockAssign'); 	//OK---------
+		Route::post('DistrictBlockAssignStore', 'AccountController@DistrictBlockAssignStore')->name('admin.Master.DistrictBlockAssignStore');	//OK---------
+		Route::get('DistrictBlockAssignDelete/{id}', 'AccountController@DistrictBlockAssignDelete')->name('admin.Master.DistrictBlockAssignDelete');	//OK--------
 
 		// Route::get('VillageAssign', 'AccountController@VillageAssign')->name('admin.account.VillageAssign'); 	//OK Done------------
 		// Route::get('DistrictBlockVillageAssign', 'AccountController@DistrictBlockVillageAssign')->name('admin.account.DistrictBlockVillageAssign'); //OK-------
