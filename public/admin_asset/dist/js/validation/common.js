@@ -106,7 +106,7 @@ function callJqueryDefault(divId){
 				{
 				$("#"+formObj.getAttribute('data-table-without-pagination')).DataTable({
 					'paging':   false,
-					 "bFilter": false,
+					 "aaSorting": [],
 					dom: 'Bfrtip',
 						buttons: [
 						 'excel',
@@ -124,6 +124,23 @@ function callJqueryDefault(divId){
 						]
 				});
 				}
+
+				else if(formObj.getAttribute('data-table-new'))
+				{
+				$("#"+formObj.getAttribute('data-table-new')).DataTable({
+				      "responsive": true, "lengthChange": false, "autoWidth": false,
+				      "buttons": ["excel", "colvis"]
+				    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+				}
+
+				else if(formObj.getAttribute('data-table-new-without-pagination'))
+				{
+				$("#"+formObj.getAttribute('data-table-new-without-pagination')).DataTable({
+				      "responsive": true, "lengthChange": false, "autoWidth": false, "paging": false,
+				      "buttons": ["excel", "colvis"]
+				    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+				}
+
 				else if(formObj.getAttribute('child-table'))
 				{
 									var table = $("#"+formObj.getAttribute('child-table')).DataTable({});

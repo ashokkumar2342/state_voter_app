@@ -1,4 +1,46 @@
-var full_url_js=window.location.protocol+'//'+ window.location.hostname;
+var full_url_js=(("https:"==document.location.protocol?"https://":"http://")+window.location.hostname+("81"==document.location.port?":81":""));
+
+(function() {
+    const idleDurationSecs = 1200;
+    //Local Setting
+    const redirectUrl = full_url_js+'/state_voter_app/public/admin/logout_time';
+    //Live EDMS
+    // const redirectUrl = full_url_js+'/edms/public/admin/logout_time';
+    //Staging EDMS
+    // const redirectUrl = full_url_js+'/stageedms/public/admin/logout_time';
+    
+    let idleTimeout;
+
+    const resetIdleTimeout = function() {
+        if(idleTimeout) clearTimeout(idleTimeout);
+        idleTimeout = setTimeout(() => location.href = redirectUrl, idleDurationSecs * 1000);
+    };
+
+    // Init on page load
+    resetIdleTimeout();
+    window.onmousemove = resetIdleTimeout;
+    window.onkeypress = resetIdleTimeout;
+    window.click = resetIdleTimeout;
+    window.onclick = resetIdleTimeout;
+    window.touchstart = resetIdleTimeout;
+    window.onfocus = resetIdleTimeout;
+    window.onchange = resetIdleTimeout;
+    window.onmouseover = resetIdleTimeout;
+    window.onmouseout = resetIdleTimeout;
+    window.onmousemove = resetIdleTimeout;
+    window.onmousedown = resetIdleTimeout;
+    window.onmouseup = resetIdleTimeout;
+    window.onkeypress = resetIdleTimeout;
+    window.onkeydown = resetIdleTimeout;
+    window.onkeyup = resetIdleTimeout;
+    window.onsubmit = resetIdleTimeout;
+    window.onreset = resetIdleTimeout;
+    window.onselect = resetIdleTimeout;
+    window.onscroll = resetIdleTimeout;
+
+})();
+
+
 function callAjax(obj,url,divId,callback){
 	$('#'+divId).html('Please Wait......');
     $.get(url,
@@ -133,6 +175,28 @@ function callAjax(obj,url,divId,callback){
 				       
 				  });
 			}
+			if(obj.getAttribute('data-table-new'))
+			{  
+				$("#ajax_data_table").DataTable({
+			      "responsive": true, "lengthChange": false, "autoWidth": false,
+			      "buttons": ["excel", "colvis"]
+			    }).buttons().container().appendTo('#ajax_data_table_wrapper .col-md-6:eq(0)');
+			}
+			if(obj.getAttribute('data-table-new-without-pagination'))
+			{  
+				$("#ajax_data_table").DataTable({
+			      "responsive": true, "lengthChange": false, "autoWidth": false, 'paging':   false,
+			      "buttons": ["excel", "colvis"]
+			    }).buttons().container().appendTo('#ajax_data_table_wrapper .col-md-6:eq(0)');
+			}
+			if(obj.getAttribute('data-table-new-without-pagination_2'))
+			{  
+				$("#ajax_data_table_2").DataTable({
+			      "responsive": true, "lengthChange": false, "autoWidth": false, 'paging':   false,
+			      "buttons": ["excel", "colvis"]
+			    }).buttons().container().appendTo('#ajax_data_table_2_wrapper .col-md-6:eq(0)');
+			}
+
 			if(obj.getAttribute('text-editor')!=""){
 				$('.'+obj.getAttribute('text-editor')).summernote({
 					toolbar: [
@@ -247,6 +311,9 @@ function callPopupLarge(obj,url){
 			}
 			if(obj.getAttribute('multiselect-form')=="true"){
 				$("#"+divId).find('.multiselect').selectpicker();
+			}
+			if(obj.getAttribute('duallistbox')=="true"){
+				$("#"+divId).find('.duallistbox').bootstrapDualListbox();
 			} 
 			if(obj.getAttribute('button-click'))
 			{ 
@@ -280,6 +347,26 @@ function callPopupLarge(obj,url){
 			if(obj.getAttribute('select2'))
 			{  
 				$(".select2").select2();
+			}
+
+			if(obj.getAttribute('data-table-new'))
+			{  
+				$("#popup_data_table").DataTable({
+			      "responsive": true, "lengthChange": false, "autoWidth": false,
+			      "buttons": ["excel", "colvis"]
+			    }).buttons().container().appendTo('#popup_data_table_wrapper .col-md-6:eq(0)');
+			}
+			
+			if(obj.getAttribute('my_camera'))
+			{  
+			Webcam.set({
+			   width: 250,
+			   height: 250,
+			   image_format: 'jpeg',
+			   jpeg_quality: 90
+			});
+			// $("#my_camera").select2();
+			Webcam.attach( '#my_camera' )
 			}
 			if(obj.getAttribute('crop-image'))
 			{  

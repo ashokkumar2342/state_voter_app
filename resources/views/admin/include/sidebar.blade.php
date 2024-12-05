@@ -1,29 +1,38 @@
-<aside class="main-sidebar sidebar-dark-primary elevation-4" style="font-size: 13px;font-weight">
-    <!-- Brand Logo -->
-    <a href="{{ route('admin.dashboard') }}" class="brand-link"> 
-      <span class="brand-text font-weight-light" style="margin-left: 47px"><b>Dashboard</b></span>
-    </a> 
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <!-- Sidebar user panel (optional) --> 
-      @php
-            $menuTypes=App\Helper\MyFuncs::userHasMinu();
-           
-         @endphp
-
-         @foreach ($menuTypes as $menuType)
-         @php
-           $subMenus = App\Helper\MyFuncs::mainMenu($menuType->id);
-         @endphp 
-      <!-- Sidebar Menu -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color:#001f3f ">
+  <a href="{{ route('admin.dashboard') }}" class="brand-link logo-switch text-center" style="background-color:#fff;border:solid black;">
+  <img src="{{ asset('images/nic_logo.png') }}" alt="" style="text-align: center;width: 220px;height: 38px"> 
+  </a>
+  <div class="sidebar">
+    <div class="mt-2">
       <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false"> 
-          <li class="nav-item has-treeview">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <li class="nav-item">
+            <a href="{{ route('admin.dashboard') }}" class="nav-link">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p><strong>Dashboard</strong></p>
+            </a> 
+          </li> 
+        </ul>
+      </nav>
+
+    </div>
+      @php
+       $menuTypes=App\Helper\MyFuncs::userHasMinu();
+      @endphp
+      @foreach ($menuTypes as $menuType)
+      @php
+      $subMenus = App\Helper\MyFuncs::mainMenu($menuType->id);
+      @endphp
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+          <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fa {{ $menuType->icon }}"></i>
+              <i class="{{ $menuType->icon }}"></i>
               <p>
                 {{ $menuType->name }}
-                <i class="right fas fa-angle-left"></i>
+                <i class="fas fa-angle-left right"></i> 
               </p>
             </a>
             <ul class="nav nav-treeview">
@@ -37,10 +46,11 @@
               @endforeach 
             </ul>
           </li>
-        @endforeach
+        @endforeach 
         </ul>
       </nav>
-      <!-- /.sidebar-menu -->
-    </div>
-    <!-- /.sidebar -->
-  </aside>
+  </div>
+</aside>
+
+
+      

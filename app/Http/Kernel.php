@@ -19,6 +19,9 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\TrustProxies::class,
+        \App\Http\Middleware\CheckHost::class,
+        \App\Http\Middleware\SecureHeaders::class,
+        \App\Http\Middleware\FrameHeadersMiddleware::class,
     ];
 
     /**
@@ -59,6 +62,13 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'admin' => \App\Http\Middleware\Admin\RedirectIfNotAuthenticated::class,
         'admin.guest' => \App\Http\Middleware\Admin\RedirectIfAuthenticated::class,
+        'parent' => \App\Http\Middleware\Parent\RedirectIfNotAuthenticated::class,
+        'parent.guest' => \App\Http\Middleware\Parent\RedirectIfAuthenticated::class,
+        'student' => \App\Http\Middleware\Student\RedirectIfNotAuthenticated::class,
+        'student.guest' => \App\Http\Middleware\Student\RedirectIfAuthenticated::class,
+        'preventBackHistory' => \App\Http\Middleware\PreventBackHistory::class,
+        // 'frameHeadersMiddleware' => \App\Http\Middleware\FrameHeadersMiddleware::class,
+        // 'checkHost' => \App\Http\Middleware\CheckHost::class,
         
 
     ];
