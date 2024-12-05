@@ -132,13 +132,13 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 
 //         //-districts-//
-// 	    Route::get('Districts', 'MasterController@districts')->name('admin.Master.districts'); //OK Done-----
-// 	    Route::post('Districts-Store{id?}', 'MasterController@districtsStore')->name('admin.Master.districtsStore');	//OK-----------	   
-// 	    Route::get('DistrictsTable', 'MasterController@DistrictsTable')->name('admin.Master.DistrictsTable');	//OK-----------
-// 	    Route::get('Districts-Edit/{id}', 'MasterController@districtsEdit')->name('admin.Master.districtsEdit');	//OK--------
-// 	    Route::get('Districts-delete/{id}', 'MasterController@districtsDelete')->name('admin.Master.districtsDelete');	//OK---------
-// 	    Route::get('DistrictsZpWard/{id}', 'MasterController@DistrictsZpWard')->name('admin.Master.DistrictsZpWard');	//OK--------
-// 	    Route::post('DistrictsZpWardStore', 'MasterController@DistrictsZpWardStore')->name('admin.Master.DistrictsZpWardStore');	//OK----------
+	    Route::get('districts', 'MasterController@districts')->name('admin.Master.districts');
+	    Route::get('districts-table', 'MasterController@DistrictsTable')->name('admin.master.districts.table');
+	    Route::post('districts-store{id}', 'MasterController@DistrictsStore')->name('admin.master.districts.store');
+	    Route::get('districts-edit/{id}', 'MasterController@DistrictsEdit')->name('admin.Master.districts.edit');	//OK--------
+	    Route::get('districts-delete/{id}', 'MasterController@DistrictsDelete')->name('admin.Master.district.delete');	//OK---------
+	    Route::get('districts-zpWard/{d_id}', 'MasterController@DistrictsZpWard')->name('admin.Master.districts.zpWard');	//OK--------
+	    Route::post('districts-zpWardStore/{d_id}', 'MasterController@DistrictsZpWardStore')->name('admin.Master.districts.zpWardStore');	//OK----------
 
 
 // 	    //-z-p-ward//
@@ -166,13 +166,13 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	    Route::post('BlockMCSTypeUpdate/{id}', 'MasterController@BlockMCSTypeUpdate')->name('admin.Master.BlockMCSTypeUpdate');		//OK------------  
 	    
 // 	    //-block-mcs-//
-// 	    Route::get('BlockMCS', 'MasterController@BlockMCS')->name('admin.Master.blockmcs');	//OK Done---
-// 	    Route::post('BlockMCSStore{id?}', 'MasterController@BlockMCSStore')->name('admin.Master.BlockMCSStore');	//OK-----
-// 	    Route::get('BlockMCSEdit/{id}', 'MasterController@BlockMCSEdit')->name('admin.Master.BlockMCSEdit');	//OK----    
-// 	    Route::get('BlockMCSTable', 'MasterController@BlockMCSTable')->name('admin.Master.BlockMCSTable');	//OK-----
-// 	    Route::get('BlockMCSDelete/{id}', 'MasterController@BlockMCSDelete')->name('admin.Master.BlockMCSDelete');	//OK-----    
-// 	    Route::get('BlockMCSpsWard/{id}', 'MasterController@BlockMCSpsWard')->name('admin.Master.BlockMCSpsWard');	//OK----
-// 	    Route::post('BlockMCSpsWardStore', 'MasterController@BlockMCSpsWardStore')->name('admin.Master.BlockMCSpsWardStore');	//OK------
+	    Route::get('block-mcs', 'MasterController@blockMCS')->name('admin.Master.blockmcs');
+	    Route::get('block-mcs-table', 'MasterController@blockMCSTable')->name('admin.master.block.mcs.table');
+	    Route::post('block-mcs-store{id}', 'MasterController@blockMCSStore')->name('admin.master.block.mcs.store');
+	    Route::get('block-mcs-edit/{id}', 'MasterController@blockMCSEdit')->name('admin.master.block.mcs.edit');
+	    Route::get('block-mcs-delete/{id}', 'MasterController@blockMCSDelete')->name('admin.master.block.mcs.delete'); 
+	    Route::get('block-mcs-psWard/{b_id}', 'MasterController@blockMCSpsWard')->name('admin.master.block.mcs.psWard');
+	    Route::post('block-mcs-psWardStore/{b_id}', 'MasterController@blockMCSpsWardStore')->name('admin.master.block.mcs.psWard.store');
 	    
 // 	    //-village--//
 // 	    Route::get('village', 'MasterController@village')->name('admin.Master.village'); //OK Done--
@@ -327,7 +327,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	     
 	     	   
 // 	    //-----------------onchange-----------------------------//
-// 	    Route::get('stateWiseDistrict', 'MasterController@stateWiseDistrict')->name('admin.Master.stateWiseDistrict');  	//OK----------- 
+	    Route::get('stateWiseDistrict', 'MasterController@stateWiseDistrict')->name('admin.Master.stateWiseDistrict');  	//OK----------- 
 // 	    Route::get('DistrictWiseBlock/{print_condition?}', 'MasterController@DistrictWiseBlock')->name('admin.Master.DistrictWiseBlock');	//OK--------------
 // 	    Route::get('BlockWiseVillage', 'MasterController@BlockWiseVillage')->name('admin.Master.BlockWiseVillage');		//OK-----------
 // 	    Route::get('BlockWiseVoterListType', 'MasterController@BlockWiseVoterListType')->name('admin.Master.BlockWiseVoterListType');		//OK-----------

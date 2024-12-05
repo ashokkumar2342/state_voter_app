@@ -96,12 +96,12 @@
     width: 100%;
    }
 
-   .card{
+   /*.card{
     border-radius: 1.5rem;
    }
    .modal-content{
     border-radius: 1rem;
-   }
+   }*/
 
    
    
