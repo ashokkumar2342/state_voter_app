@@ -26,12 +26,14 @@
                             <td>{{ $rs_val->block_mc_type_e}}</td>
                             <td>{{ $rs_val->pscount}}</td>
                             <td class="text-nowrap">
-
-                                <button type="button" onclick="callPopupLarge(this,'{{ route('admin.master.block.mcs.psWard', Crypt::encrypt($rs_val->id)) }}')" title="" class="btn btn-primary btn-sm">Add P.S Ward</button>
+                                @if ($rs_val->block_mc_type_id == 1)
+                                    <button type="button" onclick="callPopupLarge(this,'{{ route('admin.master.block.mcs.psWard', Crypt::encrypt($rs_val->id)) }}')" title="" class="btn btn-primary btn-sm">Add P.S Ward</button>
+                                @endif
 
                                 <button type="button" select2="true" onclick="callPopupLarge(this,'{{ route('admin.master.block.mcs.edit', Crypt::encrypt($rs_val->id)) }}')" title="" class="btn btn-info btn-sm"><i class="fa fa-edit"></i> Edit</button>
-
-                                <button type="button" success-popup="true" select-triger="district_select_box" onclick="if(confirm('Are you sure you want to delete this record?')==true){callAjax(this,'{{ route('admin.master.block.mcs.delete', Crypt::encrypt($rs_val->id)) }}')}" title="" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Delete</button>
+                                @if ($role_id == 1)
+                                    <button type="button" success-popup="true" select-triger="district_select_box" onclick="if(confirm('Are you sure you want to delete this record?')==true){callAjax(this,'{{ route('admin.master.block.mcs.delete', Crypt::encrypt($rs_val->id)) }}')}" title="" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Delete</button>
+                                @endif
                             </td>
                         </tr> 
                     @endforeach

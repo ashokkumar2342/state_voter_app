@@ -10,7 +10,6 @@
             <form action="{{ route('admin.master.block.mcs.store', Crypt::encrypt($rec_id)) }}" method="post" class="add_form" select-triger="district_select_box" button-click="btn_close">
                 {{ csrf_field() }}
                 <div class="box-body">
-                        <input type="hidden" name="states" value="{{ Crypt::encrypt($BlocksMcs[0]->states_id)}}">
                         <input type="hidden" name="district" value="{{ Crypt::encrypt($BlocksMcs[0]->districts_id) }}"> 
                     <div class="row">
                         <div class="form-group col-lg-4">

@@ -13,35 +13,28 @@
             <form action="{{ route('admin.master.block.mcs.store', Crypt::encrypt(0)) }}" method="post" class="add_form" no-reset="true" select-triger="district_select_box" reset-input-text="code,name_english,name_local_language,block_mc_type,ps_ward">
             {{ csrf_field() }} 
                 <div class="row">
-                    <div class="col-lg-6 form-group">
-                        <label for="exampleInputEmail1">State</label>
-                        <span class="fa fa-asterisk"></span>
-                        <select name="states" class="form-control select2" onchange="callAjax(this,'{{ route('admin.Master.stateWiseDistrict') }}','district_select_box');">
-                            <option selected disabled>Select States</option>
-                            @foreach ($States as $State)
-                            <option value="{{ Crypt::encrypt($State->id) }}">{{ $State->code }}--{{ $State->name_e }}</option>  
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-lg-6 form-group">
+                    <div class="col-lg-12 form-group">
                         <label for="exampleInputEmail1">District</label>
                         <span class="fa fa-asterisk"></span>
                         <select name="district" class="form-control select2" id="district_select_box" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.master.block.mcs.table') }}', 'result_div_id')">
                             <option selected disabled>Select District</option>
+                            @foreach ($rs_district as $rs_val)
+                                <option value="{{ Crypt::encrypt($rs_val->opt_id) }}">{{ $rs_val->opt_text }}</option>  
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-lg-3 form-group">
-                        <label for="exampleInputEmail1">Block Code</label>
+                        <label for="exampleInputEmail1">Block / MC's Code</label>
                         <span class="fa fa-asterisk"></span>
                         <input type="text" name="code" id="code" class="form-control" placeholder="Enter Code" maxlength="5" required>
                     </div>
                     <div class="col-lg-3 form-group">
-                        <label for="exampleInputPassword1">Block Name(English)</label>
+                        <label for="exampleInputPassword1">Block / MC's Name(English)</label>
                         <span class="fa fa-asterisk"></span>
                         <input type="text" name="name_english" id="name_english" class="form-control" placeholder="Enter Name (English)" maxlength="50" required>
                     </div>
                     <div class="col-lg-3 form-group">
-                        <label for="exampleInputPassword1">Block Name(Hindi)</label>
+                        <label for="exampleInputPassword1">Block / MC's Name(Hindi)</label>
                         <span class="fa fa-asterisk"></span>
                         <input type="text" name="name_local_language" id="name_local_language" class="form-control" placeholder="Enter Name (In Hindi)" maxlength="100" required>
                     </div>
@@ -50,8 +43,8 @@
                         <span class="fa fa-asterisk"></span>
                         <select name="block_mc_type_id" id="block_mc_type" class="form-control select2">
                             <option selected disabled>Select Block / MC's Type</option>
-                            @foreach ($BlockMCTypes as $BlockMCType)
-                            <option value="{{ Crypt::encrypt($BlockMCType->id) }}">{{ $BlockMCType->block_mc_type_e }}</option>  
+                            @foreach ($rs_block_mc_type as $rs_val)
+                                <option value="{{ Crypt::encrypt($rs_val->id) }}">{{ $rs_val->block_mc_type_e }}</option>  
                             @endforeach
                         </select>
                     </div>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Helper\MyFuncs;
 use App\Http\Controllers\Controller;
 use Excel;
 use Illuminate\Http\Request;
@@ -11,6 +10,8 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Validator;
+use App\Helper\MyFuncs;
+use App\Helper\SelectBox;
 use PDF;
 use Response;
 
@@ -180,7 +181,7 @@ class MasterController extends Controller
       }
       $district_id = intval(Crypt::decrypt($d_id));
       $zpward = intval(substr(MyFuncs::removeSpacialChr($request->zp_ward), 0, 2));
-      $rs_save = DB::select(DB::raw("call up_create_zp_ward ($district_id, $zpward, 0)")); 
+      $rs_save = DB::select(DB::raw("call up_create_zp_ward ($district_id, $zpward, 0);")); 
       $response=['status'=>1,'msg'=>'ZP Wards Created Successfully'];
       return response()->json($response);
     } catch (\Exception $e) {
@@ -196,9 +197,9 @@ class MasterController extends Controller
       if(!$permission_flag){
         return view('admin.common.error');
       }
-      $States = DB::select(DB::raw("SELECT * from `states` order by `name_e`;"));     
-      $BlockMCTypes = DB::select(DB::raw("SELECT * from `block_mc_type` order by `block_mc_type_e`;"));    
-      return view('admin.master.block.index',compact('States', 'BlockMCTypes'));
+      $rs_district = SelectBox::get_district_access_list_v1();    
+      $rs_block_mc_type = DB::select(DB::raw("SELECT * from `block_mc_type` order by `block_mc_type_e`;"));    
+      return view('admin.master.block.index',compact('rs_district', 'rs_block_mc_type'));
     } catch (\Exception $e) {
       $e_method = "blockMCS";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
@@ -212,9 +213,10 @@ class MasterController extends Controller
       if(!$permission_flag){
         return view('admin.common.error');
       }
+      $role_id = MyFuncs::getUserRoleId();
       $d_id = intval(Crypt::decrypt($request->id));
-      $rs_blocks = DB::select(DB::raw("SELECT `bl`.`id`, `bl`.`code`, `bl`.`name_e`, `bl`.`name_l`, `blt`.`block_mc_type_e`, (select Count(*) from `ward_ps` where `blocks_id` = `bl`.`id`) as `pscount` from `blocks_mcs` `bl` inner join `block_mc_type` `blt` on `blt`.`id` = `bl`.`block_mc_type_id` where `bl`.`districts_id` = $d_id order by `bl`.`name_e`;"));
-      return view('admin.master.block.block_table',compact('rs_blocks'));
+      $rs_blocks = DB::select(DB::raw("SELECT `bl`.`id`, `bl`.`code`, `bl`.`name_e`, `bl`.`name_l`, `blt`.`block_mc_type_e`, (select Count(*) from `ward_ps` where `blocks_id` = `bl`.`id`) as `pscount`, `bl`.`block_mc_type_id` from `blocks_mcs` `bl` inner join `block_mc_type` `blt` on `blt`.`id` = `bl`.`block_mc_type_id` where `bl`.`districts_id` = $d_id order by `bl`.`name_e`;"));
+      return view('admin.master.block.block_table',compact('rs_blocks', 'role_id'));
     } catch (Exception $e) {
       $e_method = "blockMCSTable";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
@@ -230,7 +232,6 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rules=[
-        'states' => 'required', 
         'district' => 'required', 
         'code' => 'required|max:5', 
         'name_english' => 'required', 
@@ -239,7 +240,6 @@ class MasterController extends Controller
       ];
 
       $customMessages = [
-        'states.required'=> 'Please Select State',
         'district.required'=> 'Please Select District',
 
         'code.required'=> 'Please Enter Block Code',                
@@ -262,7 +262,7 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $rec_id = intval(Crypt::decrypt($id));
-      $s_id = intval(Crypt::decrypt($request->states));
+      $s_id = 0;
       $d_id = intval(Crypt::decrypt($request->district));
       $b_type_id = intval(Crypt::decrypt($request->block_mc_type_id));
 
@@ -273,7 +273,6 @@ class MasterController extends Controller
       $stamp1 = substr(MyFuncs::removeSpacialChr($request->stamp_l1), 0, 100);
       $stamp2 = substr(MyFuncs::removeSpacialChr($request->stamp_l2), 0, 100);
       
-      
       $user_id = MyFuncs::getUserId();
       if ($rec_id == 0) { 
         $pswards = intval(substr(MyFuncs::removeSpacialChr($request->ps_ward), 0, 2));
@@ -282,7 +281,7 @@ class MasterController extends Controller
         $pswards = 0;
         $block_id = $rec_id;
       }
-      $rs_update = DB::select(DB::raw("call `up_save_block` ($block_id, $user_id, $s_id, $d_id, '$bcode', '$name_e', '$name_l', $pswards, $b_type_id, '$stamp1', '$stamp2')"));
+      $rs_update = DB::select(DB::raw("call `up_save_block` ($block_id, $user_id, $s_id, $d_id, '$bcode', '$name_e', '$name_l', $pswards, $b_type_id, '$stamp1', '$stamp2');"));
       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
       return response()->json($response);
     } catch (\Exception $e) {
@@ -366,11 +365,237 @@ class MasterController extends Controller
       }
       $block_id = intval(Crypt::decrypt($b_id));
       $pswards = intval(substr(MyFuncs::removeSpacialChr($request->ps_ward), 0, 2));
-      $rs_save = DB::select(DB::raw("call up_create_ps_ward ($block_id, $pswards, 0)")); 
+      $rs_save = DB::select(DB::raw("call up_create_ps_ward ($block_id, $pswards, 0);")); 
       $response=['status'=>1,'msg'=>'Ward Created Successfully'];
       return response()->json($response);
     } catch (\Exception $e) {
       $e_method = "blockMCSpsWardStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function village(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(14);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.village.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "imageShowPath";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageTable(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(14);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $role_id = MyFuncs::getUserRoleId();
+      $block_id = intval(Crypt::decrypt($request->id));
+      $rs_village = DB::select(DB::raw("SELECT `vil`.`id`, `vil`.`code`, `vil`.`name_e`, `vil`.`name_l`, (select count(*) from `ward_villages` where `village_id` = `vil`.`id`) as `tcount` from `villages` `vil` where `blocks_id` = $block_id;"));
+      return view('admin.master.village.village_table',compact('rs_village', 'role_id')); 
+    } catch (\Exception $e) {
+      $e_method = "villageTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageStore(Request $request, $id)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(14);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'district' => 'required', 
+        'block_mcs' => 'required', 
+        'code' => 'required|max:5', 
+        'name_english' => 'required|max:50', 
+        'name_local_language' => 'required|max:100', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block_mcs.required'=> 'Please Select Block / MC\'s',
+
+        'code.required'=> 'Please Enter Panchayat / MC\'s Code',                
+        'code.max'=> 'Panchayat / MC\'s Code Should Be Maximum of 5 Character',
+
+        'name_english.required'=> 'Please Enter Panchayat / MC\'s Name English',                
+        'name_english.max'=> 'Panchayat / MC\'s Name English Should Be Maximum of 50 Character',
+
+        'name_local_language.required'=> 'Please Enter Panchayat / MC\'s Name Local Language',                
+        'name_local_language.max'=> 'Panchayat / MC\'s Name Local Language Should Be Maximum of 100 Character',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $user_id = MyFuncs::getUserId();
+      $v_id = 0;
+      $wards = 0;
+      $s_id = 0;
+      $d_id = intval(Crypt::decrypt($request->district));
+      $b_id = intval(Crypt::decrypt($request->block_mcs));
+
+      $vcode = substr(MyFuncs::removeSpacialChr($request->code), 0, 5);
+      $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+      $name_l = MyFuncs::removeSpacialChr($request->name_local_language);
+
+      if ($rec_id == 0) {
+        $wards = intval(substr(MyFuncs::removeSpacialChr($request->ward), 0, 2));
+        if($wards == ""){
+          $wards = 0;
+        }
+      }else{
+        $v_id = $rec_id;
+      }
+      $rs_update = DB::select(DB::raw("call `up_save_village` ($v_id, $user_id, $s_id, $d_id, $b_id, '$vcode', '$name_e', '$name_l', $wards);")); 
+      $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
+      return response()->json($response);  
+    } catch (\Exception $e) {
+      $e_method = "villageStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageEdit($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(14);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $village = DB::select(DB::raw("SELECT * from villages where `id` = $rec_id limit 1;"));
+      return view('admin.master.village.edit',compact('village', 'rec_id'));
+    } catch (\Exception $e) {
+      $e_method = "villageEdit";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageDelete($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(14);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $village = DB::select(DB::raw("DELETE from villages where `id` = $rec_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "villageDelete";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageWardAdd($v_id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(14);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $village_id = intval(Crypt::decrypt($v_id));
+      $Village_Name = DB::select(DB::raw("SELECT `name_e` from villages where `id` = $village_id limit 1;")); 
+      return view('admin.master.village.add_ward',compact('Village_Name'));
+    } catch (\Exception $e) {
+      $e_method = "villageWardAdd";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageWard(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(13);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.wards.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "villageWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageWardTable(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(13);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $role_id = MyFuncs::getUserRoleId();
+      $village_id = intval(Crypt::decrypt($request->id));
+      $rs_wards = DB::select(DB::raw("SELECT * from `ward_villages` where `village_id` = $village_id order by `ward_no`;"));
+      return view('admin.master.wards.ward_table',compact('rs_wards', 'role_id'));
+    } catch (\Exception $e) {
+      $e_method = "villageWardTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function wardStore(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route("13, 14");
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'village' => 'required', 
+        'ward' => 'required', 
+      ];
+      $validator = Validator::make($request->all(),$rules);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $wards = intval(substr(MyFuncs::removeSpacialChr($request->ward), 0, 2));
+      $rs_update = DB::select(DB::raw("call up_create_village_ward ($village_id, $wards, 0);"));
+      $response=['status'=>1,'msg'=>'Ward Created Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "wardStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageWardDelete($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(13);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $rs_delete = DB::select(DB::raw("DELETE from `ward_villages` where `id` = $rec_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "villageWardDelete";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
@@ -442,148 +667,43 @@ class MasterController extends Controller
   
 // //     //------------block-mcs----------------------------//
 
-// //     //------------village----------------------------//
-//   public function village(Request $request)
-//   {
-//     try {
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.village.index',compact('States'));
-//     } catch (Exception $e) {}
-//   }
+// //     //------------village----------------------------// 
 
+  
 
-//   public function villageTable(Request $request)
-//   {
-//     try {
-//       $Villages = DB::select(DB::raw("select `vil`.`id`, `vil`.`code`, `vil`.`name_e`, `vil`.`name_l`, (select count(*) from `ward_villages` where `village_id` = `vil`.`id`) as `tcount` from `villages` `vil` where `blocks_id` = $request->id;"));
-//       return view('admin.master.village.village_table',compact('Villages')); 
-//     } catch (Exception $e) {}
-//   }
+  // public function stateWiseDistrict(Request $request){
+  //   try{
+  //     $user_id = MyFuncs::getUserId(); 
+  //     $state_id = intval(Crypt::decrypt($request->id));
+  //     $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($user_id, $state_id)"));   
+  //     return view('admin.master.districts.value_select_box',compact('Districts'));
+  //   } catch (Exception $e) {}
+  // }
 
-//   public function villageStore(Request $request,$id=null)
-//   {  
-//     $rules=[
-//       'states' => 'required', 
-//       'district' => 'required', 
-//       'block_mcs' => 'required', 
-//       'code' => 'required', 
-//       'name_english' => 'required', 
-//       'name_local_language' => 'required', 
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//       $errors = $validator->errors()->all();
-//       $response=array();
-//       $response["status"]=0;
-//       $response["msg"]=$errors[0];
-//       return response()->json($response);// response as json
-//     }
-//     try{
-//       $user=Auth::guard('admin')->user();
-//       $v_id = 0;
-//       $wards = 0;
-//       $s_id = $request->states;
-//       $d_id = $request->district;
-//       $b_id = $request->block_mcs;
-//       $vcode = str_replace('\'', '', trim($request->code)); 
-//       $name_e = str_replace('\'', '', trim($request->name_english));
-//       $name_l = str_replace('\'', '', trim($request->name_local_language));
-//       if (empty($id)) { 
-//         $wards = trim($request->ward);
-//         if($wards == ""){
-//           $wards = 0;
-//         }
-//       }else{
-//         $v_id = $id;
-//       }
-//       $rs_update = DB::select(DB::raw("call `up_save_village` ($v_id, $user->id, $s_id, $d_id, $b_id, '$vcode','$name_e','$name_l', $wards)")); 
-//       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
-//       return response()->json($response);  
-//     } catch (Exception $e) {}
-//   }
-
-//   public function villageWardAdd($village_id)
-//   {
-//     try {
-//       $Village = DB::select(DB::raw("Select * from villages where `id` = $village_id limit 1")); 
-//       return view('admin.master.village.add_ward',compact('Village'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function wardStore(Request $request)
-//   { 
-//     $rules=[
-//       'village' => 'required', 
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//       $errors = $validator->errors()->all();
-//       $response=array();
-//       $response["status"]=0;
-//       $response["msg"]=$errors[0];
-//       return response()->json($response);// response as json
-//     }
-    
-//     $rs_update = DB::select(DB::raw("call up_create_village_ward ('$request->village','$request->ward','0')"));
-//     $response=['status'=>1,'msg'=>'Ward Created Successfully'];
-//     return response()->json($response);
-//   }
-
-//   public function villageEdit($id)
-//   {
-//     try { 
-//       $village = DB::select(DB::raw("Select * from villages where `id` = $id limit 1"));
-//       return view('admin.master.village.edit',compact('village'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function villageDelete($id)
-//   {
-//     try { 
-//       $village = DB::select(DB::raw("delete from villages where `id` = $id limit 1"));
-//       $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
-//       return response()->json($response);
-//     } catch (Exception $e) {}
-//   }
-
-  public function stateWiseDistrict(Request $request){
+  public function DistrictWiseBlock(Request $request, $print_condition=null)
+  {
     try{
-      $user_id = MyFuncs::getUserId(); 
-      $state_id = intval(Crypt::decrypt($request->id));
-      $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($user_id, $state_id)"));   
-      return view('admin.master.districts.value_select_box',compact('Districts'));
+      $d_id = intval(Crypt::decrypt($request->id));
+      $user_id = MyFuncs::getUserId();
+      if (empty($print_condition)) {
+        $BlocksMcs=DB::select(DB::raw("call `up_fetch_block_access` ($user_id, $d_id);")); 
+      }else {
+        $BlocksMcs=DB::select(DB::raw("call `up_fetch_block_access_voterlistprint` ($user_id, $d_id, '$print_condition');")); 
+      } 
+      return view('admin.master.block.value_select_box',compact('BlocksMcs'));
     } catch (Exception $e) {}
   }
 
-//   public function DistrictWiseBlock(Request $request,$print_condition=null)
-//   {
-//     try{
-//       $admin=Auth::guard('admin')->user();
-//       if (empty($print_condition)) {
-//         $BlocksMcs=DB::select(DB::raw("call `up_fetch_block_access` ($admin->id, '$request->id')")); 
-//       }else {
-//         $BlocksMcs=DB::select(DB::raw("call `up_fetch_block_access_voterlistprint` ($admin->id, '$request->id','$print_condition')")); 
-//       } 
-//       return view('admin.master.block.value_select_box',compact('BlocksMcs'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function BlockWiseVillage(Request $request)
-//   {
-//     try{  
-//       $d_id = 0;
-//       $b_id = 0;
-//       if(!empty($request->district_id)){$d_id = $request->district_id;}
-//       if(!empty($request->id)){$b_id = $request->id;}
-
-//       $admin = Auth::guard('admin')->user(); 
-
-//       $Villages = DB::select(DB::raw("call `up_fetch_village_access` ($admin->id, '$d_id','$b_id','0')"));  
-//       return view('admin.master.village.value_select_box',compact('Villages'));
-//     } catch (Exception $e) {}
-//   }
+  public function BlockWiseVillage(Request $request)
+  {
+    try{
+      $user_id = MyFuncs::getUserId();
+      $d_id = intval(Crypt::decrypt($request->district_id));
+      $b_id = intval(Crypt::decrypt($request->id));
+      $Villages = DB::select(DB::raw("call `up_fetch_village_access` ($user_id, $d_id, $b_id, 0);"));  
+      return view('admin.master.village.value_select_box',compact('Villages'));
+    } catch (Exception $e) {}
+  }
 
 
 //   public function BlockWiseVoterListType(Request $request)
@@ -961,30 +1081,8 @@ class MasterController extends Controller
 
 // //      //------------ward-village----------------------------//
 
-//   public function villageWard(Request $request)
-//   {
-//     try {
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.wards.index',compact('States'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function villageWardTable(Request $request)
-//   {
-//     try {
-//       $wards = DB::select(DB::raw("select * from `ward_villages` where `village_id` = $request->id order by `ward_no`;"));
-//       return view('admin.master.wards.ward_table',compact('wards'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function villageWardDelete($id)
-//   {
-//     try {
-//       $rs_delete = DB::select(DB::raw("delete from `ward_villages` where `id` = $id limit 1;"));
-//       $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
-//       return response()->json($response);
-//     } catch (Exception $e) {}
-//   }
 
 // //     //-----Mapping Village Assembly Part-----------------
 //   public function MappingVillageAssemblyPart()

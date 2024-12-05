@@ -176,21 +176,20 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	    Route::post('block-mcs-psWardStore/{b_id}', 'MasterController@blockMCSpsWardStore')->name('admin.master.block.mcs.psWard.store');
 	    
 // 	    //-village--//
-// 	    Route::get('village', 'MasterController@village')->name('admin.Master.village'); //OK Done--
-// 	    Route::post('village-store{id?}', 'MasterController@villageStore')->name('admin.Master.village.store');	 	//OK--------  
-// 	    // Route::get('BtnClickByvillageForm', 'MasterController@BtnClickByvillageForm')->name('admin.Master.BtnClickByvillageForm');
-// 	    Route::get('villageTable', 'MasterController@villageTable')->name('admin.Master.villageTable');		//OK--------
-// 	    Route::get('village-edit/{id}', 'MasterController@villageEdit')->name('admin.Master.village.edit');	//OK--------
-// 	    // Route::post('villageUpdate/{id}', 'MasterController@villageUpdate')->name('admin.Master.village.villageUpdate');
-// 	    Route::get('village-delete/{id}', 'MasterController@villageDelete')->name('admin.Master.village.delete');	//OK-------
-// 	    Route::get('village-ward-add/{id}', 'MasterController@villageWardAdd')->name('admin.Master.village.ward.add');	//OK----------
+	    Route::get('village', 'MasterController@village')->name('admin.Master.village'); //OK Done--
+	    Route::get('village-table', 'MasterController@villageTable')->name('admin.Master.village.table');
+	    Route::post('village-store{id}', 'MasterController@villageStore')->name('admin.Master.village.store');
+	    Route::get('village-edit/{id}', 'MasterController@villageEdit')->name('admin.Master.village.edit');
+	    Route::get('village-delete/{id}', 'MasterController@villageDelete')->name('admin.Master.village.delete');
+	    Route::get('village-ward-add/{v_id}', 'MasterController@villageWardAdd')->name('admin.Master.village.ward.add');
 
-// 	    Route::get('villageexportsampale', 'MasterController@villageSampleExport')->name('admin.Master.villageexportsampale'); 
+	    // Route::get('villageexportsampale', 'MasterController@villageSampleExport')->name('admin.Master.villageexportsampale'); 
 
 // 	    //- Ward village--//
-// 	    Route::get('ward', 'MasterController@villageWard')->name('admin.Master.ward');		//OK Done---   
-// 	    Route::post('ward-store', 'MasterController@wardStore')->name('admin.Master.ward.store');	 //OK---------------
-// 	    Route::get('wardTable', 'MasterController@villageWardTable')->name('admin.Master.ward.table');	//OK-------------	 
+	    Route::get('ward', 'MasterController@villageWard')->name('admin.Master.ward');  
+	    Route::get('wardTable', 'MasterController@villageWardTable')->name('admin.Master.ward.table');
+	    Route::post('ward-store', 'MasterController@wardStore')->name('admin.Master.ward.store');
+	    
 // 	    Route::get('VillageWardDelete/{id}', 'MasterController@villageWardDelete')->name('admin.Master.VillageWardDelete');	//OK-------------	 
 	    
 // 	    //-Assembly--//
@@ -328,9 +327,9 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	     
 	     	   
 // 	    //-----------------onchange-----------------------------//
-	    Route::get('stateWiseDistrict', 'MasterController@stateWiseDistrict')->name('admin.Master.stateWiseDistrict');  	//OK----------- 
-// 	    Route::get('DistrictWiseBlock/{print_condition?}', 'MasterController@DistrictWiseBlock')->name('admin.Master.DistrictWiseBlock');	//OK--------------
-// 	    Route::get('BlockWiseVillage', 'MasterController@BlockWiseVillage')->name('admin.Master.BlockWiseVillage');		//OK-----------
+//	    Route::get('stateWiseDistrict', 'MasterController@stateWiseDistrict')->name('admin.Master.stateWiseDistrict');  	//OK----------- 
+	    Route::get('DistrictWiseBlock/{print_condition?}', 'MasterController@DistrictWiseBlock')->name('admin.Master.DistrictWiseBlock');	//OK--------------
+	    Route::get('BlockWiseVillage', 'MasterController@BlockWiseVillage')->name('admin.Master.BlockWiseVillage');		//OK-----------
 // 	    Route::get('BlockWiseVoterListType', 'MasterController@BlockWiseVoterListType')->name('admin.Master.BlockWiseVoterListType');		//OK-----------
 
 
