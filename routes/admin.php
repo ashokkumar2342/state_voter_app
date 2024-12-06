@@ -189,8 +189,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	    Route::get('ward', 'MasterController@villageWard')->name('admin.Master.ward');  
 	    Route::get('wardTable', 'MasterController@villageWardTable')->name('admin.Master.ward.table');
 	    Route::post('ward-store', 'MasterController@wardStore')->name('admin.Master.ward.store');
-	    
-// 	    Route::get('VillageWardDelete/{id}', 'MasterController@villageWardDelete')->name('admin.Master.VillageWardDelete');	//OK-------------	 
+	    Route::get('ward-delete/{id}', 'MasterController@villageWardDelete')->name('admin.Master.ward.delete');
 	    
 // 	    //-Assembly--//
 	    Route::get('assembly', 'MasterController@Assembly')->name('admin.Master.Assembly');
@@ -261,14 +260,14 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	  	
 	     
 // 	     //Ward Bandi Voter Entry////
-// 	    Route::get('WardBandi', 'MasterController@WardBandi')->name('admin.Master.WardBandi');	//OK Done---------
-// 	    Route::get('WardBandiFilter', 'MasterController@WardBandiFilter')->name('admin.Master.WardBandiFilter');	   //OK---------
-// 	    Route::get('WardBandiFilterAssemblyPart', 'MasterController@WardBandiFilterAssemblyPart')->name('admin.Master.WardBandiFilterAssemblyPart');	//OK---------
-// 	    Route::get('WardBandiFilterward', 'MasterController@WardBandiFilterward')->name('admin.Master.WardBandiFilterward');	//OK------------------
-// 	    Route::post('WardBandiStore', 'MasterController@WardBandiStore')->name('admin.Master.WardBandiStore');	//OK-------------   	    
-// 	    Route::get('WardBandiReport', 'MasterController@WardBandiReport')->name('admin.Master.WardBandiReport');	//OK---------------
-// 	    Route::post('WardBandiReportGenerate', 'MasterController@WardBandiReportGenerate')->name('admin.Master.WardBandiReportGenerate');	//OK-------
-// 	    Route::get('DeleteVoter/{id}', 'MasterController@removeVoter_wardbandi')->name('admin.Master.removeVoter_wardbandi');		//OK-----------
+	    Route::get('ward-bandi', 'MasterController@wardBandi')->name('admin.Master.WardBandi');
+	    Route::get('ward-bandi-form', 'MasterController@wardBandiFrom')->name('admin.Master.WardBandiFilter');
+	    Route::get('WardBandiFilterAssemblyPart', 'MasterController@wardBandiFilterAssemblyPart')->name('admin.Master.WardBandiFilterAssemblyPart');
+	    Route::get('WardBandiFilterward', 'MasterController@wardBandiFilterward')->name('admin.Master.WardBandiFilterward');
+	    Route::post('ward-bandi-store', 'MasterController@wardBandiStore')->name('admin.Master.WardBandiStore');
+	    Route::get('remove-voter/{id}', 'MasterController@removeVoter_wardbandi')->name('admin.Master.removeVoter_wardbandi');		//OK-----------
+	    Route::get('WardBandiReport', 'MasterController@WardBandiReport')->name('admin.Master.WardBandiReport');
+	    Route::post('WardBandiReportGenerate', 'MasterController@WardBandiReportGenerate')->name('admin.Master.WardBandiReportGenerate');	//OK-------
 
 // 	    //-----------------ward-bandi-with-booth--------------------------//
 // 	    Route::get('WardBandiWithBooth', 'MasterController@WardBandiWithBooth')->name('admin.Master.WardBandiWithBooth');		//OK Done--------
@@ -341,11 +340,11 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 
 // 	    //----------------------------------------------//
-// 	    Route::get('booth', 'MasterController@booth_form')->name('admin.Master.booth');   //OK Done------
-// 	    Route::post('boothStore/{id?}', 'MasterController@boothStore')->name('admin.Master.boothStore'); 	//OK---------
-// 	    Route::get('boothTable', 'MasterController@boothTable')->name('admin.Master.boothTable');	//OK-------
-// 	    Route::get('boothEdit/{id}', 'MasterController@boothEdit')->name('admin.Master.boothEdit');   //OK--------------
-// 	    Route::get('boothDelete/{id}', 'MasterController@boothDelete')->name('admin.Master.boothDelete'); 	//OK-----------  
+	    Route::get('booth', 'MasterController@booth_form')->name('admin.Master.booth');
+	    Route::get('booth-table', 'MasterController@boothTable')->name('admin.Master.booth.table');
+	    Route::post('booth-store/{id}', 'MasterController@boothStore')->name('admin.Master.booth.store');
+	    Route::get('booth-edit/{id}', 'MasterController@boothEdit')->name('admin.Master.booth.edit');
+	    Route::get('booth-delete/{id}', 'MasterController@boothDelete')->name('admin.Master.booth.delete');
 	 
 // 	    //----------------Poll Day Time   
 // 	    Route::get('pollingDayTime', 'MasterController@pollingDayTime')->name('admin.Master.pollingDayTime');		//OK Done-------------
@@ -466,12 +465,12 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //            Route::post('check-voter-status-search', 'ReportController@checkVoterStatusSearch')->name('admin.report.check.voter.status.search');
 	 	 	
 //     });
-//     Route::group(['prefix' => 'VoterListMaster'], function() {
-//            Route::get('/', 'MasterController@voterListIndex')->name('admin.VoterListMaster.index');		//OK Done---------
-//            Route::get('voterlistmasterlist', 'MasterController@voterListTypeList')->name('admin.VoterListMaster.voterlisttypelist');	//OK--------------
-//            Route::post('store/{id?}', 'MasterController@storeVoterListType')->name('admin.VoterListMaster.store');		//OK--------
-//            Route::get('default/{id}', 'MasterController@setVoterListTypeDefault')->name('admin.VoterListMaster.default'); 		//OK----------
-//            Route::get('edit/{id}', 'MasterController@show_votermaster_editform')->name('admin.VoterListMaster.edit');	//OK-----------
+    Route::group(['prefix' => 'VoterListMaster'], function() {
+           Route::get('vlm-index', 'MasterController@voterListIndex')->name('admin.VoterListMaster.index');
+           Route::get('vlm-tale', 'MasterController@voterListTable')->name('admin.VoterListMaster.table');
+           Route::post('vlm-store/{id}', 'MasterController@storeVoterListType')->name('admin.VoterListMaster.store');
+           Route::get('vlm-edit/{id}', 'MasterController@show_votermaster_editform')->name('admin.VoterListMaster.edit');
+           Route::get('vlm-default/{id}', 'MasterController@setVoterListTypeDefault')->name('admin.VoterListMaster.default');
 
 //             Route::get('voter-import-type', 'MasterController@voterImportType')->name('admin.Voter.import.type');
 //             Route::post('voter-import-type-store/{id?}', 'MasterController@voterImportTypeStore')->name('admin.Voter.import.type.store');
@@ -481,7 +480,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //            Route::get('VoterListDefaultValue', 'VoterListMasterController@VoterListDefaultValue')->name('admin.VoterListMaster.VoterListDefaultValue');           
 //            Route::post('VoterListDefaultValueStore/{id?}', 'VoterListMasterController@VoterListDefaultValueStore')->name('admin.VoterListMaster.VoterListDefaultValueStore');           
 	 	 
-//     });
+    });
 //     Route::group(['prefix' => 'import'], function() {
 //            Route::get('', 'ImportExportController@index')->name('admin.import.index'); //ok Done----
 //            Route::get('sample-help-file', 'ImportExportController@sampleHelpFile')->name('admin.import.sample.help.file'); //ok----

@@ -821,6 +821,486 @@ class MasterController extends Controller
     }
   }
 
+  public function booth_form()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(25);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.booth.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "booth_form";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function boothTable(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(25);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $role_id = MyFuncs::getUserRoleId();
+      $village_id = intval(Crypt::decrypt($request->id));
+      $rs_booths = DB::select(DB::raw("SELECT * from `polling_booths` where `village_id` = $village_id order by `booth_no`, `booth_no_c`;"));
+      return view('admin.master.booth.table',compact('rs_booths', 'role_id')); 
+    } catch (\Exception $e) {
+      $e_method = "boothTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }    
+  }
+
+  public function boothStore(Request $request, $id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(25);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'booth_no' => 'required|max:5',     
+        'booth_name_english' => 'required|max:100', 
+        'booth_name_local' => 'required|max:100', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+
+        'booth_no.required'=> 'Please Enter Polling Booth No.',                
+        'booth_no.max'=> 'Polling Booth No. Should Be Maximum of 5 Character',
+
+        'booth_name_english.required'=> 'Please Enter Booth Name English',                
+        'booth_name_english.max'=> 'Booth Name English Should Be Maximum of 100 Character',
+
+        'booth_name_local.required'=> 'Please Enter Booth Name Local Language',                
+        'booth_name_local.max'=> 'Booth Name Local Language Should Be Maximum of 100 Character',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $s_id = 0;
+      $d_id = intval(Crypt::decrypt($request->district));
+      $b_id = intval(Crypt::decrypt($request->block));
+      $v_id = intval(Crypt::decrypt($request->village));
+
+      $booth_no = intval(substr(MyFuncs::removeSpacialChr($request->booth_no), 0, 5));
+      $booth_a = substr(MyFuncs::removeSpacialChr($request->booth_no_c), 0, 1);
+      $booth_e = substr(MyFuncs::removeSpacialChr($request->booth_name_english), 0, 100);
+      $booth_h = MyFuncs::removeSpacialChr($request->booth_name_local);
+
+      if(is_null($booth_a)){
+        $booth_a = "";
+      }
+
+      if($rec_id == 0){
+        $rs_update = DB::select(DB::raw("INSERT into `polling_booths` (`states_id`, `districts_id`, `blocks_id`, `village_id`, `booth_no`, `name_e`, `name_l`, `booth_no_c`) values ($s_id, $d_id, $b_id, $v_id, '$booth_no', '$booth_e', '$booth_h', '$booth_a');"));
+      }else{
+        $rs_update = DB::select(DB::raw("UPDATE `polling_booths` set `booth_no` = '$booth_no', `name_e` = '$booth_e', `name_l` = '$booth_h', `booth_no_c` = '$booth_a' where `id` = $rec_id limit 1;"));
+      }
+      $response=['status'=>1,'msg'=>'Polling Booth Saved Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "boothStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function boothEdit($id)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(25);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $booth = DB::select(DB::raw("SELECT * from `polling_booths` where `id` = $rec_id limit 1;"));
+      return view('admin.master.booth.edit',compact('booth'));     
+    } catch (\Exception $e) {
+      $e_method = "boothEdit";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function boothDelete($id)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(25);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $booth = DB::select(DB::raw("DELETE from `polling_booths` where `id` = $rec_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Polling Booth Deleted Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "boothDelete";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }     
+  }
+
+  public function voterListIndex()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(15);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.voterlistmaster.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "voterListIndex";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function voterListTable(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(15);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $block_id = intval(Crypt::decrypt($request->id));
+      $rs_voter_list_master = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id order by `id` desc;"));
+        
+      return view('admin.voterlistmaster.table',compact('rs_voter_list_master'));
+    } catch (\Exception $e) {
+      $e_method = "voterListTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function storeVoterListType(Request $request, $id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(15);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'block' => 'required',
+        'voter_list_name' => 'required|max:200',
+        'voter_list_type' => 'required|max:200',
+        'publication_year' => 'required|max:4',
+        'date_of_publication' => 'required|max:20',
+        'base_year' => 'required|max:4',
+        'base_date' => 'required|max:20',
+        'remarks1' => 'required|max:100',
+      ];
+      $customMessages = [
+        'block.required'=> 'Please Select Block / MC\'s',
+
+        'voter_list_name.required'=> 'Please Enter Voter List Name',                
+        'voter_list_name.max'=> 'Voter List Name Should Be Maximum of 200 Character',
+
+        'voter_list_type.required'=> 'Please Enter Voter List Type',                
+        'voter_list_type.max'=> 'Voter List Type Should Be Maximum of 200 Character',
+
+        'publication_year.required'=> 'Please Enter Publication Year',                
+        'publication_year.max'=> 'Publication Year Should Be Maximum of 4 Character',
+
+        'date_of_publication.required'=> 'Please Enter Date of Publication',                
+        'date_of_publication.max'=> 'Date of Publication Should Be Maximum of 20 Character',
+
+        'base_year.required'=> 'Please Enter Base Year',                
+        'base_year.max'=> 'Base Year Should Be Maximum of 4 Character',
+
+        'base_date.required'=> 'Please Enter Base Date',                
+        'base_date.max'=> 'Base Date Should Be Maximum of 20 Character',
+
+        'remarks1.required'=> 'Please Enter पुनरिक्षण का विवरण',                
+        'remarks1.max'=> 'पुनरिक्षण का विवरण Should Be Maximum of 100 Character',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+
+      $rec_id = intval(Crypt::decrypt($id));
+      $block_id = intval(Crypt::decrypt($request->block));
+      
+      $list_name = substr(MyFuncs::removeSpacialChr($request->voter_list_name), 0, 200);
+      $list_type = substr(MyFuncs::removeSpacialChr($request->voter_list_type), 0, 200);
+      $year_pub = intval(substr(MyFuncs::removeSpacialChr($request->publication_year), 0, 4));
+      $pub_date = substr(MyFuncs::removeSpacialChr($request->date_of_publication), 0, 20);
+      $year_base = intval(substr(MyFuncs::removeSpacialChr($request->base_year), 0, 4));
+      $base_date = substr(MyFuncs::removeSpacialChr($request->base_date), 0, 20);
+      $rem1 = substr(MyFuncs::removeSpacialChr($request->remarks1), 0, 100);
+      $rem2 = substr(MyFuncs::removeSpacialChr($request->remarks2), 0, 100);
+      $rem3 = substr(MyFuncs::removeSpacialChr($request->remarks3), 0, 100);
+
+      if (empty($request->is_supplement)) {
+        $supliment_flag = 0;
+      }
+      else{
+        $supliment_flag = 1;
+      }
+      
+      if($rec_id == 0){
+        $rs_update = DB::select(DB::raw("INSERT into `voter_list_master` (`block_id`, `voter_list_name`, `voter_list_type`, `year_publication`, `year_base`, `date_base`, `date_publication`, `remarks1`, `remarks2`, `remarks3`, `is_supplement`) values ($block_id, '$list_name', '$list_type', '$year_pub', '$year_base', '$base_date', '$pub_date', '$rem1', '$rem2', '$rem3', $supliment_flag);"));  
+      }else{
+        $rs_update = DB::select(DB::raw("UPDATE `voter_list_master` set `voter_list_name` = '$list_name', `voter_list_type` = '$list_type', `year_publication` = '$year_pub', `year_base` = '$year_base', `date_base` = '$base_date', `date_publication` = '$pub_date', `remarks1` = '$rem1', `remarks2` = '$rem2', `remarks3` = '$rem3', `is_supplement` = $supliment_flag where `id` = $rec_id limit 1;"));
+      }
+
+      $response=['status'=>1,'msg'=>'Record Saved Successfully'];
+      return response()->json($response);
+    } catch (Exception $e) {}
+  }
+
+  public function show_votermaster_editform($id)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(15);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $VoterListMaster = DB::select(DB::raw("SELECT * from `voter_list_master` where `id` = $rec_id limit 1;"));
+      return view('admin.voterlistmaster.edit',compact('VoterListMaster'));
+    } catch (\Exception $e) {
+      $e_method = "show_votermaster_editform";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function setVoterListTypeDefault($id)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(15);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $rs_update = DB::select(DB::raw("call `up_set_voterListType_Default` ($rec_id);"));
+      $response=['status'=>1,'msg'=>'Default Value Set Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "setVoterListTypeDefault";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+//wardBandi
+  public function wardBandi()
+  {
+    try {
+      $rs_district = SelectBox::get_district_access_list_v1();
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      return view('admin.master.wardbandi.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "wardBandi";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function wardBandiFrom(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->id));
+      $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+      $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ($village_id, 0)")); 
+      $rs_dataList = DB::select(DB::raw("SELECT * from `import_type` order by `id`;")); 
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      return view('admin.master.wardbandi.form',compact('assemblyParts','WardVillages', 'rs_dataList', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "wardBandiFrom";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function wardBandiFilterAssemblyPart(Request $request)
+  {
+    try{
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $data_list_id = 0;
+      $part_id = 0;
+      if ($request->data_list_id!='null'){
+        $data_list_id = intval(Crypt::decrypt($request->data_list_id));  
+      }
+      if ($request->part_id!='null'){
+        $part_id = intval(Crypt::decrypt($request->part_id));  
+      }
+      $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`voter_card_no`, `v`.`name_e`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no`, `v`.`village_id` from `voters` `v`Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id;"));
+      return view('admin.master.wardbandi.voter_list',compact('rs_voterLists', 'refreshdata'));
+    } catch (Exception $e) {}
+  }
+
+  public function wardBandiFilterward(Request $request)
+  {
+    try{ 
+      $refresh = $request->refresh;
+      $ward_id = intval(Crypt::decrypt($request->id));
+      $total_mapped = DB::select(DB::raw("SELECT count(*) as `total_mapped` from `voters` where `ward_id` = $ward_id;"));   
+      return view('admin.master.wardbandi.sr_no_form',compact('total_mapped', 'refresh'));
+    } catch (\Exception $e) {
+      $e_method = "WardBandiFilterward";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function wardBandiStore(Request $request)
+  {
+    try{
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'data_list' => 'required', 
+        'assembly_part' => 'required', 
+        'ward' => 'required', 
+        'from_sr_no' => 'required', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'data_list.required'=> 'Please Select Data List',
+        'assembly_part.required'=> 'Please Select Assembly-Part',
+        'ward.required'=> 'Please Select Ward',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $user_id = MyFuncs::getUserId();
+      $data_list = intval(Crypt::decrypt($request->data_list));
+      $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
+      $ward_id = intval(Crypt::decrypt($request->ward));
+
+      $forcefully = 0;
+      if ($request->forcefully == 1) {
+        $forcefully = 1; 
+      }
+
+      if ($request->from_sr_no == null) {
+        $from_sr_no = 0;
+      }else {
+        $from_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 4));
+      }
+      if ($request->to_sr_no == null) {
+        $to_sr_no = 0;
+      }else  {
+        $to_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 4));
+      }
+
+      $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, 0, $from_sr_no, $to_sr_no, $forcefully, $data_list) as `save_remarks`;"));
+      
+      $response=['status'=>1,'msg'=>$message[0]->save_remarks];  
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "WardBandiStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function removeVoter_wardbandi($id)
+  {
+    try{
+      $user_id = MyFuncs::getUserId();
+      $vid = intval(Crypt::decrypt($id));
+      $rs_update = DB::select(DB::raw("call `up_reset_voters_wardbandi` ($user_id, $vid);"));
+      $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->Save_Result];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "removeVoter_wardbandi";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function WardBandiReport(Request $request)
+  { 
+    try{
+      $village = $request->village;
+      $assembly_part = $request->assembly_part;
+      $ward = $request->ward;
+      return view('admin.master.wardbandi.report',compact('village','assembly_part','ward')); 
+    } catch (\Exception $e) {
+      $e_method = "WardBandiReport";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function WardBandiReportGenerate(Request $request)
+  {
+    $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
+    $village_id = intval(Crypt::decrypt($request->village));
+    $ward_id = intval(Crypt::decrypt($request->ward));
+    if ($request->report == 1) {
+      $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
+      $ac_id = $assemblyPart[0]->assembly_id;
+      $assembly = DB::select(DB::raw("SELECT * from `assemblys` Where `id` = $ac_id limit 1;"));
+      $voterReports = DB::select(DB::raw("SELECT `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no` from `voters` `v` Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id`Where `v`.`assembly_part_id` = $ac_part_id order By `v`.`sr_no`;")); 
+    }elseif ($request->report==2) {
+      $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
+      $ac_id = $assemblyPart[0]->assembly_id;
+      $assembly = DB::select(DB::raw("SELECT * from `assemblys` Where `id` = $ac_id limit 1;"));
+      $voterReports = DB::select(DB::raw("select `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l` from `voters` `v` Where `v`.`assembly_part_id` = $ac_part_id and `v`.`village_id` = 0 order By `v`.`sr_no` ;")); 
+    }elseif ($request->report==3) {
+      $village = DB::select(DB::raw("SELECT * from `villages` Where `id` = $village_id limit 1;"));
+      $wardVillage = DB::select(DB::raw("SELECT * from `ward_villages` Where `id` = $request->ward_id limit 1;"));
+      
+      $voterReports = DB::select(DB::raw("SELECT `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` = $request->ward_id order By `v`.`sr_no`;"));
+    } 
+    
+    $path=Storage_path('fonts/');
+    $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+    $fontDirs = $defaultConfig['fontDir']; 
+    $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+    $fontData = $defaultFontConfig['fontdata']; 
+    $mpdf = new \Mpdf\Mpdf([
+           'fontDir' => array_merge($fontDirs, [
+               __DIR__ . $path,
+           ]),
+           'fontdata' => $fontData + [
+               'frutiger' => [
+                   'R' => 'FreeSans.ttf',
+                   'I' => 'FreeSansOblique.ttf',
+               ]
+           ],
+           'default_font' => 'freesans',
+           'pagenumPrefix' => '',
+          'pagenumSuffix' => '',
+          'nbpgPrefix' => ' कुल ',
+          'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
+    ]); 
+          
+    if ($request->report==1) {
+      $html = view('admin.master.wardbandi.report_list',compact('voterReports','assemblyPart','assembly'));
+    }elseif ($request->report==2) {
+      $html = view('admin.master.wardbandi.report_list2',compact('voterReports','assemblyPart','assembly'));
+    }elseif ($request->report==3) {
+      $html = view('admin.master.wardbandi.report_list3',compact('voterReports','village','wardVillage'));
+    }
+    $mpdf->WriteHTML($html); 
+    $mpdf->Output(); 
+  }
+
+
   public function exception_handler()
   {
     try {
@@ -1591,187 +2071,8 @@ class MasterController extends Controller
 //      return redirect()->back()->with(['message'=>'Default Set Successfully','class'=>'success']);
 //   } catch (Exception $e) {}
 // }
-// public function voterListIndex()
-// {
-//   try {
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;  
-//     $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($userid, 0);"));
-      
-//     return view('admin.voterlistmaster.index',compact('Districts'));
-//   } catch (Exception $e) {}
-// }
+  
 
-// public function voterListTypeList(Request $request)
-// {
-//   try {
-//     $VoterListMasters = DB::select(DB::raw("select * from `voter_list_master` where `block_id` = $request->id order by `id` desc;"));
-      
-//     return view('admin.voterlistmaster.list',compact('VoterListMasters'));
-//   } catch (Exception $e) {}
-// }
-
-// public function storeVoterListType(Request $request,$id=null)
-// {    
-//   $rules=[
-//     'voter_list_name' => 'required',
-//     'voter_list_type' => 'required',
-//     'publication_year' => 'required',
-//     'base_year' => 'required',
-//     'date_of_publication' => 'required',
-//     'base_date' => 'required',
-//     'remarks1' => 'required',
-//   ];
-
-//   $validator = Validator::make($request->all(),$rules);
-//   if ($validator->fails()) {
-//     $errors = $validator->errors()->all();
-//     $response=array();
-//     $response["status"]=0;
-//     $response["msg"]=$errors[0];
-//     return response()->json($response);// response as json
-//   }
-
-//   try {
-//     if(empty($id)){
-//       $block_id = $request->block;  
-//     }else{
-//       $block_id = 0;
-//     }
-    
-//     $list_name = trim(str_replace('\'', '', $request->voter_list_name));
-//     $list_type = trim(str_replace('\'', '', $request->voter_list_type));
-//     $year_pub = trim(str_replace('\'', '', $request->publication_year));
-//     $year_base = trim(str_replace('\'', '', $request->base_year));
-//     $pub_date = trim(str_replace('\'', '', $request->date_of_publication));
-//     $base_date = trim(str_replace('\'', '', $request->base_date));
-//     $rem1 = trim(str_replace('\'', '', $request->remarks1));
-//     $rem2 = trim(str_replace('\'', '', $request->remarks2));
-//     $rem3 = trim(str_replace('\'', '', $request->remarks3));
-//     if (empty($request->is_supplement)) {
-//       $supliment_flag = 0;
-//     }
-//     else{
-//       $supliment_flag = 1;
-//     }
-    
-//     if($block_id > 0){
-//       $rs_update = DB::select(DB::raw("insert into `voter_list_master` (`block_id`, `voter_list_name`, `voter_list_type`, `year_publication`, `year_base`, `date_base`, `date_publication`, `remarks1`, `remarks2`, `remarks3`, `is_supplement`) values ($block_id, '$list_name', '$list_type', '$year_pub', '$year_base', '$base_date', '$pub_date', '$rem1', '$rem2', '$rem3', $supliment_flag);"));  
-//     }else{
-//       $rs_update = DB::select(DB::raw("update `voter_list_master` set `voter_list_name` = '$list_name', `voter_list_type` = '$list_type', `year_publication` = '$year_pub', `year_base` = '$year_base', `date_base` = '$base_date', `date_publication` = '$pub_date', `remarks1` = '$rem1', `remarks2` = '$rem2', `remarks3` = '$rem3', `is_supplement` = $supliment_flag where `id` = $id;"));
-//     }
-    
-    
-//     $response=['status'=>1,'msg'=>'Record Saved Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
-
-// public function setVoterListTypeDefault($id)
-// {
-//   try{
-//     $rs_update = DB::select(DB::raw("call `up_set_voterListType_Default` ($id);"));
-//     $response=['status'=>1,'msg'=>'Default Value Set Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
-
-// public function show_votermaster_editform($id)
-// {
-//   try{
-//     $VoterListMaster = DB::select(DB::raw("select * from `voter_list_master` where `id` = $id limit 1;"));
-//     return view('admin.voterlistmaster.edit',compact('VoterListMaster'));
-//   } catch (Exception $e) {}
-// }
-
-// public function booth_form($value='')
-// {
-//   try {
-//     $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//     return view('admin.master.booth.index',compact('States'));
-//   } catch (Exception $e) {}
-// }
-
-// public function boothTable(Request $request)
-// {
-//   try {
-//     $booths = DB::select(DB::raw("select * from `polling_booths` where `village_id` = $request->id order by `booth_no`, `booth_no_c`;"));
-//     return view('admin.master.booth.table',compact('booths')); 
-//   } catch (Exception $e) {}    
-// }
-
-// public function boothStore(Request $request,$id=null)
-// { 
-//   $rules=[
-//     'states' => 'required', 
-//     'district' => 'required', 
-//     'block' => 'required', 
-//     'village' => 'required', 
-//     'booth_no' => 'required|numeric',     
-//     'booth_name_english' => 'required', 
-//     'booth_name_local' => 'required', 
-//   ];
-
-//   $validator = Validator::make($request->all(),$rules);
-//   if ($validator->fails()) {
-//       $errors = $validator->errors()->all();
-//       $response=array();
-//       $response["status"]=0;
-//       $response["msg"]=$errors[0];
-//       return response()->json($response);// response as json
-//   }
-
-//   try {
-//     $s_id = 0;
-//     $d_id = 0;
-//     $b_id = 0;
-//     $v_id = 0;
-//     $record_id = 0;
-//     $booth_no = trim(str_replace('\'', '', $request->booth_no));
-//     $booth_a = trim(str_replace('\'', '', $request->booth_no_c));
-//     $booth_e = trim(str_replace('\'', '', $request->booth_name_english));
-//     $booth_h = trim(str_replace('\'', '', $request->booth_name_local));
-
-//     if(is_null($id)){
-//       $s_id = $request->states;
-//       $d_id = $request->district;
-//       $b_id = $request->block;
-//       $v_id = $request->village;
-//     }else{
-//       $record_id = $id;
-//     }
-
-//     if(is_null($booth_a)){
-//       $booth_a = "";
-//     }
-
-//     if($record_id == 0){
-//       $rs_update = DB::select(DB::raw("insert into `polling_booths` (`states_id`, `districts_id`, `blocks_id`, `village_id`, `booth_no`, `name_e`, `name_l`, `booth_no_c`) values ($s_id, $d_id, $b_id, $v_id, '$booth_no', '$booth_e', '$booth_h', '$booth_a');"));
-//     }else{
-//       $rs_update = DB::select(DB::raw("update `polling_booths` set `booth_no` = '$booth_no', `name_e` = '$booth_e', `name_l` = '$booth_h', `booth_no_c` = '$booth_a' where `id` = $record_id;"));
-//     }
-
-//     $response=['status'=>1,'msg'=>'Polling Booth Saved Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
-
-// public function boothEdit($id)
-// {
-//   try{
-//     $booth = DB::select(DB::raw("select * from `polling_booths` where `id` = $id limit 1;"));
-//     return view('admin.master.booth.edit',compact('booth'));     
-//   } catch (Exception $e) {}
-// }
-
-// public function boothDelete($id)
-// {
-//   try{
-//     $booth = DB::select(DB::raw("delete from `polling_booths` where `id` = $id limit 1;"));
-//     $response=['status'=>1,'msg'=>'Polling Booth Deleted Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}     
-// }
 
 //    //---------MappingBoothWard----------MappingBoothWard-----------------MappingBoothWard
 // public function MappingBoothWard($value='')
@@ -1881,126 +2182,13 @@ class MasterController extends Controller
 
 
 // //----------ward-bandi----------WardBandi----------------------------------------------------//
-// public function WardBandi()
-// {
-//   try {
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-
-//     $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));  
-//     return view('admin.master.wardbandi.index',compact('States', 'refreshdata'));
-//   } catch (Exception $e) {}
-// }
-
-// public function WardBandiFilter(Request $request)
-// {
-//   try{
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//     $assemblyParts = DB::select(DB::raw("select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-//     $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ('$request->id','0')"));   
-//     $rs_dataList = DB::select(DB::raw("select * from `import_type` order by `id` ;"));   
-//     return view('admin.master.wardbandi.value',compact('assemblyParts','WardVillages', 'refreshdata', 'rs_dataList'));
-//   } catch (Exception $e) {}
-// }
-
-// public function WardBandiFilterAssemblyPart(Request $request)
-// {
-//   try{
-//     // dd($request);
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//     $data_list_id = 0;
-//     $part_id = 0;
-//     if (!empty($request->data_list_id)){
-//       $data_list_id = $request->data_list_id;  
-//     }
-//     if (!empty($request->part_id)){
-//       $part_id = $request->part_id;  
-//     }
-//     $voterLists=DB::select(DB::raw("select `v`.`id`, `v`.`sr_no`, `v`.`voter_card_no`, `v`.`name_e`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no`, `v`.`village_id` from `voters` `v`Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id;"));  
-//     // dd("part id :: ".$part_id." data List id ::".$data_list_id);
-//     return view('admin.master.wardbandi.voter_list',compact('voterLists', 'refreshdata'));
-//   } catch (Exception $e) {}
-// } 
-
-// public function WardBandiFilterward(Request $request)
-// {
-//   try{ 
-//     $refresh = $request->refresh;
-//     $total_mapped=DB::select(DB::raw("select count(*) as `total_mapped` from `voters` where `ward_id` = $request->id;"));   
-//     return view('admin.master.wardbandi.sr_no_form',compact('total_mapped', 'refresh'));
-//   } catch (Exception $e) {}
-// }
-
-// public function WardBandiReport(Request $request)
-// { 
-//   try{
-//     $village=$request->village;
-//     $assembly_part=$request->assembly_part;
-//     $ward=$request->ward;
-//     return view('admin.master.wardbandi.report',compact('village','assembly_part','ward')); 
-//   } catch (Exception $e) {}
-// }
-
-// public function removeVoter_wardbandi($id)
-// {
-//   try{
-//     $user=Auth::guard('admin')->user(); 
-//     $userid = $user->id;
-//     $vid = $id;
-//     $rs_update = DB::select(DB::raw("call `up_reset_voters_wardbandi` ($userid, $vid);"));
-//     $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->Save_Result];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
+  
 
 
-// public function WardBandiStore(Request $request)
-// { 
-//   $rules=[
-//     'states' => 'required', 
-//     'district' => 'required', 
-//     'block' => 'required', 
-//     'village' => 'required', 
-//     'assembly_part' => 'required', 
-//     'ward' => 'required', 
-//     'from_sr_no' => 'required', 
-//     'data_list' => 'required', 
-//   ];
+  
 
-//   $validator = Validator::make($request->all(),$rules);
-//   if ($validator->fails()) {
-//     $errors = $validator->errors()->all();
-//     $response=array();
-//     $response["status"]=0;
-//     $response["msg"]=$errors[0];
-//     return response()->json($response);// response as json
-//   }
 
-//   try{
-//     $forcefully = 0;
-//     if ($request->forcefully==1) {
-//       $forcefully=1; 
-//     }
-
-//     if ($request->from_sr_no==null) {
-//       $from_sr_no=0;
-//     }else {
-//        $from_sr_no=$request->from_sr_no;
-//     }
-//     if ($request->to_sr_no==null) {
-//       $to_sr_no=0;
-//     }else  {
-//       $to_sr_no=$request->to_sr_no;
-//     } 
-    
-//     $user=Auth::guard('admin')->user(); 
-//     $userid = $user->id;
-
-//     $message=DB::select(DB::raw("select `uf_ward_bandi_voters` ($userid, '$request->assembly_part','$request->ward','0','$from_sr_no','$to_sr_no','$forcefully', $request->data_list) as `save_remarks`;"));
-    
-//     $response=['status'=>1,'msg'=>$message[0]->save_remarks];  
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// } 
+   
 
 // public function WardBandiWithBoothStore(Request $request)
 // {  
@@ -2059,57 +2247,7 @@ class MasterController extends Controller
 
 
 
-// public function WardBandiReportGenerate(Request $request)
-// { 
-//   if ($request->report==1) {
-//     $assemblyPart = DB::select(DB::raw("select * from `assembly_parts` Where `id` = $request->assembly_part limit 1;"));
-//     $ac_id = $assemblyPart[0]->assembly_id;
-//     $assembly = DB::select(DB::raw("select * from `assemblys` Where `id` = $ac_id limit 1;"));
-//     $voterReports = DB::select(DB::raw("select `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no` from `voters` `v` Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id`Where `v`.`assembly_part_id` = $request->assembly_part order By `v`.`sr_no`;")); 
-//   }elseif ($request->report==2) {
-//     $assemblyPart = DB::select(DB::raw("select * from `assembly_parts` Where `id` = $request->assembly_part limit 1;"));
-//     $ac_id = $assemblyPart[0]->assembly_id;
-//     $assembly = DB::select(DB::raw("select * from `assemblys` Where `id` = $ac_id limit 1;"));
-//     $voterReports = DB::select(DB::raw("select `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l` from `voters` `v` Where `v`.`assembly_part_id` = $request->assembly_part and `v`.`village_id` = 0 order By `v`.`sr_no` ;")); 
-//   }elseif ($request->report==3) {
-//     $village = DB::select(DB::raw("select * from `villages` Where `id` = $request->village limit 1;"));
-//     $wardVillage = DB::select(DB::raw("select * from `ward_villages` Where `id` = $request->ward limit 1;"));
-    
-//     $voterReports = DB::select(DB::raw("select `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` =$request->ward order By `v`.`sr_no`;"));
-//   } 
   
-//   $path=Storage_path('fonts/');
-//   $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
-//   $fontDirs = $defaultConfig['fontDir']; 
-//   $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
-//   $fontData = $defaultFontConfig['fontdata']; 
-//   $mpdf = new \Mpdf\Mpdf([
-//          'fontDir' => array_merge($fontDirs, [
-//              __DIR__ . $path,
-//          ]),
-//          'fontdata' => $fontData + [
-//              'frutiger' => [
-//                  'R' => 'FreeSans.ttf',
-//                  'I' => 'FreeSansOblique.ttf',
-//              ]
-//          ],
-//          'default_font' => 'freesans',
-//          'pagenumPrefix' => '',
-//         'pagenumSuffix' => '',
-//         'nbpgPrefix' => ' कुल ',
-//         'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
-//   ]); 
-        
-//   if ($request->report==1) {
-//     $html = view('admin.master.wardbandi.report_list',compact('voterReports','assemblyPart','assembly'));
-//   }elseif ($request->report==2) {
-//     $html = view('admin.master.wardbandi.report_list2',compact('voterReports','assemblyPart','assembly'));
-//   }elseif ($request->report==3) {
-//     $html = view('admin.master.wardbandi.report_list3',compact('voterReports','village','wardVillage'));
-//   }
-//   $mpdf->WriteHTML($html); 
-//   $mpdf->Output(); 
-// }
 
 
 // //---------Ward Bandi With Booth Enter Voter Detail----------------------------

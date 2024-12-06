@@ -1,27 +1,37 @@
-<div class="card card-primary table-responsive"> 
-     <table id="ward_datatable" class="table table-striped table-hover control-label">
-         <thead>
-             <tr>
-                 <th class="text-nowrap">Booth No.</th> 
-                 <th class="text-nowrap">Booth Name (Eng.)</th>
-                 <th class="text-nowrap">Booth Name (Hin.)</th>
-                 <th class="text-nowrap">Action</th> 
-             </tr>
-         </thead>
-         <tbody>
-            @foreach ($booths as $booth)
-             <tr>
-                 <td>{{ $booth->booth_no }}{{ $booth->booth_no_c }}</td>
-                  
-                 <td>{{ $booth->name_e }}</td>
-                 <td>{{ $booth->name_l }}</td>
-                 <td>
-                     <a href="#" class="btn btn-xs btn-info" onclick="callPopupLarge(this,'{{ route('admin.Master.boothEdit',$booth->id) }}')"><i class="fa fa-edit"></i></a>
-                     <a href="#" class="btn btn-xs btn-danger" select-triger="village_select_box" success-popup="true" onclick="callAjax(this,'{{ route('admin.Master.boothDelete',$booth->id) }}')"><i class="fa fa-trash"></i></a>
-                 </td>
-                 
-             </tr> 
-            @endforeach
-         </tbody>
-     </table>
-</div> 
+<div class="col-lg-12">
+    <fieldset class="fieldset_border">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="ajax_data_table">
+                <thead class="thead-dark">
+                    <tr> 
+                        <th>Sr. No.</th>
+                        <th>Booth No.</th>
+                        <th>Booth Name (English)</th>
+                        <th>Booth Name (Hindi)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                @php
+                    $srno = 1;
+                @endphp
+                <tbody> 
+                    @foreach ($rs_booths as $rs_val)
+                        <tr>
+                            <td>{{ $srno++ }}</td>
+                            <td>{{ $rs_val->booth_no }}  {{ $rs_val->booth_no_c }}</td>
+                            <td>{{ $rs_val->name_e }}</td>
+                            <td>{{ $rs_val->name_l }}</td>
+                            <td class="text-nowrap">
+                                <button type="button" onclick="callPopupLarge(this,'{{ route('admin.Master.booth.edit', Crypt::encrypt($rs_val->id)) }}')" class="btn btn-info btn-sm"><i class="fa fa-edit"></i> Edit</button>
+
+                                 @if ($role_id == 1)
+                                    <button type="button" success-popup="true" select-triger="village_select_box" onclick="if(confirm('Are you sure you want to delete this record?')==true){callAjax(this,'{{ route('admin.Master.booth.delete', Crypt::encrypt($rs_val->id)) }}')}" title="" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Delete</button>
+                                @endif   
+                            </td>
+                        </tr> 
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</div>
