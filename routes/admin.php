@@ -33,11 +33,18 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	// Route::get('photo-refrash', 'DashboardController@profilePhotoRefrash')->name('admin.profile.photo.refrash');
 	//---------------account-----------------------------------------	
 	Route::prefix('account')->group(function () {
+		//User List (1)
+		Route::get('list', 'AccountController@usr_lst_index')->name('admin.account.list');	//OK Done----
+		Route::get('status/{account}', 'AccountController@change_status')->name('admin.account.status'); // OK ----------
+		
+		// Route::get('edit/{account}', 'AccountController@usr_edit')->name('admin.account.edit');	//OK--	 
+		// Route::post('update/{account}', 'AccountController@update')->name('admin.account.edit.post');	//OK ----------
+
 		//Create New User (2)
 	    Route::get('create_form', 'AccountController@create_form')->name('admin.account.form');	//OK Done-----
 	    Route::post('store', 'AccountController@store')->name('admin.account.post');//OK----
-		// Route::get('list', 'AccountController@index')->name('admin.account.list');	//OK Done----
 		
+
 		// Change Password (8)
 		Route::get('change-password', 'AccountController@changePassword')->name('admin.account.change.password');	//OK Done----
 		Route::post('change-password-store', 'AccountController@changePasswordStore')->name('admin.account.change.password.store');	//OK----
@@ -50,10 +57,10 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 		// Route::get('access/hotmenu', 'AccountController@accessHotMenuShow')->name('admin.account.access.hotmenuTable');
 		// Route::post('access-store', 'AccountController@accessStore')->name('admin.userAccess.add');
 		// Route::post('access-hot-menu-store', 'AccountController@accessHotMenuStore')->name('admin.userAccess.hotMenuAdd');
-		// Route::get('edit/{account}', 'AccountController@edit')->name('admin.account.edit');	//OK--
-		// Route::post('update/{account}', 'AccountController@update')->name('admin.account.edit.post');	//OK ----------
+		
+		
 		// Route::get('delete/{account}', 'AccountController@destroy')->name('admin.account.delete');	//OK------------
-		// Route::get('status/{account}', 'AccountController@status')->name('admin.account.status'); // OK ----------	 
+		
 		
 		// Route::get('r--status/{account}', 'AccountController@rstatus')->name('admin.account.r_status');	 
 		// Route::get('w-status/{account}', 'AccountController@wstatus')->name('admin.account.w_status');	 
@@ -76,22 +83,24 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 		Route::post('DistrictsAssignStore', 'AccountController@DistrictsAssignStore')->name('admin.Master.DistrictsAssignStore');	//OK---------
 		Route::get('DistrictsAssignDelete/{id}', 'AccountController@DistrictsAssignDelete')->name('admin.Master.DistrictsAssignDelete');	//OK---------
 
-		// District Assign to User (4)
+		// Block/MC Assign to User (4)
 		Route::get('BlockAssign', 'AccountController@BlockAssign')->name('admin.account.BlockAssign');		//OK Done-------
 		Route::get('DistrictBlockAssign', 'AccountController@DistrictBlockAssign')->name('admin.account.DistrictBlockAssign'); 	//OK---------
 		Route::post('DistrictBlockAssignStore', 'AccountController@DistrictBlockAssignStore')->name('admin.Master.DistrictBlockAssignStore');	//OK---------
 		Route::get('DistrictBlockAssignDelete/{id}', 'AccountController@DistrictBlockAssignDelete')->name('admin.Master.DistrictBlockAssignDelete');	//OK--------
 
-		// Route::get('VillageAssign', 'AccountController@VillageAssign')->name('admin.account.VillageAssign'); 	//OK Done------------
-		// Route::get('DistrictBlockVillageAssign', 'AccountController@DistrictBlockVillageAssign')->name('admin.account.DistrictBlockVillageAssign'); //OK-------
-		// Route::post('DistrictBlockVillageAssignStore', 'AccountController@DistrictBlockVillageAssignStore')->name('admin.Master.DistrictBlockVillageAssignStore');		//OK-------
-		// Route::get('DistrictBlockVillageAssignDelete/{id}', 'AccountController@DistrictBlockVillageAssignDelete')->name('admin.Master.DistrictBlockVillageAssignDelete');	//OK-----------
+		// Village/MC Assign to User (5)
+		Route::get('VillageAssign', 'AccountController@VillageAssign')->name('admin.account.VillageAssign'); 	//OK Done------------
+		Route::get('DistrictBlockVillageAssign', 'AccountController@DistrictBlockVillageAssign')->name('admin.account.DistrictBlockVillageAssign'); //OK-------
+		Route::post('DistrictBlockVillageAssignStore', 'AccountController@DistrictBlockVillageAssignStore')->name('admin.Master.DistrictBlockVillageAssignStore');		//OK-------
+		Route::get('DistrictBlockVillageAssignDelete/{id}', 'AccountController@DistrictBlockVillageAssignDelete')->name('admin.Master.DistrictBlockVillageAssignDelete');	//OK-----------
+
+		// Reset Password (9)
+		Route::get('reset-password', 'AccountController@resetPassWord')->name('admin.account.reset.password'); 
+		Route::post('reset-password-change', 'AccountController@resetPassWordChange')->name('admin.account.reset.password.change'); 
 
 
-
-
-		// Route::get('reset-password', 'AccountController@resetPassWord')->name('admin.account.reset.password'); 
-		// Route::post('reset-password-change', 'AccountController@resetPassWordChange')->name('admin.account.reset.password.change'); 
+		
 		// Route::get('menu-ordering', 'AccountController@menuOrdering')->name('admin.account.menu.ordering'); 
 		// Route::get('menu-ordering-store', 'AccountController@menuOrderingStore')->name('admin.account.menu.ordering.store'); 
 		// Route::get('submenu-ordering-store', 'AccountController@subMenuOrderingStore')->name('admin.account.submenu.ordering.store'); 
@@ -137,7 +146,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	    Route::get('districts-table', 'MasterController@DistrictsTable')->name('admin.master.districts.table');
 	    Route::post('districts-store{id}', 'MasterController@DistrictsStore')->name('admin.master.districts.store');
 	    Route::get('districts-edit/{id}', 'MasterController@DistrictsEdit')->name('admin.Master.districts.edit');	//OK--------
-	    Route::get('districts-delete/{id}', 'MasterController@DistrictsDelete')->name('admin.Master.district.delete');	//OK---------
+	    // Route::get('districts-delete/{id}', 'MasterController@DistrictsDelete')->name('admin.Master.district.delete');	//OK---------
 	    Route::get('districts-zpWard/{d_id}', 'MasterController@DistrictsZpWard')->name('admin.Master.districts.zpWard');	//OK--------
 	    Route::post('districts-zpWardStore/{d_id}', 'MasterController@DistrictsZpWardStore')->name('admin.Master.districts.zpWardStore');	//OK----------
 

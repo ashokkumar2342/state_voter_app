@@ -1,43 +1,91 @@
 @extends('admin.layout.base')
 @section('body')
-<!-- Main content -->
-<section class="content-header text-center"> 
-  <h1>Reset Password</h1> 
-</section>  
-<section class="content" style="margin-top:100px">
-<div class="row text-center" style="margin-left:320px" style="margin-top: 600px"> 
-  <div class="col-lg-7 text-center"> 
-  <div class="login-box-body"> 
-    <form action="{{ route('admin.account.reset.password.change') }}" method="post" class="add_form" no-reset="">
-      {{ csrf_field() }} 
-      <div class="form-group has-feedback">
-        <label>E-mail ID</label>
-        <select name="email" class="form-control form-group select2">
-          <option >Select E-mail ID</option>
-          @foreach ($admins as $admin)
-          <option value="{{ $admin->id }}">{{ $admin->email }}</option> 
-          @endforeach 
-      </select>
-  </div>
+@php
+    Session::put('CryptoRandom',App\Helper\MyFuncs::generateId());
+    Session::put('CryptoRandomInfo',App\Helper\MyFuncs::generateRandomIV());
+@endphp
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h3>Reset Password</h3>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right"> 
+                </ol>
+            </div>
+        </div> 
+        <div class="card card-info"> 
+            <div class="card-body">
+                <form  action="{{ route('admin.account.reset.password.change') }}"   class="add_form" method="post" autocomplete="off" onsubmit="return hashPasswordEncryption();">
+                    {{ csrf_field()}}
+                    <div class="form-body overflow-hide">
+                      <div class="form-group">
+                        <label>User</label>
+                        <select name="user" class="form-control form-group select2" required>
+                          <option >Select User</option>
+                          @foreach ($users as $val_rec)
+                            <option value="{{ Crypt::encrypt($val_rec->opt_id) }}">{{ $val_rec->opt_text }}</option> 
+                          @endforeach 
+                        </select>
+                      </div>
+                        
+                        <div class="form-group">
+                            <label class="control-label mb-10" for="exampleInputpwd_01">New Password</label>
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="icon-lock"></i></div>
+                                <input type="password" name="password" class="form-control" id="password" placeholder="Enter New Password"  title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" required maxlength="15" minlength="8">
+                            </div>
+                        </div> 
+                        <div class="form-group">
+                            <label class="control-label mb-10" for="exampleInputpwd_01">Confirm password</label>
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="icon-lock"></i></div>
+                                <input type="password" name="passwordconfirmation" class="form-control" id="passwordconfirmation" placeholder="Enter Confirm Password"  title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" oninput="check(this)" required maxlength="15" minlength="8">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions mt-10">            
+                        <button type="submit" class="btn btn-success mr-10 mb-30">Reset Password</button>
+                    </div>              
+                </form>
 
-  <div class="form-group has-feedback">
-    <label>New Password</label>
-    <input type="password" name="new_pass" class="form-control" placeholder="Enter New Password" maxlength="15" required="">
-</div>
-<div class="form-group has-feedback">
-    <label>Confirm Password</label>
-    <input type="password" name="con_pass" class="form-control" placeholder="Enter Confirm Password" maxlength="15" required="">
- 
-    
-    <div class="col-lg-12" style="margin-top: 5px">
-      <button type="submit" class="btn-sm btn-primary ">Reset Password</button>
-  </div>
-  
- </form>
-  </div>
-</div> 
-</div>
- </section>
-<!-- /.content -->
+            </div> 
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+@endsection 
+@push('scripts')
+<script src={!! asset('admin_asset/dist/js/crypto-js.min.js?ver=') !!}{{date('Y-m-d')}}></script>
+<script>
+    function hashPasswordEncryption(){
+        var password = jQuery("#password").val();
+        var passwordconfirmation = jQuery("#passwordconfirmation").val();
+        
+        var Cryptoksduid = '<?php echo Session::get('CryptoRandom');?>';
+        var Cryptoikeywords = '<?php echo Session::get('CryptoRandomInfo');?>';
+        var Cryptokfydsdyg = CryptoJS.enc.Utf8.parse(Cryptoksduid);
+        
+        var encrypted = CryptoJS.DES.encrypt(password,
+        Cryptokfydsdyg, {
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7,
+            iv: CryptoJS.enc.Utf8.parse(Cryptoikeywords)
+        });
 
-@endsection
+        var c_encrypted = CryptoJS.DES.encrypt(passwordconfirmation,
+        Cryptokfydsdyg, {
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7,
+            iv: CryptoJS.enc.Utf8.parse(Cryptoikeywords)
+        });
+
+        var hexstr = encrypted.ciphertext.toString();
+        jQuery("#password").val(hexstr);
+
+        var c_hexstr = c_encrypted.ciphertext.toString();
+        jQuery("#passwordconfirmation").val(c_hexstr);
+    }
+</script>
+
+@endpush

@@ -60,23 +60,20 @@ class MasterController extends Controller
       }
       $rec_id = intval(Crypt::decrypt($id));
       $rules=[
-        'states' => 'required', 
-        'code' => 'required|max:5|unique:districts,code,'.$rec_id, 
+        'code' => 'required|max:5', 
         'name_english' => 'required|max:50', 
         'name_local_language' => 'required|max:50', 
       ];
 
       $customMessages = [
-        'states.required'=> 'Please Select State',
-
         'code.required'=> 'Please Enter District Code',                
         'code.max'=> 'District Code Should Be Maximum of 5 Character',
 
         'name_english.required'=> 'Please Enter District Name English',                
         'name_english.max'=> 'District Name English Should Be Maximum of 50 Character',
 
-        'name_local_language.required'=> 'Please Enter District Name Local Language',                
-        'name_local_language.max'=> 'District Name Local Language Should Be Maximum of 50 Character',
+        'name_local_language.required'=> 'Please Enter District Name (H)',                
+        'name_local_language.max'=> 'District Name (H) Should Be Maximum of 50 Character',
       ];
       $validator = Validator::make($request->all(),$rules, $customMessages);
       if ($validator->fails()) {
@@ -86,19 +83,26 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
-      $state_id = intval(Crypt::decrypt($request->states));
       $code = substr(MyFuncs::removeSpacialChr($request->code), 0, 5);
       $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
       $name_l = MyFuncs::removeSpacialChr($request->name_local_language);
+
+      $user_id = MyFuncs::getUserId();
+
       if ($rec_id > 0) {
-        $rs_update = DB::select(DB::raw("UPDATE `districts` set `state_id` = $state_id, `code` = '$code', `name_e` = '$name_e', `name_l` = '$name_l' where `id` = $rec_id;"));
-        $response=['status'=>1,'msg'=>'Record Updated Successfully'];
+        $state_id = 0;
+        $zpward = 0;
       }else{
+        $state_id = intval(Crypt::decrypt($request->states));
         $zpward = intval(substr(MyFuncs::removeSpacialChr($request->zp_ward), 0, 2));
-        $user_id = MyFuncs::getUserId(); 
-        $zpWard = DB::select(DB::raw("call `up_save_district` ($user_id, $state_id, '$code', '$name_e', '$name_l', $zpward);"));
-        $response=['status'=>$zpWard[0]->save_status,'msg'=>$zpWard[0]->save_remarks]; 
+        if($state_id == 0){
+          $response=['status'=>0,'msg'=>"Please Select State"];
+          return response()->json($response);
+        }
       }
+
+      $rs_update = DB::select(DB::raw("call `up_save_district` ($rec_id, $user_id, $state_id, '$code', '$name_e', '$name_l', $zpward);"));
+      $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->save_remarks];
       return response()->json($response);
     } catch (\Exception $e) {
       $e_method = "DistrictsStore";
@@ -114,31 +118,33 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $rec_id = intval(Crypt::decrypt($rec_id));
-      $Districts = DB::select(DB::raw("SELECT * from `districts` where `id` = $rec_id limit 1;")); 
-      $States = DB::select(DB::raw("SELECT * from `states` order by `name_e`;")); 
-      return view('admin.master.districts.edit',compact('Districts','States', 'rec_id'));
+      $Districts = DB::select(DB::raw("SELECT * from `districts` where `id` = $rec_id limit 1;"));
+      if(count($Districts) == 0){
+        return view('admin.common.error_popup');  
+      } 
+      return view('admin.master.districts.edit',compact('Districts', 'rec_id'));
     } catch (\Exception $e) {
       $e_method = "DistrictsEdit";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
 
-  public function DistrictsDelete($id)
-  {
-    try{
-      $permission_flag = MyFuncs::isPermission_route(21);
-      if(!$permission_flag){
-        return view('admin.common.error');
-      }
-      $decrp_id = intval(Crypt::decrypt($id));
-      $rs_delete = DB::select(DB::raw("DELETE from `districts` where `id` = $decrp_id limit 1;"));
-      $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
-      return response()->json($response);  
-    } catch (\Exception $e) {
-      $e_method = "DistrictsDelete";
-      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
-    }
-  }
+  // public function DistrictsDelete($id)
+  // {
+  //   try{
+  //     $permission_flag = MyFuncs::isPermission_route(21);
+  //     if(!$permission_flag){
+  //       return view('admin.common.error');
+  //     }
+  //     $decrp_id = intval(Crypt::decrypt($id));
+  //     $rs_delete = DB::select(DB::raw("DELETE from `districts` where `id` = $decrp_id limit 1;"));
+  //     $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
+  //     return response()->json($response);  
+  //   } catch (\Exception $e) {
+  //     $e_method = "DistrictsDelete";
+  //     return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+  //   }
+  // }
 
   public function DistrictsZpWard($d_id)
   {
@@ -149,6 +155,9 @@ class MasterController extends Controller
       }
       $district_id = intval(Crypt::decrypt($d_id));
       $DistrictName = DB::select(DB::raw("SELECT `name_e` from `districts` where `id` = $district_id;")); 
+      if(count($DistrictName) == 0){
+        return view('admin.common.error_popup');  
+      }
       return view('admin.master.districts.zp_ward',compact('DistrictName', 'district_id')); 
     } catch (\Exception $e) {
       $e_method = "DistrictsZpWard";
@@ -180,6 +189,10 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $district_id = intval(Crypt::decrypt($d_id));
+      if($district_id == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);  
+      }
       $zpward = intval(substr(MyFuncs::removeSpacialChr($request->zp_ward), 0, 2));
       $rs_save = DB::select(DB::raw("call up_create_zp_ward ($district_id, $zpward, 0);")); 
       $response=['status'=>1,'msg'=>'ZP Wards Created Successfully'];
@@ -215,6 +228,12 @@ class MasterController extends Controller
       }
       $role_id = MyFuncs::getUserRoleId();
       $d_id = intval(Crypt::decrypt($request->id));
+
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
       $rs_blocks = DB::select(DB::raw("SELECT `bl`.`id`, `bl`.`code`, `bl`.`name_e`, `bl`.`name_l`, `blt`.`block_mc_type_e`, (select Count(*) from `ward_ps` where `blocks_id` = `bl`.`id`) as `pscount`, `bl`.`block_mc_type_id` from `blocks_mcs` `bl` inner join `block_mc_type` `blt` on `blt`.`id` = `bl`.`block_mc_type_id` where `bl`.`districts_id` = $d_id order by `bl`.`name_e`;"));
       return view('admin.master.block.block_table',compact('rs_blocks', 'role_id'));
     } catch (Exception $e) {
@@ -232,7 +251,6 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rules=[
-        'district' => 'required', 
         'code' => 'required|max:5', 
         'name_english' => 'required', 
         'name_local_language' => 'required', 
@@ -240,16 +258,14 @@ class MasterController extends Controller
       ];
 
       $customMessages = [
-        'district.required'=> 'Please Select District',
-
         'code.required'=> 'Please Enter Block Code',                
         'code.max'=> 'Block Code Should Be Maximum of 5 Character',
 
-        'name_english.required'=> 'Please Enter Block Name English',                
-        'name_english.max'=> 'Block Name English Should Be Maximum of 50 Character',
+        'name_english.required'=> 'Please Enter Block Name (E)',                
+        'name_english.max'=> 'Block Name (E) Should Be Maximum of 50 Character',
 
-        'name_local_language.required'=> 'Please Enter Block Name Local Language',                
-        'name_local_language.max'=> 'Block Name Local Language Should Be Maximum of 50 Character',
+        'name_local_language.required'=> 'Please Enter Block Name (H)',                
+        'name_local_language.max'=> 'Block Name (H) Should Be Maximum of 100 Character',
 
         'block_mc_type_id.required'=> 'Please Select Block / MC\'s Type',
       ];
@@ -262,8 +278,6 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $rec_id = intval(Crypt::decrypt($id));
-      $s_id = 0;
-      $d_id = intval(Crypt::decrypt($request->district));
       $b_type_id = intval(Crypt::decrypt($request->block_mc_type_id));
 
       $bcode = substr(MyFuncs::removeSpacialChr($request->code), 0, 5);
@@ -275,13 +289,29 @@ class MasterController extends Controller
       
       $user_id = MyFuncs::getUserId();
       if ($rec_id == 0) { 
+        $d_id = intval(Crypt::decrypt($request->district));
+        if($d_id == 0){
+          $response=['status'=>0,'msg'=>"Please Select District"];
+          return response()->json($response);
+        }
+        $permission_flag = MyFuncs::check_district_access($d_id);
+        if($permission_flag == 0){
+          $response=['status'=>0,'msg'=>"Something Went Wrong"];
+          return response()->json($response);
+        }
         $pswards = intval(substr(MyFuncs::removeSpacialChr($request->ps_ward), 0, 2));
         $block_id = 0;  
       }else{
+        $d_id = 0;
         $pswards = 0;
         $block_id = $rec_id;
+        $permission_flag = MyFuncs::check_block_access($block_id);
+        if($permission_flag == 0){
+          $response=['status'=>0,'msg'=>"Something Went Wrong"];
+          return response()->json($response);
+        }
       }
-      $rs_update = DB::select(DB::raw("call `up_save_block` ($block_id, $user_id, $s_id, $d_id, '$bcode', '$name_e', '$name_l', $pswards, $b_type_id, '$stamp1', '$stamp2');"));
+      $rs_update = DB::select(DB::raw("call `up_save_block` ($block_id, $user_id, $d_id, '$bcode', '$name_e', '$name_l', $pswards, $b_type_id, '$stamp1', '$stamp2');"));
       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
       return response()->json($response);
     } catch (\Exception $e) {
@@ -298,6 +328,10 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $rec_id = intval(Crypt::decrypt($id));
+      $permission_flag = MyFuncs::check_block_access($rec_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
       $BlocksMcs = DB::select(DB::raw("SELECT * from `blocks_mcs` where `id` = $rec_id limit 1;"));
       $BlockMCTypes = DB::select(DB::raw("SELECT * from `block_mc_type` order by `block_mc_type_e`;"));
       return view('admin.master.block.edit',compact('BlocksMcs','BlockMCTypes', 'rec_id'));
@@ -315,6 +349,11 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $block_id = intval(Crypt::decrypt($id));
+      $role_id = MyFuncs::getUserRoleId();
+      if($role_id != 1){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rs_delete = DB::select(DB::raw("DELETE from `blocks_mcs` where `id` = $block_id limit 1;"));
       $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
       return response()->json($response);
@@ -332,7 +371,15 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $block_id = intval(Crypt::decrypt($b_id));
-      $Block_Name = DB::select(DB::raw("SELECT `name_e` from `blocks_mcs` where `id` = $block_id limit 1;"));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
+      $Block_Name = DB::select(DB::raw("SELECT `name_e`, `block_mc_type_id` from `blocks_mcs` where `id` = $block_id limit 1;"));
+      if($Block_Name[0]->block_mc_type_id != 1){
+        return view('admin.common.error_popup');  
+      }
       return view('admin.master.block.ps_ward',compact('Block_Name', 'block_id'));
     } catch (\Exception $e) {
       $e_method = "blockMCSpsWard";
@@ -365,6 +412,19 @@ class MasterController extends Controller
       }
       $block_id = intval(Crypt::decrypt($b_id));
       $pswards = intval(substr(MyFuncs::removeSpacialChr($request->ps_ward), 0, 2));
+
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $Block_Name = DB::select(DB::raw("SELECT `name_e`, `block_mc_type_id` from `blocks_mcs` where `id` = $block_id limit 1;"));
+      if($Block_Name[0]->block_mc_type_id != 1){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rs_save = DB::select(DB::raw("call up_create_ps_ward ($block_id, $pswards, 0);")); 
       $response=['status'=>1,'msg'=>'Ward Created Successfully'];
       return response()->json($response);

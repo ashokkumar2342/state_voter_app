@@ -212,7 +212,7 @@ class MyFuncs {
     if($role_id == 1){
       $result = 1;
     }elseif($role_id == 2){
-      $result_rs = DB::select(DB::raw("SELECT `id` from `user_district_assigns` `uda` inner join `blocks_mcs` `bl` on `bl`.`districts_id` = `uda`.`district_id` and `bl`.`id` = $bl_id where `uda`.`user_id` = $user_id and `uda`.`status` = 1 limit 1;"));
+      $result_rs = DB::select(DB::raw("SELECT `uda`.`id` from `user_district_assigns` `uda` inner join `blocks_mcs` `bl` on `bl`.`districts_id` = `uda`.`district_id` and `bl`.`id` = $bl_id where `uda`.`user_id` = $user_id and `uda`.`status` = 1 limit 1;"));
       if(count($result_rs) > 0){
         $result = 1;
       }
@@ -223,6 +223,33 @@ class MyFuncs {
       }
     }elseif($role_id == 4){
       $result_rs = DB::select(DB::raw("SELECT `id` from `user_village_assigns` where `user_id` = $user_id and `block_id` = $bl_id and `status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }
+    return $result;
+  }
+
+  public static function check_village_access($vil_id)
+  { 
+    $user_id = MyFuncs::getUserId();
+    $role_id = MyFuncs::getUserRoleId();
+    $result = 0;
+
+    if($role_id == 1){
+      $result = 1;
+    }elseif($role_id == 2){
+      $result_rs = DB::select(DB::raw("SELECT `uda`.`id` from `user_district_assigns` `uda` inner join `villages` `vil` on `vil`.`districts_id` = `uda`.`district_id` and `vil`.`id` = $vil_id where `uda`.`user_id` = $user_id and `uda`.`status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }elseif($role_id == 3){
+      $result_rs = DB::select(DB::raw("SELECT `uda`.`id` from `user_block_assigns` `uda` inner join `villages` `vil` on `vil`.`blocks_id` = `uda`.`block_id` and `vil`.`id` = $vil_id where `uda`.`user_id` = $user_id and `uda`.`status` = 1 limit 1;"));
+      if(count($result_rs) > 0){
+        $result = 1;
+      }
+    }elseif($role_id == 4){
+      $result_rs = DB::select(DB::raw("SELECT `id` from `user_village_assigns` where `user_id` = $user_id and `village_id` = $vil_id and `status` = 1 limit 1;"));
       if(count($result_rs) > 0){
         $result = 1;
       }

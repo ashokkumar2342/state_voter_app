@@ -43,7 +43,7 @@
                         <div class="form-group">
                             <label for="exampleInputPassword1">District Name (Hindi)</label>
                             <span class="fa fa-asterisk"></span>
-                            <input type="text" name="name_local_language" id="name_local_language" class="form-control" placeholder="Enter Name (In hindi)" maxlength="50" required>
+                            <input type="text" name="name_local_language" id="name_local_language" class="form-control" placeholder="Enter Name (In hindi)" maxlength="100" required>
                         </div>                               
                     </div>
                     <div class="col-lg-4">

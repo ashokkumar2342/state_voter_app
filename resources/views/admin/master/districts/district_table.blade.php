@@ -30,8 +30,6 @@
                                 <button type="button" onclick="callPopupLarge(this,'{{ route('admin.Master.districts.zpWard', Crypt::encrypt($rs_val->id)) }}')" class="btn btn-primary btn-sm">Add Z.P. Ward</button>
 
                                 <button type="button" select2="true" onclick="callPopupLarge(this,'{{ route('admin.Master.districts.edit', Crypt::encrypt($rs_val->id)) }}')" class="btn btn-info btn-sm"><i class="fa fa-edit"></i> Edit</button>
-
-                                <button type="button" success-popup="true" select-triger="state_select_box" onclick="if(confirm('Are you sure you want to delete this record?')==true){callAjax(this,'{{ route('admin.Master.district.delete',Crypt::encrypt($rs_val->id)) }}')}" title="" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Delete</button>
                             </td>
                         </tr> 
                     @endforeach

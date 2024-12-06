@@ -11,16 +11,6 @@
                 {{ csrf_field() }}
                 <div class="box-body"> 
                     <div class="form-group">
-                        <label for="exampleInputEmail1">States</label>
-                        <span class="fa fa-asterisk"></span>
-                        <select name="states" class="form-control select2">
-                            <option selected disabled>Select States</option>
-                            @foreach ($States as $State)
-                                <option value="{{ Crypt::encrypt($State->id) }}"{{ $Districts[0]->state_id==$State->id?'selected' :'' }}>{{ $State->code }}--{{ $State->name_e }}</option>  
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label for="exampleInputEmail1">District Code</label>
                           <span class="fa fa-asterisk"></span>
                           <input type="text" name="code" class="form-control" placeholder="Enter Code" value="{{ $Districts[0]->code }}" maxlength="5" required> 

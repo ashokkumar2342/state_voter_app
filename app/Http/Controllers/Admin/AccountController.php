@@ -47,7 +47,16 @@ class AccountController extends Controller
                 'password'=> 'required',
                 'passwordconfirmation'=> 'required|same:password',
             ];
-            $validator = Validator::make($request->all(),$rules);
+            $customMessages = [
+                'oldpassword.required'=> 'Please Enter Old Password',                
+                
+                'password.required'=> 'Please Enter New Password',
+                
+                'passwordconfirmation.required'=> 'Please Enter Confirm Password',
+                'passwordconfirmation.same'=> 'New and Confirm Password Mismatch',
+            ];
+            $validator = Validator::make($request->all(),$rules, $customMessages);
+
             if ($validator->fails()) {
                 $errors = $validator->errors()->all();
                 $response=array();
@@ -442,7 +451,7 @@ class AccountController extends Controller
             }
             $assigned_id = intval(Crypt::decrypt($id));
             $rs_delete = DB::select(DB::raw("UPDATE `user_block_assigns` set `status` = 0 where `id` = $assigned_id limit 1;"));
-            $response['msg'] = 'District Removed Successfully';
+            $response['msg'] = 'Block/MC Removed Successfully';
             $response['status'] = 1;
             return response()->json($response);
         } catch (\Exception $e) {
@@ -451,6 +460,258 @@ class AccountController extends Controller
         }
     }
 
+// ///------village-Assign-----------------------------------
+    Public function VillageAssign()
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(5);
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            $user_id = MyFuncs::getUserId();
+            $role_id = 4;
+            $users = SelectBox::get_user_list_v1($role_id, $user_id); 
+            return view('admin.account.assign.village.index',compact('users'));
+        } catch (\Exception $e) {
+            $e_method = "VillageAssign";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    Public function DistrictBlockVillageAssign(Request $request)
+    { 
+        try {
+            $permission_flag = MyFuncs::isPermission_route(5);
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            
+            $rs_district = SelectBox::get_district_access_list_v1();
+
+            $r_user_id = intval(Crypt::decrypt($request->id));
+
+            $DistrictBlockAssigns = DB::select(DB::raw("SELECT `uda`.`id`, `dis`.`name_e` as `block_name`, `vil`.`name_e` as `vil_name` from `user_village_assigns` `uda` inner join `blocks_mcs` `dis` on `dis`.`id` = `uda`.`block_id` inner join `villages` `vil` on `vil`.`id` = `uda`.`village_id` where `uda`.`status` = 1 and `uda`.`user_id` = $r_user_id;"));
+
+            $data= view('admin.account.assign.village.select_box',compact('DistrictBlockAssigns','rs_district'))->render(); 
+            return response($data);
+        } catch (\Exception $e) {
+            $e_method = "DistrictBlockVillageAssign";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    Public function DistrictBlockVillageAssignStore(Request $request)
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(5);
+            if(!$permission_flag){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }
+
+            $rules=[
+                'district' => 'required', 
+                'block' => 'required',
+                'village' => 'required', 
+                'user' => 'required',  
+            ]; 
+            $customMessages = [
+                'district.required'=> 'Please Select District',                
+                'block.required'=> 'Please Select Block/MC',
+                'village.required'=> 'Please Select Panchayat/MC',
+                'user.required'=> 'Please Select User',
+            ];
+            $validator = Validator::make($request->all(),$rules, $customMessages);
+            if ($validator->fails()) {
+                $errors = $validator->errors()->all();
+                $response=array();
+                $response["status"]=0;
+                $response["msg"]=$errors[0];
+                return response()->json($response);// response as json
+            }
+
+            $district_id = intval(Crypt::decrypt($request->district));
+            $block_id = intval(Crypt::decrypt($request->block));
+            $village_id = intval(Crypt::decrypt($request->village));
+            $r_user_id = intval(Crypt::decrypt($request->user));
+
+            $permission_flag = MyFuncs::check_district_access($district_id);
+            if($permission_flag == 0){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }            
+
+            $permission_flag = MyFuncs::check_block_access($block_id);
+            if($permission_flag == 0){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }            
+
+            $permission_flag = MyFuncs::check_village_access($village_id);
+            if($permission_flag == 0){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }            
+
+            $user_id = MyFuncs::getUserId();
+
+            $rs_save = DB::select(DB::raw("call `up_save_assign_village` ($r_user_id, $village_id, $user_id);"));  
+            $response['msg'] = $rs_save[0]->result;
+            $response['status'] = $rs_save[0]->s_status;
+            return response()->json($response);
+
+        } catch (\Exception $e) {
+            $e_method = "DistrictBlockVillageAssignStore";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    public function DistrictBlockVillageAssignDelete($id)
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(5);
+            if(!$permission_flag){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);
+            }
+            $assigned_id = intval(Crypt::decrypt($id));
+            $rs_delete = DB::select(DB::raw("UPDATE `user_village_assigns` set `status` = 0 where `id` = $assigned_id limit 1;"));
+            $response['msg'] = 'Panchayat/MC Removed Successfully';
+            $response['status'] = 1;
+            return response()->json($response);
+        } catch (\Exception $e) {
+            $e_method = "DistrictBlockVillageAssignDelete";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    Public function usr_lst_index()
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(1);
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            $user_id = MyFuncs::getUserId();
+            $role_id = 0;
+            $accounts = DB::select(DB::raw("SELECT `a`.`id`, `a`.`first_name`, `a`.`email`, `a`.`mobile`, `a`.`status`, `r`.`name` from `admins` `a`Inner Join `roles` `r` on `a`.`role_id` = `r`.`id` where `a`.`created_by` = $user_id Order By `a`.`first_name`;")); 
+            return view('admin.account.list',compact('accounts'));
+        } catch (\Exception $e) {
+            $e_method = "usr_lst_index";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    Public function change_status($id)
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(1);
+            if(!$permission_flag){
+                return redirect()->back()->with(['class'=>'error','message'=>'Something Went Wrong']);
+            }
+
+            $acc_id = intval(Crypt::decrypt($id));
+
+            $user_id = MyFuncs::getUserId();
+            
+            $rs_fetch = DB::select(DB::raw("SELECT `usr`.`id` from `admins` `usr` where `usr`.`id` = $acc_id and `usr`.`created_by` = $user_id limit 1;"));
+            if(count($rs_fetch) == 0){
+                return redirect()->back()->with(['class'=>'error','message'=>'Something Went Wrong']);   
+            }
+
+            $rs_update = DB::select(DB::raw("call `up_toggle_user_status`($acc_id);"));
+            return redirect()->back()->with(['class'=>'success','message'=>'Status Changed Successfully']);
+        } catch (\Exception $e) {
+            $e_method = "change_status";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    public function resetPassWord()
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route(9);
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            $user_id = MyFuncs::getUserId();
+            $role_id = 0;
+            $users = SelectBox::get_user_list_v1($role_id, $user_id); 
+            return view('admin.account.reset_password',compact('users'));
+        } catch (\Exception $e) {
+            $e_method = "resetPassWord";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
+    public function resetPassWordChange(Request $request)
+    { 
+        try {
+            $permission_flag = MyFuncs::isPermission_route(9);
+            if(!$permission_flag){
+                $response=['status'=>0,'msg'=>'Something Went Wrong'];
+                return response()->json($response);// response as json
+            }
+
+            $rules=[
+                'user'=> 'required',
+                'password'=> 'required',
+                'passwordconfirmation'=> 'required|same:password',
+            ];
+            $customMessages = [
+                'user.required'=> 'Please Select User',                
+                
+                'password.required'=> 'Please Enter New Password',
+                
+                'passwordconfirmation.required'=> 'Please Enter Confirm Password',
+                'passwordconfirmation.same'=> 'New and Confirm Password Mismatch',
+            ];
+            $validator = Validator::make($request->all(),$rules, $customMessages);
+            if ($validator->fails()) {
+                $errors = $validator->errors()->all();
+                $response=array();
+                $response["status"]=0;
+                $response["msg"]=$errors[0];
+                return response()->json($response);// response as json
+            }        
+            
+            $user_id = MyFuncs::getUserId();
+
+            $r_user_id = intval(Crypt::decrypt($request->user));
+            $rs_fetch = DB::select(DB::raw("SELECT `usr`.`id` from `admins` `usr` where `usr`.`id` = $r_user_id and `usr`.`created_by` = $user_id limit 1;"));
+            if(count($rs_fetch) == 0){
+                $response=['status'=>0,'msg'=>"Something Went Wrong"];
+                return response()->json($response);
+            }
+
+            $key = Session::get('CryptoRandom');
+            $iv = Session::get('CryptoRandomInfo');
+            
+            $data = hex2bin($request['password']);
+            $decryptedpass = openssl_decrypt($data, 'DES-CBC', $key, OPENSSL_RAW_DATA, $iv);
+            
+            $c_data = hex2bin($request['passwordconfirmation']);
+            $c_decryptedpass = openssl_decrypt($c_data, 'DES-CBC', $key, OPENSSL_RAW_DATA, $iv);
+            
+            $password_strength = MyFuncs::check_password_strength($decryptedpass, $r_user_id);
+            if($password_strength != ''){
+                $response=['status'=>0,'msg'=>$password_strength];
+                return response()->json($response);// response as json
+            }
+
+            $from_ip = MyFuncs::getIp();
+
+            $en_password = bcrypt($decryptedpass); 
+            $rs_update = DB::select(DB::raw("UPDATE `admins` set `password` = '$en_password', `password_expire_on` = curdate() where `id` = $r_user_id limit 1;"));
+
+            $response=['status'=>1,'msg'=>'Password Reset Successfully'];
+            return response()->json($response);
+        } catch (\Exception $e) {
+            $e_method = "resetPassWordChange";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }        
+    }
+    
     public function exception_handler()
     {
         try {
@@ -461,14 +722,36 @@ class AccountController extends Controller
         }
     }
 
-//     Public function index(){
-//         $admin=Auth::guard('admin')->user(); 
-//         $user_id = $admin->id;
-//         $accounts = DB::select(DB::raw("select `a`.`id`, `a`.`first_name`, `a`.`last_name`, `a`.`email`, `a`.`mobile`, `a`.`status`, `r`.`name`
-//              from `admins` `a`Inner Join `roles` `r` on `a`.`role_id` = `r`.`id` where `a`.`created_by` = $user_id Order By `a`.`first_name`;")); 
-//      return view('admin.account.list',compact('accounts'));
-//     }
+    
 
+    // Public function usr_edit($id)
+    // {
+    //     try {
+    //         $permission_flag = MyFuncs::isPermission_route(1);
+    //         if(!$permission_flag){
+    //             return view('admin.common.error_popup');
+    //         }
+
+    //         $acc_id = intval(Crypt::decrypt($id));
+            
+    //         $user_id = MyFuncs::getUserId();
+            
+    //         $rs_fetch = DB::select(DB::raw("SELECT `usr`.`id` from `admins` `usr` where `usr`.`id` = $acc_id and `usr`.`created_by` = $user_id limit 1;"));
+    //         if(count($rs_fetch) == 0){
+    //             return view('admin.common.error_popup');   
+    //         }
+
+    //         $account = DB::select(DB::raw("SELECT `id`, `first_name`, `email`, `mobile` from `admins` where `id` = $acc_id limit 1;"));
+    //         if(count($account) == 0){
+    //             return view('admin.common.error_popup');   
+    //         }
+    //         return view('admin.account.edit',compact('account'));
+
+    //     } catch (\Exception $e) {
+    //         $e_method = "usr_edit";
+    //         return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    //     } 
+    // }
 
 
 //     Public function store(Request $request){ 
@@ -498,21 +781,9 @@ class AccountController extends Controller
 //         return response()->json($response);   
 //     }
 
-//     Public function status($id){
-//         $acc_id = Crypt::decrypt($id);
-//         DB::select(DB::raw("call `up_toggle_user_status`($acc_id);"));
-//         return redirect()->back()->with(['class'=>'success','message'=>'status change  successfully ...']);
-//     }
+    
 
-//     Public function edit($id){
-//         $acc_id = Crypt::decrypt($id);
-//         $admin=Auth::guard('admin')->user();       
-//         $user_role = $admin->role_id;
-//         $roles =DB::select(DB::raw("select `id`, `name` from `roles` where `id`  > $user_role Order By `name`;"));
-        
-//         $account = DB::select(DB::raw("select * from `admins` where `id` = $acc_id;"));
-//         return view('admin.account.edit',compact('account','roles')); 
-//     }
+    
 
 //     Public function update(Request $request, $id){
 
@@ -569,58 +840,12 @@ class AccountController extends Controller
 
 
 
-// // ///------village-Assign-----------------------------------
-//     Public function VillageAssign(){
-//         try {
-//             $admin=Auth::guard('admin')->user(); 
-//             $users=DB::select(DB::raw("select `id`, `first_name`, `last_name`, `email`, `mobile` from `admins`where `status` = 1 and `role_id` = 4 and `created_by` = $admin->id Order By `first_name`")); 
-//             return view('admin.account.assign.village.index',compact('users'));
-//         } catch (Exception $e) {}  
-//     }
 
-//     Public function DistrictBlockVillageAssign(Request $request){ 
-//         try {
-//             $States = DB::select(DB::raw("select * from `states` Order By `name_e`"));           
-//             $DistrictBlockAssigns = DB::select(DB::raw("select `uda`.`id`, `dis`.`name_e` as `block_name`, `vil`.`name_e` as `vil_name` from `user_village_assigns` `uda` inner join `blocks_mcs` `dis` on `dis`.`id` = `uda`.`block_id` inner join `villages` `vil` on `vil`.`id` = `uda`.`village_id` where `uda`.`status` = 1 and `uda`.`user_id` = $request->id;"));
-//             $data= view('admin.account.assign.village.select_box',compact('DistrictBlockAssigns','States'))->render(); 
-//             return response($data);
-//         } catch (Exception $e) {}
+    
 
-//     }
 
-//     Public function DistrictBlockVillageAssignStore(Request $request){   
-//         $rules=[
-//             'district' => 'required', 
-//             'block' => 'required', 
-//             'village' => 'required', 
-//             'user' => 'required',  
-//         ]; 
-//         $validator = Validator::make($request->all(),$rules);
-//         if ($validator->fails()) {
-//             $errors = $validator->errors()->all();
-//             $response=array();
-//             $response["status"]=0;
-//             $response["msg"]=$errors[0];
-//             return response()->json($response);// response as json
-//         }
-//         try {
-//             $rs_save = DB::select(DB::raw("call `up_save_assign_village`($request->user, $request->district, $request->block, $request->village);"));
-//             $response['msg'] = 'Village Assigned Successfully';
-//             $response['status'] = 1;
-//             return response()->json($response);
-//         } catch (Exception $e) {}  
-//     }
 
-//     public function DistrictBlockVillageAssignDelete($id)
-//     {
-//         try {
-//             $assign_id = Crypt::decrypt($id);
-//             $rs_delete = DB::select(DB::raw("delete from `user_village_assigns` where `id` = $assign_id limit 1;"));
-//             $response['msg'] = 'Village Removed Successfully';
-//             $response['status'] = 1;
-//             return response()->json($response);
-//         } catch (Exception $e) {}   
-//     }
+
 
 // //---------------Default Role Permission -------------
 //     public function defaultRolePermission()
@@ -930,11 +1155,7 @@ class AccountController extends Controller
 
 
  
-//     public function resetPassWord($value='')
-//     {
-//        $admins = DB::select(DB::raw("select * from `admins` order by `email`;"));
-//        return view('admin.account.reset_password',compact('admins'));
-//     }
+    
 
 //     public function resetPassWordChange(Request $request)
 //     {  

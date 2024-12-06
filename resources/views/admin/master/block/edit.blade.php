@@ -10,7 +10,6 @@
             <form action="{{ route('admin.master.block.mcs.store', Crypt::encrypt($rec_id)) }}" method="post" class="add_form" select-triger="district_select_box" button-click="btn_close">
                 {{ csrf_field() }}
                 <div class="box-body">
-                        <input type="hidden" name="district" value="{{ Crypt::encrypt($BlocksMcs[0]->districts_id) }}"> 
                     <div class="row">
                         <div class="form-group col-lg-4">
                             <label for="exampleInputEmail1">Block / MC's Code</label>
@@ -38,12 +37,12 @@
                             </select>
                         </div>
                         <div class="col-lg-4 form-group">
-                            <label for="exampleInputPassword1">Stamp Line 1</label>
+                            <label for="exampleInputPassword1">Remarks</label>
 
                             <input type="text" name="stamp_l1" id="stamp_l1" class="form-control" maxlength="100" value="{{ $BlocksMcs[0]->stamp_l1 }}" >
                         </div>
                         <div class="col-lg-4 form-group">
-                            <label for="exampleInputPassword1">Stamp Line 2</label>
+                            <label for="exampleInputPassword1">Description</label>
 
                             <input type="text" name="stamp_l2" id="stamp_l2" class="form-control" maxlength="100" value="{{ $BlocksMcs[0]->stamp_l2 }}" >
                         </div>
