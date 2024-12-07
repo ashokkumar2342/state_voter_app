@@ -279,12 +279,12 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	    Route::post('WardBandiReportGenerate', 'MasterController@WardBandiReportGenerate')->name('admin.Master.WardBandiReportGenerate');	//OK-------
 
 // 	    //-----------------ward-bandi-with-booth--------------------------//
-// 	    Route::get('WardBandiWithBooth', 'MasterController@WardBandiWithBooth')->name('admin.Master.WardBandiWithBooth');		//OK Done--------
-// 	    Route::get('VillageWiseAssemblyWard', 'MasterController@VillageWiseAssemblyWard')->name('admin.Master.VillageWiseAssemblyWard');	//OK-------
-// 	    Route::get('WardWiseBooth', 'MasterController@WardWiseBooth')->name('admin.Master.WardWiseBooth');		//OK--------
-// 	    Route::get('BoothWiseTotalMappedWard', 'MasterController@BoothWiseTotalMappedWard')->name('admin.Master.BoothWiseTotalMappedWard');	   //OK----------
-// 	    Route::get('AssemblywisevoterMapped', 'MasterController@AssemblywisevoterMapped')->name('admin.Master.AssemblywisevoterMapped');	//OK--------
-// 	    Route::post('WardBandiWithBoothStore', 'MasterController@WardBandiWithBoothStore')->name('admin.Master.WardBandiWithBoothStore');	//OK----------
+	    Route::get('ward-bandi-booth', 'MasterController@wardBandiWithBooth')->name('admin.Master.WardBandiWithBooth');
+	    Route::get('villageWiseAssemblyWard', 'MasterController@villageWiseAssemblyWard')->name('admin.Master.VillageWiseAssemblyWard');
+	    Route::get('ward-wise-booth', 'MasterController@wardWiseBooth')->name('admin.Master.WardWiseBooth');
+	    Route::get('booth-Wise-totalMappedWard', 'MasterController@boothWiseTotalMappedWard')->name('admin.Master.BoothWiseTotalMappedWard');
+	    Route::get('assemblywisevoterMapped', 'MasterController@assemblywisevoterMapped')->name('admin.Master.AssemblywisevoterMapped');
+	    Route::post('wardBandiWithBoothStore', 'MasterController@wardBandiWithBoothStore')->name('admin.Master.WardBandiWithBoothStore');
 
 
 // 	    Route::get('change-voter-with-ward', 'MasterController@changeVoterWithWard')->name('admin.Master.change.voter.with.ward');		//OK Done-------------

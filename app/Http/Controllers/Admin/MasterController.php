@@ -1338,6 +1338,10 @@ class MasterController extends Controller
   public function wardBandi()
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(41);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $rs_district = SelectBox::get_district_access_list_v1();
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       return view('admin.master.wardbandi.index',compact('rs_district', 'refreshdata'));
@@ -1350,6 +1354,10 @@ class MasterController extends Controller
   public function wardBandiFrom(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(41);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->id));
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
       $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ($village_id, 0)")); 
@@ -1365,6 +1373,10 @@ class MasterController extends Controller
   public function wardBandiFilterAssemblyPart(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(41);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $data_list_id = 0;
       $part_id = 0;
@@ -1381,7 +1393,11 @@ class MasterController extends Controller
 
   public function wardBandiFilterward(Request $request)
   {
-    try{ 
+    try{
+      $permission_flag = MyFuncs::isPermission_route(41);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refresh = $request->refresh;
       $ward_id = intval(Crypt::decrypt($request->id));
       $total_mapped = DB::select(DB::raw("SELECT count(*) as `total_mapped` from `voters` where `ward_id` = $ward_id;"));   
@@ -1395,6 +1411,11 @@ class MasterController extends Controller
   public function wardBandiStore(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(41);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[
         'district' => 'required', 
         'block' => 'required', 
@@ -1455,6 +1476,11 @@ class MasterController extends Controller
   public function removeVoter_wardbandi($id)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route("41, 42");
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $user_id = MyFuncs::getUserId();
       $vid = intval(Crypt::decrypt($id));
       $rs_update = DB::select(DB::raw("call `up_reset_voters_wardbandi` ($user_id, $vid);"));
@@ -1469,6 +1495,10 @@ class MasterController extends Controller
   public function WardBandiReport(Request $request)
   { 
     try{
+      $permission_flag = MyFuncs::isPermission_route("41, 42");
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
       $village = $request->village;
       $assembly_part = $request->assembly_part;
       $ward = $request->ward;
@@ -1481,57 +1511,226 @@ class MasterController extends Controller
 
   public function WardBandiReportGenerate(Request $request)
   {
-    $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
-    $village_id = intval(Crypt::decrypt($request->village));
-    $ward_id = intval(Crypt::decrypt($request->ward));
-    if ($request->report == 1) {
-      $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
-      $ac_id = $assemblyPart[0]->assembly_id;
-      $assembly = DB::select(DB::raw("SELECT * from `assemblys` Where `id` = $ac_id limit 1;"));
-      $voterReports = DB::select(DB::raw("SELECT `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no` from `voters` `v` Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id`Where `v`.`assembly_part_id` = $ac_part_id order By `v`.`sr_no`;")); 
-    }elseif ($request->report==2) {
-      $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
-      $ac_id = $assemblyPart[0]->assembly_id;
-      $assembly = DB::select(DB::raw("SELECT * from `assemblys` Where `id` = $ac_id limit 1;"));
-      $voterReports = DB::select(DB::raw("select `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l` from `voters` `v` Where `v`.`assembly_part_id` = $ac_part_id and `v`.`village_id` = 0 order By `v`.`sr_no` ;")); 
-    }elseif ($request->report==3) {
-      $village = DB::select(DB::raw("SELECT * from `villages` Where `id` = $village_id limit 1;"));
-      $wardVillage = DB::select(DB::raw("SELECT * from `ward_villages` Where `id` = $request->ward_id limit 1;"));
+    try{
+      $permission_flag = MyFuncs::isPermission_route("41, 42");
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
+      $village_id = intval(Crypt::decrypt($request->village));
+      $ward_id = intval(Crypt::decrypt($request->ward));
+      if ($request->report == 1) {
+        $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
+        $ac_id = $assemblyPart[0]->assembly_id;
+        $assembly = DB::select(DB::raw("SELECT * from `assemblys` Where `id` = $ac_id limit 1;"));
+        $voterReports = DB::select(DB::raw("SELECT `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no` from `voters` `v` Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id`Where `v`.`assembly_part_id` = $ac_part_id order By `v`.`sr_no`;")); 
+      }elseif ($request->report==2) {
+        $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
+        $ac_id = $assemblyPart[0]->assembly_id;
+        $assembly = DB::select(DB::raw("SELECT * from `assemblys` Where `id` = $ac_id limit 1;"));
+        $voterReports = DB::select(DB::raw("select `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l` from `voters` `v` Where `v`.`assembly_part_id` = $ac_part_id and `v`.`village_id` = 0 order By `v`.`sr_no` ;")); 
+      }elseif ($request->report==3) {
+        $village = DB::select(DB::raw("SELECT * from `villages` Where `id` = $village_id limit 1;"));
+        $wardVillage = DB::select(DB::raw("SELECT * from `ward_villages` Where `id` = $request->ward_id limit 1;"));
+        
+        $voterReports = DB::select(DB::raw("SELECT `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` = $request->ward_id order By `v`.`sr_no`;"));
+      } 
       
-      $voterReports = DB::select(DB::raw("SELECT `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` = $request->ward_id order By `v`.`sr_no`;"));
-    } 
-    
-    $path=Storage_path('fonts/');
-    $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
-    $fontDirs = $defaultConfig['fontDir']; 
-    $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
-    $fontData = $defaultFontConfig['fontdata']; 
-    $mpdf = new \Mpdf\Mpdf([
-           'fontDir' => array_merge($fontDirs, [
-               __DIR__ . $path,
-           ]),
-           'fontdata' => $fontData + [
-               'frutiger' => [
-                   'R' => 'FreeSans.ttf',
-                   'I' => 'FreeSansOblique.ttf',
-               ]
-           ],
-           'default_font' => 'freesans',
-           'pagenumPrefix' => '',
-          'pagenumSuffix' => '',
-          'nbpgPrefix' => ' कुल ',
-          'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
-    ]); 
-          
-    if ($request->report==1) {
-      $html = view('admin.master.wardbandi.report_list',compact('voterReports','assemblyPart','assembly'));
-    }elseif ($request->report==2) {
-      $html = view('admin.master.wardbandi.report_list2',compact('voterReports','assemblyPart','assembly'));
-    }elseif ($request->report==3) {
-      $html = view('admin.master.wardbandi.report_list3',compact('voterReports','village','wardVillage'));
+      $path=Storage_path('fonts/');
+      $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+      $fontDirs = $defaultConfig['fontDir']; 
+      $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+      $fontData = $defaultFontConfig['fontdata']; 
+      $mpdf = new \Mpdf\Mpdf([
+             'fontDir' => array_merge($fontDirs, [
+                 __DIR__ . $path,
+             ]),
+             'fontdata' => $fontData + [
+                 'frutiger' => [
+                     'R' => 'FreeSans.ttf',
+                     'I' => 'FreeSansOblique.ttf',
+                 ]
+             ],
+             'default_font' => 'freesans',
+             'pagenumPrefix' => '',
+            'pagenumSuffix' => '',
+            'nbpgPrefix' => ' कुल ',
+            'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
+      ]); 
+            
+      if ($request->report==1) {
+        $html = view('admin.master.wardbandi.report_list',compact('voterReports','assemblyPart','assembly'));
+      }elseif ($request->report==2) {
+        $html = view('admin.master.wardbandi.report_list2',compact('voterReports','assemblyPart','assembly'));
+      }elseif ($request->report==3) {
+        $html = view('admin.master.wardbandi.report_list3',compact('voterReports','village','wardVillage'));
+      }
+      $mpdf->WriteHTML($html); 
+      $mpdf->Output();
+    } catch (\Exception $e) {
+      $e_method = "WardBandiReportGenerate";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
-    $mpdf->WriteHTML($html); 
-    $mpdf->Output(); 
+  }
+
+  public function wardBandiWithBooth()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(42);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.wardbandiwithbooth.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "wardBandiWithBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function villageWiseAssemblyWard(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(42);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $village_id = intval(Crypt::decrypt($request->id));
+      $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+      $rs_dataList = DB::select(DB::raw("SELECT * from `import_type` order by `id`;"));
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0)"));   
+      return view('admin.master.wardbandiwithbooth.assembly_ward_select_box',compact('assemblyParts','WardVillages', 'rs_dataList'));
+    } catch (\Exception $e) {
+      $e_method = "villageWiseAssemblyWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function assemblywisevoterMapped(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(42);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $data_list_id = 0;
+      $part_id = 0;
+      if ($request->data_list_id!='null'){
+        $data_list_id = intval(Crypt::decrypt($request->data_list_id));  
+      }
+      if ($request->part_id!='null'){
+        $part_id = intval(Crypt::decrypt($request->part_id));  
+      }
+      $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `wv`.`ward_no`, `po`.`booth_no`, `v`.`name_e`, `v`.`father_name_e`, `v`.`voter_card_no` from `voters` `v` Left join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Left Join `polling_booths` `po` on `po`.`id` = `v`.`Booth_Id`  Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id Order By `v`.`sr_no`;"));  
+      return view('admin.master.wardbandiwithbooth.voter_list',compact('rs_voterLists', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "AssemblywisevoterMapped";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function wardWiseBooth(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(42);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $village_id = intval(Crypt::decrypt($request->village_id));
+      $ward_id = intval(Crypt::decrypt($request->ward_id));
+      $selectbooths = DB::select(DB::raw("SELECT `id`, concat(`booth_no`,ifnull(`booth_no_c`,''),' - ',`name_e`) as `booth_name` from `polling_booths` Where `village_id` = $village_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` = $ward_id) Order by `booth_name`;"));
+      return view('admin.master.wardbandiwithbooth.booth_select_box',compact('selectbooths'));
+    } catch (\Exception $e) {
+      $e_method = "wardWiseBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function boothWiseTotalMappedWard(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(42);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $booth_id = intval(Crypt::decrypt($request->id));
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $total_mapped=DB::select(DB::raw("SELECT count(*) as `total_mapped` from `voters` where `booth_id` = $booth_id;"));   
+      return view('admin.master.wardbandiwithbooth.sr_no_form',compact('total_mapped', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "boothWiseTotalMappedWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function wardBandiWithBoothStore(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(42);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'data_list' => 'required',
+        'assembly_part' => 'required', 
+        'ward' => 'required', 
+        'booth' => 'required', 
+        'from_sr_no' => 'required',
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'data_list.required'=> 'Please Select Data List',
+        'assembly_part.required'=> 'Please Select Assembly-Part',
+        'ward.required'=> 'Please Select Ward',
+        'booth.required'=> 'Please Select booth',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $user_id = MyFuncs::getUserId();
+      $data_list = intval(Crypt::decrypt($request->data_list));
+      $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
+      $ward_id = intval(Crypt::decrypt($request->ward));
+      $booth_id = intval(Crypt::decrypt($request->booth));
+
+      $forcefully = 0;
+      if ($request->forcefully == 1) {
+        $forcefully = 1; 
+      }
+
+      if ($request->from_sr_no == null) {
+        $from_sr_no = 0;
+      }else {
+        $from_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 4));
+      }
+      if ($request->to_sr_no == null) {
+        $to_sr_no = 0;
+      }else  {
+        $to_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 4));
+      }
+
+      $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, $booth_id, $from_sr_no, $to_sr_no, $forcefully, $data_list) as `save_remarks`;"));
+
+      $response=['status'=>1,'msg'=>$message[0]->save_remarks];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "wardBandiWithBoothStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
   }
 
 
@@ -2416,68 +2615,7 @@ class MasterController extends Controller
 
 
 // //----------ward-bandi----------WardBandi----------------------------------------------------//
-  
 
-
-  
-
-
-   
-
-// public function WardBandiWithBoothStore(Request $request)
-// {  
-
-//   $rules=[
-//     'states' => 'required', 
-//     'district' => 'required', 
-//     'block' => 'required', 
-//     'village' => 'required', 
-//     'assembly_part' => 'required', 
-//     'ward' => 'required', 
-//     'booth' => 'required', 
-//     'from_sr_no' => 'required',
-//     'data_list' => 'required',
-//   ];
-
-//   $validator = Validator::make($request->all(),$rules);
-//   if ($validator->fails()) {
-//       $errors = $validator->errors()->all();
-//       $response=array();
-//       $response["status"]=0;
-//       $response["msg"]=$errors[0];
-//       return response()->json($response);// response as json
-//   }
-//   try{
-//     $forcefully=0;
-//     $from_sr_no=0;
-//     $to_sr_no=0;
-//     if ($request->forcefully==1) {
-//       $forcefully=1; 
-//     }
-//     if ($request->from_sr_no!=null) {
-//       $from_sr_no=$request->from_sr_no;
-//     }
-//     if ($request->to_sr_no!=null) {
-//       $to_sr_no=$request->to_sr_no;
-//     } 
-//     if($from_sr_no==0){
-//       $from_sr_no = $to_sr_no;
-//     }
-//     if($to_sr_no==0){
-//       $to_sr_no = $from_sr_no;
-//     }
-
-//     $user=Auth::guard('admin')->user(); 
-//     $userid = $user->id;
-
-//     $message=DB::select(DB::raw("select `uf_ward_bandi_voters` ($userid, '$request->assembly_part','$request->ward','$request->booth','$from_sr_no','$to_sr_no','$forcefully', $request->data_list) as `save_remarks`;"));
-    
-//     $response=['status'=>1,'msg'=>$message[0]->save_remarks];
-
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
-// //----------------------------------------------
 
 
 
@@ -2486,62 +2624,6 @@ class MasterController extends Controller
 
 // //---------Ward Bandi With Booth Enter Voter Detail----------------------------
 
-// public function WardBandiWithBooth()
-// {
-//   try {
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//     $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-
-//     return view('admin.master.wardbandiwithbooth.index',compact('States', 'refreshdata'));
-//   } catch (Exception $e) {}
-// }
-
-// public function VillageWiseAssemblyWard(Request $request)
-// {    
-//   try{ 
-//     $assemblyParts = DB::select(DB::raw("select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-//     $rs_dataList = DB::select(DB::raw("select * from `import_type` order by `id`;"));
-//     $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ('$request->id','0')"));   
-//     return view('admin.master.wardbandiwithbooth.assembly_ward_select_box',compact('assemblyParts','WardVillages', 'rs_dataList'));
-//   } catch (Exception $e) {}
-// }
-
-// public function AssemblywisevoterMapped(Request $request)
-// {  
-//   try{ 
-//     // dd($request);
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//     $data_list_id = 0;
-//     $part_id = 0;
-//     if (!empty($request->data_list_id)){
-//       $data_list_id = $request->data_list_id;  
-//     }
-//     if (!empty($request->part_id)){
-//       $part_id = $request->part_id;  
-//     }
-    
-
-//     $voterLists=DB::select(DB::raw("Select `v`.`id`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `wv`.`ward_no`, po`.`booth_no`, `v`.`name_e`, `v`.`father_name_e`, `v`.`voter_card_no` From `voters` `v` Left join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Left Join `polling_booths` `po` on `po`.`id` = `v`.`Booth_Id`  Where `v`.`assembly_part_id` =$part_id and `v`.`data_list_id` = $data_list_id Order By `v`.`sr_no`;"));  
-//     return view('admin.master.wardbandiwithbooth.voter_list',compact('voterLists', 'refreshdata'));
-//   } catch (Exception $e) {}
-// }
-
-// public function WardWiseBooth(Request $request)
-// { 
-//   try{ 
-//     $selectbooths= DB::select(DB::raw("Select `id`, concat(`booth_no`,ifnull(`booth_no_c`,''),' - ',`name_e`) as `booth_name` From `polling_booths` Where `village_id` = $request->village_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` =$request->ward_id ) Order by `booth_name`;"));
-//     return view('admin.master.wardbandiwithbooth.booth_select_box',compact('selectbooths'));
-//   } catch (Exception $e) {}
-// }
-
-// public function BoothWiseTotalMappedWard(Request $request)
-// {
-//   try{ 
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//     $total_mapped=DB::select(DB::raw("select count(*) as `total_mapped` from `voters` where `booth_id` = $request->id;"));   
-//     return view('admin.master.wardbandiwithbooth.sr_no_form',compact('total_mapped', 'refreshdata'));
-//   } catch (Exception $e) {}
-// }
 
 
 // //--------MappingWardWithMultipleBooth---------
