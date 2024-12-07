@@ -1164,6 +1164,12 @@ class MasterController extends Controller
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
       }
+      $role_id = MyFuncs::getUserRoleId();
+      if($role_id >= 3){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rec_id = intval(Crypt::decrypt($id));
 
       $v_id = 0;
@@ -1209,6 +1215,11 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $block_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+      
       $rs_voter_list_master = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id order by `id` desc;"));
         
       return view('admin.voterlistmaster.table',compact('rs_voter_list_master'));
@@ -1227,7 +1238,6 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rules=[
-        'block' => 'required',
         'voter_list_name' => 'required|max:200',
         'voter_list_type' => 'required|max:200',
         'publication_year' => 'required|max:4',
@@ -1237,8 +1247,6 @@ class MasterController extends Controller
         'remarks1' => 'required|max:100',
       ];
       $customMessages = [
-        'block.required'=> 'Please Select Block / MC\'s',
-
         'voter_list_name.required'=> 'Please Enter Voter List Name',                
         'voter_list_name.max'=> 'Voter List Name Should Be Maximum of 200 Character',
 
@@ -1269,9 +1277,23 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
 
+      $block_id = 0;
       $rec_id = intval(Crypt::decrypt($id));
-      $block_id = intval(Crypt::decrypt($request->block));
+      if($rec_id == 0){
+        $block_id = intval(Crypt::decrypt($request->block));  
+      }else{
+        $rs_fetch = DB::select(DB::raw("SELECT `block_id` from `voter_list_master` where `id` = $rec_id limit 1;"));
+        if(count($block_id) > 0){
+          $block_id = $rs_fetch[0]->block_id;
+        }
+      }
       
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $list_name = substr(MyFuncs::removeSpacialChr($request->voter_list_name), 0, 200);
       $list_type = substr(MyFuncs::removeSpacialChr($request->voter_list_type), 0, 200);
       $year_pub = intval(substr(MyFuncs::removeSpacialChr($request->publication_year), 0, 4));
@@ -1308,6 +1330,16 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $rec_id = intval(Crypt::decrypt($id));
+      $block_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `block_id` from `voter_list_master` where `id` = $rec_id limit 1;"));
+      if(count($block_id) > 0){
+        $block_id = $rs_fetch[0]->block_id;
+      }
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
       $VoterListMaster = DB::select(DB::raw("SELECT * from `voter_list_master` where `id` = $rec_id limit 1;"));
       return view('admin.voterlistmaster.edit',compact('VoterListMaster'));
     } catch (\Exception $e) {
@@ -1325,6 +1357,17 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rec_id = intval(Crypt::decrypt($id));
+      $block_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `block_id` from `voter_list_master` where `id` = $rec_id limit 1;"));
+      if(count($block_id) > 0){
+        $block_id = $rs_fetch[0]->block_id;
+      }
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rs_update = DB::select(DB::raw("call `up_set_voterListType_Default` ($rec_id);"));
       $response=['status'=>1,'msg'=>'Default Value Set Successfully'];
       return response()->json($response);
@@ -1359,6 +1402,8 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $village_id = intval(Crypt::decrypt($request->id));
+      
+      
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
       $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ($village_id, 0)")); 
       $rs_dataList = DB::select(DB::raw("SELECT * from `import_type` order by `id`;")); 

@@ -10,7 +10,6 @@
             <form action="{{ route('admin.VoterListMaster.store', Crypt::encrypt($VoterListMaster[0]->id)) }}" method="post" class="add_form" content-refresh="voter_list_master" button-click="btn_close" select-triger="block_select_box">
                 {{ csrf_field() }} 
                 <div class="row">
-                    <input type="text" name="block" class="form-control" placeholder="" hidden maxlength="5" value="{{ Crypt::encrypt($VoterListMaster[0]->block_id) }}">
                     <div class="col-lg-4 form-group">
                         <label for="exampleInputEmail1">Voter List Name</label>
                         <span class="fa fa-asterisk"></span>
