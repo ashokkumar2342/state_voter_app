@@ -1403,7 +1403,10 @@ class MasterController extends Controller
       }
       $village_id = intval(Crypt::decrypt($request->id));
       
-      
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
       $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ($village_id, 0)")); 
       $rs_dataList = DB::select(DB::raw("SELECT * from `import_type` order by `id`;")); 
@@ -1642,6 +1645,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
       $rs_dataList = DB::select(DB::raw("SELECT * from `import_type` order by `id`;"));
       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0)"));   
