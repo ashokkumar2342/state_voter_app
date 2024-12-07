@@ -444,7 +444,7 @@ class MasterController extends Controller
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.village.index',compact('rs_district'));
     } catch (\Exception $e) {
-      $e_method = "imageShowPath";
+      $e_method = "village";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
@@ -458,7 +458,13 @@ class MasterController extends Controller
       }
       $role_id = MyFuncs::getUserRoleId();
       $block_id = intval(Crypt::decrypt($request->id));
-      $rs_village = DB::select(DB::raw("SELECT `vil`.`id`, `vil`.`code`, `vil`.`name_e`, `vil`.`name_l`, (select count(*) from `ward_villages` where `village_id` = `vil`.`id`) as `tcount` from `villages` `vil` where `blocks_id` = $block_id;"));
+      
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
+      $rs_village = DB::select(DB::raw("SELECT `vil`.`id`, `vil`.`code`, `vil`.`name_e`, `vil`.`name_l`, (select count(*) from `ward_villages` where `village_id` = `vil`.`id`) as `tcount` from `villages` `vil` where `blocks_id` = $block_id order by `vil`.`name_e`;"));
       return view('admin.master.village.village_table',compact('rs_village', 'role_id')); 
     } catch (\Exception $e) {
       $e_method = "villageTable";
@@ -475,16 +481,11 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rules=[
-        'district' => 'required', 
-        'block_mcs' => 'required', 
         'code' => 'required|max:5', 
         'name_english' => 'required|max:50', 
         'name_local_language' => 'required|max:100', 
       ];
       $customMessages = [
-        'district.required'=> 'Please Select District',
-        'block_mcs.required'=> 'Please Select Block / MC\'s',
-
         'code.required'=> 'Please Enter Panchayat / MC\'s Code',                
         'code.max'=> 'Panchayat / MC\'s Code Should Be Maximum of 5 Character',
 
@@ -506,23 +507,37 @@ class MasterController extends Controller
       $user_id = MyFuncs::getUserId();
       $v_id = 0;
       $wards = 0;
-      $s_id = 0;
-      $d_id = intval(Crypt::decrypt($request->district));
-      $b_id = intval(Crypt::decrypt($request->block_mcs));
-
+      $b_id = 0;
+      
       $vcode = substr(MyFuncs::removeSpacialChr($request->code), 0, 5);
       $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
       $name_l = MyFuncs::removeSpacialChr($request->name_local_language);
 
       if ($rec_id == 0) {
+        $d_id = intval(Crypt::decrypt($request->district));
+        $b_id = intval(Crypt::decrypt($request->block_mcs));
         $wards = intval(substr(MyFuncs::removeSpacialChr($request->ward), 0, 2));
-        if($wards == ""){
-          $wards = 0;
+
+        $permission_flag = MyFuncs::check_district_access($d_id);
+        if($permission_flag == 0){
+          $response=['status'=>0,'msg'=>'Something Went Wrong'];
+          return response()->json($response);
+        }
+
+        $permission_flag = MyFuncs::check_block_access($b_id);
+        if($permission_flag == 0){
+          $response=['status'=>0,'msg'=>'Something Went Wrong'];
+          return response()->json($response);
         }
       }else{
         $v_id = $rec_id;
+        $permission_flag = MyFuncs::check_village_access($v_id);
+        if($permission_flag == 0){
+          $response=['status'=>0,'msg'=>'Something Went Wrong'];
+          return response()->json($response);
+        }
       }
-      $rs_update = DB::select(DB::raw("call `up_save_village` ($v_id, $user_id, $s_id, $d_id, $b_id, '$vcode', '$name_e', '$name_l', $wards);")); 
+      $rs_update = DB::select(DB::raw("call `up_save_village` ($v_id, $user_id, $b_id, '$vcode', '$name_e', '$name_l', $wards);")); 
       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
       return response()->json($response);  
     } catch (\Exception $e) {
@@ -539,6 +554,11 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $rec_id = intval(Crypt::decrypt($id));
+      $permission_flag = MyFuncs::check_village_access($rec_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
       $village = DB::select(DB::raw("SELECT * from villages where `id` = $rec_id limit 1;"));
       return view('admin.master.village.edit',compact('village', 'rec_id'));
     } catch (\Exception $e) {
@@ -552,9 +572,23 @@ class MasterController extends Controller
     try {
       $permission_flag = MyFuncs::isPermission_route(14);
       if(!$permission_flag){
-        return view('admin.common.error');
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
       }
+
+      $role_id = MyFuncs::getUserRoleId();
+      if($role_id >= 3){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rec_id = intval(Crypt::decrypt($id));
+      $permission_flag = MyFuncs::check_village_access($rec_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village = DB::select(DB::raw("DELETE from villages where `id` = $rec_id limit 1;"));
       $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
       return response()->json($response);
@@ -572,6 +606,11 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $village_id = intval(Crypt::decrypt($v_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
       $Village_Name = DB::select(DB::raw("SELECT `name_e` from villages where `id` = $village_id limit 1;")); 
       return view('admin.master.village.add_ward',compact('Village_Name'));
     } catch (\Exception $e) {
@@ -604,6 +643,11 @@ class MasterController extends Controller
       }
       $role_id = MyFuncs::getUserRoleId();
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
       $rs_wards = DB::select(DB::raw("SELECT * from `ward_villages` where `village_id` = $village_id order by `ward_no`;"));
       return view('admin.master.wards.ward_table',compact('rs_wards', 'role_id'));
     } catch (\Exception $e) {
@@ -633,6 +677,12 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $wards = intval(substr(MyFuncs::removeSpacialChr($request->ward), 0, 2));
       $rs_update = DB::select(DB::raw("call up_create_village_ward ($village_id, $wards, 0);"));
       $response=['status'=>1,'msg'=>'Ward Created Successfully'];
@@ -651,6 +701,18 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $rec_id = intval(Crypt::decrypt($id));
+
+      $village_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `village_id` from `ward_villages` where `id` = $rec_id limit 1;"));
+      if(count($rs_fetch)>0){
+        $village_id = $rs_fetch[0]->village_id;
+      }
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rs_delete = DB::select(DB::raw("DELETE from `ward_villages` where `id` = $rec_id limit 1;"));
       $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
       return response()->json($response);
@@ -684,6 +746,11 @@ class MasterController extends Controller
       }
       $role_id = MyFuncs::getUserRoleId();
       $d_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
       $rs_assemblys = DB::select(DB::raw("SELECT `asm`.`id`, `asm`.`code`, `asm`.`name_e`, `asm`.`name_l`, (select count(*) from `assembly_parts` where `assembly_id` = `asm`.`id`) as `tcount` from `assemblys` `asm` where `asm`.`district_id` = $d_id order by `asm`.`code`;"));  
       return view('admin.master.assembly.assembly_table',compact('rs_assemblys', 'role_id')); 
     } catch (\Exception $e) {
@@ -701,14 +768,11 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rules=[        
-        'district' => 'required', 
         'code' => 'required|max:5', 
         'name_english' => 'required|max:50', 
         'name_local_language' => 'required|max:100', 
       ];
       $customMessages = [
-        'district.required'=> 'Please Select District',
-
         'code.required'=> 'Please Enter Assembly Code',                
         'code.max'=> 'Assembly Code Should Be Maximum of 5 Character',
 
@@ -728,18 +792,24 @@ class MasterController extends Controller
       }
       $rec_id = intval(Crypt::decrypt($id));
       $userid = MyFuncs::getUserId();
-      $d_id = intval(Crypt::decrypt($request->district));
       
       $code = substr(MyFuncs::removeSpacialChr($request->code), 0, 5);
       $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
       $name_l = MyFuncs::removeSpacialChr($request->name_local_language);
-
+      $d_id = 0;
       $asmb_id = 0;
       $asmb_parts = 0;
       if ($rec_id == 0){
+        $d_id = intval(Crypt::decrypt($request->district));
         $asmb_parts = intval(substr(MyFuncs::removeSpacialChr($request->part_no), 0, 3));
+
+        $permission_flag = MyFuncs::check_district_access($d_id);
+        if($permission_flag == 0){
+          $response=['status'=>0,'msg'=>'Something Went Wrong'];
+          return response()->json($response);
+        }
       }else{
-        $asmb_id = $rec_id;  
+        $asmb_id = $rec_id;
       }
       $rs_save = DB::select(DB::raw("call `up_save_assembly` ($asmb_id, $userid, $d_id, '$code', '$name_e', '$name_l', $asmb_parts);"));
       
@@ -761,6 +831,15 @@ class MasterController extends Controller
       $rec_id = intval(Crypt::decrypt($id));
       $userid = MyFuncs::getUserId();  
       $assembly = DB::select(DB::raw("SELECT * from `assemblys` where `id` = $rec_id limit 1;"));
+
+      $d_id = 0;
+      if(count($assembly) > 0){
+        $d_id = $assembly[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
       return view('admin.master.assembly.edit',compact('assembly'));
     } catch (Exception $e) {
       $e_method = "AssemblyEdit";
@@ -776,6 +855,18 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $rec_id = intval(Crypt::decrypt($id));
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = $rec_id limit 1;"));
+
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rs_delete = DB::select(DB::raw("DELETE from `assemblys` where `id` = $rec_id limit 1;"));
       $response=['status'=>1,'msg'=>'Assembly Deleted Successfully'];
       return response()->json($response);
@@ -794,6 +885,16 @@ class MasterController extends Controller
       }
       $ac_id = intval(Crypt::decrypt($id));
       $assembly = DB::select(DB::raw("SELECT * from `assemblys` where `id` = $ac_id limit 1;"));
+
+      $d_id = 0;
+      if(count($assembly) > 0){
+        $d_id = $assembly[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
       return view('admin.master.assemblypart.add_form',compact('assembly'));
     } catch (\Exception $e) {
       $e_method = "AssemblyPartAdd";
@@ -825,6 +926,18 @@ class MasterController extends Controller
       }
       $role_id = MyFuncs::getUserRoleId();
       $ac_id = intval(Crypt::decrypt($request->id));
+
+      $rs_ftch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = $ac_id limit 1;"));
+
+      $d_id = 0;
+      if(count($rs_ftch) > 0){
+        $d_id = $rs_ftch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
       $rs_assemblys_part = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id order by `part_no`;"));
       return view('admin.master.assemblypart.part_table',compact('rs_assemblys_part', 'role_id'));
     } catch (\Exception $e) {
@@ -854,6 +967,19 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $ac_id = intval(Crypt::decrypt($request->assembly));
+
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = $ac_id limit 1;"));
+
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $asmb_parts = intval(substr(MyFuncs::removeSpacialChr($request->part_no), 0, 3));
       $rs_save = DB::select(DB::raw("call up_create_assembly_part ($ac_id, $asmb_parts, 0);"));
       $response=['status'=>1,'msg'=>'Submit Successfully'];
@@ -869,9 +995,29 @@ class MasterController extends Controller
     try {
       $permission_flag = MyFuncs::isPermission_route(18);
       if(!$permission_flag){
-        return view('admin.common.error');
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
       }
+      $role_id = MyFuncs::getUserRoleId();
+      if($role_id >= 3){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $rec_id = intval(Crypt::decrypt($id));
+
+
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $rec_id limit 1);"));
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      
       $rs_delete = DB::select(DB::raw("DELETE from `assembly_parts` where `id` = $rec_id limit 1;"));
       $response=['status'=>1,'msg'=>'Part Deleted Successfully'];
       return response()->json($response);  
@@ -905,6 +1051,11 @@ class MasterController extends Controller
       }
       $role_id = MyFuncs::getUserRoleId();
       $village_id = intval(Crypt::decrypt($request->id));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
       $rs_booths = DB::select(DB::raw("SELECT * from `polling_booths` where `village_id` = $village_id order by `booth_no`, `booth_no_c`;"));
       return view('admin.master.booth.table',compact('rs_booths', 'role_id')); 
     } catch (\Exception $e) {
@@ -922,18 +1073,11 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rules=[
-        'district' => 'required', 
-        'block' => 'required', 
-        'village' => 'required', 
         'booth_no' => 'required|max:5',     
         'booth_name_english' => 'required|max:100', 
         'booth_name_local' => 'required|max:100', 
       ];
       $customMessages = [
-        'district.required'=> 'Please Select District',
-        'block.required'=> 'Please Select Block / MC\'s',
-        'village.required'=> 'Please Select Panchayat / MC\'s',
-
         'booth_no.required'=> 'Please Enter Polling Booth No.',                
         'booth_no.max'=> 'Polling Booth No. Should Be Maximum of 5 Character',
 
@@ -952,26 +1096,32 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $rec_id = intval(Crypt::decrypt($id));
-      $s_id = 0;
-      $d_id = intval(Crypt::decrypt($request->district));
-      $b_id = intval(Crypt::decrypt($request->block));
-      $v_id = intval(Crypt::decrypt($request->village));
-
+      
       $booth_no = intval(substr(MyFuncs::removeSpacialChr($request->booth_no), 0, 5));
       $booth_a = substr(MyFuncs::removeSpacialChr($request->booth_no_c), 0, 1);
       $booth_e = substr(MyFuncs::removeSpacialChr($request->booth_name_english), 0, 100);
       $booth_h = MyFuncs::removeSpacialChr($request->booth_name_local);
 
-      if(is_null($booth_a)){
-        $booth_a = "";
+      $v_id = 0;
+      if($rec_id == 0){
+        $d_id = intval(Crypt::decrypt($request->district));
+        $b_id = intval(Crypt::decrypt($request->block));
+        $v_id = intval(Crypt::decrypt($request->village));
+      }else{
+        $rs_fetch = DB::select(DB::raw("SELECT `village_id` from `polling_booths` where `id` = $rec_id limit 1;"));
+        if(count($rs_fetch)>0){
+          $v_id = $rs_fetch[0]->village_id;
+        }
       }
 
-      if($rec_id == 0){
-        $rs_update = DB::select(DB::raw("INSERT into `polling_booths` (`states_id`, `districts_id`, `blocks_id`, `village_id`, `booth_no`, `name_e`, `name_l`, `booth_no_c`) values ($s_id, $d_id, $b_id, $v_id, '$booth_no', '$booth_e', '$booth_h', '$booth_a');"));
-      }else{
-        $rs_update = DB::select(DB::raw("UPDATE `polling_booths` set `booth_no` = '$booth_no', `name_e` = '$booth_e', `name_l` = '$booth_h', `booth_no_c` = '$booth_a' where `id` = $rec_id limit 1;"));
+      $permission_flag = MyFuncs::check_village_access($v_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
       }
-      $response=['status'=>1,'msg'=>'Polling Booth Saved Successfully'];
+
+      $rs_update = DB::select(DB::raw("call `up_save_polling_booths`($rec_id, $v_id, '$booth_no', '$booth_e', '$booth_h', '$booth_a');"));
+      $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
       return response()->json($response);
     } catch (\Exception $e) {
       $e_method = "boothStore";
@@ -987,6 +1137,17 @@ class MasterController extends Controller
         return view('admin.common.error_popup');
       }
       $rec_id = intval(Crypt::decrypt($id));
+
+      $v_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `village_id` from `polling_booths` where `id` = $rec_id limit 1;"));
+      if(count($rs_fetch)>0){
+        $v_id = $rs_fetch[0]->village_id;
+      }
+      $permission_flag = MyFuncs::check_village_access($v_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
       $booth = DB::select(DB::raw("SELECT * from `polling_booths` where `id` = $rec_id limit 1;"));
       return view('admin.master.booth.edit',compact('booth'));     
     } catch (\Exception $e) {
@@ -1000,9 +1161,22 @@ class MasterController extends Controller
     try{
       $permission_flag = MyFuncs::isPermission_route(25);
       if(!$permission_flag){
-        return view('admin.common.error');
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
       }
       $rec_id = intval(Crypt::decrypt($id));
+
+      $v_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `village_id` from `polling_booths` where `id` = $rec_id limit 1;"));
+      if(count($rs_fetch)>0){
+        $v_id = $rs_fetch[0]->village_id;
+      }
+      $permission_flag = MyFuncs::check_village_access($v_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      
       $booth = DB::select(DB::raw("DELETE from `polling_booths` where `id` = $rec_id limit 1;"));
       $response=['status'=>1,'msg'=>'Polling Booth Deleted Successfully'];
       return response()->json($response);

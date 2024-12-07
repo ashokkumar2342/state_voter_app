@@ -10,8 +10,6 @@
             <form action="{{ route('admin.Master.village.store', Crypt::encrypt($rec_id)) }}" method="post" class="add_form" select-triger="block_select_box" button-click="btn_close">
                 {{ csrf_field() }}
                 <div class="box-body">
-                    <input type="text" name="district" class="form-control" placeholder="" hidden maxlength="5" value="{{ $village[0]->districts_id }}">
-                    <input type="text" name="block_mcs" class="form-control" placeholder="" hidden maxlength="5" value="{{ $village[0]->blocks_id }}">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Panchayat / MC's Code</label>
                         <span class="fa fa-asterisk"></span>

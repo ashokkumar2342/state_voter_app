@@ -18,7 +18,7 @@
                             <td>{{ $srno++ }}</td>
                             <td>{{ $rs_val->part_no }}</td>
                             <td class="text-nowrap">                                
-                                @if ($role_id == 1)
+                                @if ($role_id <= 2)
                                     <button type="button" success-popup="true" select-triger="assembly_select_box" onclick="if(confirm('Are you sure you want to delete this record?')==true){callAjax(this,'{{ route('admin.Master.AssemblyPart.delete', Crypt::encrypt($rs_val->id)) }}')}" title="" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Delete</button>
                                 @endif
                             </td>

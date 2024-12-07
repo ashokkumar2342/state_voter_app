@@ -16,7 +16,7 @@
                     <div class="col-lg-6 form-group">
                         <label for="exampleInputEmail1">District</label>
                         <span class="fa fa-asterisk"></span>
-                        <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('admin.Master.DistrictWiseBlock') }}','block_select_box')">
+                        <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('admin.Master.DistrictWiseBlock') }}','block_select_box')" required>
                             <option selected disabled>Select District</option>
                             @foreach ($rs_district as $rs_val)
                                 <option value="{{ Crypt::encrypt($rs_val->opt_id) }}">{{ $rs_val->opt_text }}</option>  
@@ -26,7 +26,7 @@
                     <div class="col-lg-6 form-group">
                         <label for="exampleInputEmail1">Block / MC's</label>
                         <span class="fa fa-asterisk"></span>
-                        <select name="block_mcs" class="form-control select2" id="block_select_box" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.village.table') }}','result_div_id')">
+                        <select name="block_mcs" class="form-control select2" id="block_select_box" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.village.table') }}','result_div_id')" required>
                             <option selected disabled>Select Block / MC's</option>                           
                         </select>
                     </div>

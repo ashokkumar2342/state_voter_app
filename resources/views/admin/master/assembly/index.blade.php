@@ -15,7 +15,7 @@
                 <div class="form-group">
                     <label for="exampleInputEmail1">District</label>
                     <span class="fa fa-asterisk"></span>
-                    <select name="district" class="form-control select2" id="district_select_box" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.AssemblyTable') }}', 'result_div_id')">
+                    <select name="district" class="form-control select2" id="district_select_box" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.AssemblyTable') }}', 'result_div_id')" required>
                         <option selected disabled>Select District</option>
                         @foreach ($rs_district as $rs_val)
                             <option value="{{ Crypt::encrypt($rs_val->opt_id) }}">{{ $rs_val->opt_text }}</option>  

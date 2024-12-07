@@ -39,6 +39,22 @@ return [
             'prefix' => '',
         ],
 
+        // Live Database Backup
+        'mysql_live_backup' => [
+            'driver' => 'mysql',
+            'host' => '10.145.41.197',
+            'port' => '3306',
+            'database' => 'statevoterlist',
+            'username' => 'mysql',
+            'password' => 'Mysql@12345',
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST', '127.0.0.1'),

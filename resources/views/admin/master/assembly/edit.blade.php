@@ -10,7 +10,6 @@
             <form action="{{ route('admin.Master.Assembly.store', Crypt::encrypt($assembly[0]->id)) }}" method="post" class="add_form" select-triger="district_select_box" button-click="btn_close">
                 {{ csrf_field() }}
                 <div class="box-body">
-                    <input type="hidden" name="district" value="{{ Crypt::encrypt($assembly[0]->district_id) }}">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Assembly Code</label>
                         <span class="fa fa-asterisk"></span>

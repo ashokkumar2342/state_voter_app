@@ -10,9 +10,6 @@
             <form action="{{ route('admin.Master.booth.store', Crypt::encrypt($booth[0]->id)) }}" method="post" class="add_form" select-triger="village_select_box" button-click="btn_close">
                 {{ csrf_field() }}
                 <div class="box-body">
-                    <input type="hidden" name="district" value="{{ Crypt::encrypt($booth[0]->districts_id) }}"> 
-                    <input type="hidden" name="block" value="{{ Crypt::encrypt($booth[0]->blocks_id) }}"> 
-                    <input type="hidden" name="village" value="{{ Crypt::encrypt($booth[0]->village_id) }}">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Booth No.</label>
                         <span class="fa fa-asterisk"></span>
