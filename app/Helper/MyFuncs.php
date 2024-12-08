@@ -267,43 +267,71 @@ class MyFuncs {
     return false;
   }
 
-  // ----------------------- End -------------------------
-
-  // all permission check
-  public static function isPermission(){ 
-    $user =Auth::guard('admin')->user();
-    $routeName= Route::currentRouteName();
-    return true;
-
-    // $subMenu =SubMenu::where('url',$routeName)->first(); 
-    // if (empty($subMenu)){
-    //   return true;
-    // }else{
-    //   $menu= Minu::where('admin_id',$user->id)->where('status',1)->where('sub_menu_id',$subMenu->id)->first();
-    //   if (empty($menu)) {
-    //     return false;
-    //   }else{
-    //     return true;
-    //   }
-    // }          
-
-  }
-
   // main menu 
-  public static function mainMenu($menu_type_id){ 
-    // $mainMenus = Minu::where('admin_id',Auth::guard('admin')->user()->id)
-    //                       ->where('minu_id',$menu_type_id)
-    //                       ->where('status',1)
-    //                       ->get(['sub_menu_id']); 
-        
-    // return $subMenus = SubMenu::whereIn('id',$mainMenus)->orderBy('sorting_id','ASC')
-    //                       ->get();
+  public static function mainMenu($menu_type_id)
+  { 
 
     $user_rs=Auth::guard('admin')->user();  
     $user_role = $user_rs->role_id;
+    $user_id = $user_rs->id;
 
-    return $subMenus = DB::select(DB::raw("select `sm`.`id`, `sm`.`name`, `sm`.`status`, `sm`.`url` from `default_role_menu` `drm` inner join `sub_menus` `sm` on `sm`.`id` = `drm`.`sub_menu_id` where `drm`.`role_id` = $user_role and `drm`.`status` = 1 and `sm`.`menu_type_id` = $menu_type_id order by `sm`.`sorting_id` ;"));
+    $rs_fetch = DB::select(DB::raw("SELECT `id` from `admins` where `id` = $user_id and `password_expire_on` <= curdate();"));
+    if(count($rs_fetch)>0){
+      $subMenus = DB::select(DB::raw("SELECT `sm`.`id`, `sm`.`name`, `sm`.`status`, `sm`.`url` from `sub_menus` `sm` where `sm`.`id` = 8 order by `sm`.`sorting_id` ;"));
+    }else{
+      $subMenus = DB::select(DB::raw("SELECT `sm`.`id`, `sm`.`name`, `sm`.`status`, `sm`.`url` from `default_role_menu` `drm` inner join `sub_menus` `sm` on `sm`.`id` = `drm`.`sub_menu_id` where `drm`.`role_id` = $user_role and `drm`.`status` = 1 and `sm`.`menu_type_id` = $menu_type_id order by `sm`.`sorting_id` ;"));
+    }
+
+    return $subMenus;
   }
+
+  public static function userHasMinu()
+  { 
+
+    $user_rs=Auth::guard('admin')->user();  
+    $user_role = $user_rs->role_id;
+    $user_id = $user_rs->id;
+    $rs_fetch = DB::select(DB::raw("SELECT `id` from `admins` where `id` = $user_id and `password_expire_on` <= curdate();"));
+    if(count($rs_fetch)>0){
+      $menuTypes = DB::select(DB::raw("SELECT * from `minu_types` where `id` = 1 order by `sorting_id` ;"));
+    }else{
+      $menuTypes = DB::select(DB::raw("SELECT * from `minu_types` where `id` in (select Distinct `sm`.`menu_type_id` from `default_role_menu` `drm` inner join `sub_menus` `sm` on `sm`.`id` = `drm`.`sub_menu_id` where `drm`.`role_id` = $user_role and `drm`.`status` = 1) order by `sorting_id` ;"));
+    }
+
+    return $menuTypes;
+  }
+
+  // all permission check
+  public static function isPermission()
+  {
+    $user = Auth::guard('admin')->user();
+    if(!empty($user)){ 
+      $role_id = $user->role_id;
+      $routeName = Route::currentRouteName();
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `sub_menus` where `url` = '$routeName' and `status` = 1;"));
+      if (count($rs_fetch)>0){
+        $menu_id = $rs_fetch[0]->id;
+        $rs_fetch = DB::select(DB::raw("SELECT `id` from `default_role_menu` where `role_id` = $role_id and `status` = 1 and `sub_menu_id` = $menu_id;"));
+        if(count($rs_fetch) == 0){
+          return false;    
+        }
+      }  
+    }else{
+      // return false;  
+    }
+    $http_host =  $_SERVER['HTTP_HOST'];
+    if(($http_host != '10.145.41.196') && ($http_host != 'localhost') && ($http_host != 'localhost:81')){
+      return false;
+      return Redirect::route('logout')->with(['error_msg' => 'Unauthorised Access to Application !!']);
+    }
+    return true;
+  }
+
+  // ----------------------- End -------------------------
+
+  
+
+  
 
 
   // public static function showMenu(){
@@ -320,15 +348,7 @@ class MyFuncs {
   //   return $subMenus;
   // }
 
-  // read write delete permission check
-  public static function userHasMinu(){ 
-    $user_rs=Auth::guard('admin')->user();  
-    $user_role = $user_rs->role_id;
-    return $menuTypes = DB::select(DB::raw("select * from `minu_types` where `id` in (select Distinct `sm`.`menu_type_id` from `default_role_menu` `drm` inner join `sub_menus` `sm` on `sm`.`id` = `drm`.`sub_menu_id` where `drm`.`role_id` = $user_role and `drm`.`status` = 1) order by `sorting_id` ;"));
-
-    // return array_pluck(Minu::where('admin_id',Auth::guard('admin')->user()->id)->where('status',1)->distinct()->get(['minu_id'])->toArray(), 'minu_id');
-
-  } 
+   
 
   // hot menu 
   public static function hotMenu(){ 

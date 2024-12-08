@@ -21,6 +21,10 @@ class DashboardController extends Controller
   {
     $user_rs=Auth::guard('admin')->user();  
     $user_id = $user_rs->id;
+    $rs_fetch = DB::select(DB::raw("SELECT `id` from `admins` where `id` = $user_id and `password_expire_on` <= curdate();"));
+    if(count($rs_fetch) > 0){
+        return redirect()->route('admin.account.change.password');
+    }
     $count_rs = DB::select(DB::raw("select `uf_district_count`($user_id) as `dcount`, `uf_block_count`($user_id) as `bcount`, `uf_village_count`($user_id) as `vcount`, `uf_ward_count`($user_id) as `wcount`;"));
     $District = $count_rs[0]->dcount; 
     $block = $count_rs[0]->bcount;  
