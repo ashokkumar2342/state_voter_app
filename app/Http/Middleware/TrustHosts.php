@@ -13,7 +13,7 @@ class TrustHosts extends Middleware
     public function hosts()
     {
         return [
-            'localhost','127.0.0.1','164.100.200.54','edmshry.nic.in',$this->allSubdomainsOfApplicationUrl(),
+            'localhost','127.0.0.1','10.145.41.196',$this->allSubdomainsOfApplicationUrl(),
         ];
     
     }

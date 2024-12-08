@@ -80,7 +80,7 @@ Session::put('CryptoRandomInfo',App\Helper\MyFuncs::generateRandomIV());
             </div>
         </div>
     </div>
-    <script src="{{ asset('admin_asset/plugins/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('admin_asset/plugins/jQuery/jquery.min.js') }}"></script>
     <script src="{{ asset('admin_asset/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('admin_asset/dist/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('admin_asset/dist/js/toastr.min.js') }}"></script>

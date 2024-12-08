@@ -18,7 +18,7 @@ class CheckHost
     {
         try{
             $error = 1;
-            $domains = array('127.0.0.1','localhost', 'edmshry.nic.in', '164.100.200.54');
+            $domains = array('127.0.0.1','localhost', '10.145.41.196');
             foreach($domains as $domain)
             {
                 if (strpos($_SERVER['SERVER_NAME'], $domain) !== false)

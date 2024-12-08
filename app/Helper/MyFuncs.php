@@ -72,7 +72,7 @@ class MyFuncs {
 
     // $rs_fetch = DB::select(DB::raw("SELECT `web_url` from `schoolinfo` limit 1;"));
     // $web_url = $rs_fetch[0]->web_url;
-    $web_url = "";
+    $web_url = "10.145.41.196";
 
     $http_host =  $_SERVER['HTTP_HOST'];
     if(($http_host != $web_url) && ($http_host != 'localhost:80') && ($http_host != 'localhost:81') && ($http_host != 'localhost')){

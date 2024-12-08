@@ -17,7 +17,7 @@ class FrameHeadersMiddleware
     {
         $response = $next($request);
         $response->headers->remove('X-Frame-Options');
-        $response->headers->set('X-Frame-Options', 'ALLOW-FROM', 'https://edmshry.nic.in/');
+        $response->headers->set('X-Frame-Options', 'ALLOW-FROM', '10.145.41.196');
 
         
         return $response;

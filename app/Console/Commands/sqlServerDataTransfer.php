@@ -14,7 +14,7 @@ class sqlServerDataTransfer extends Command
      *
      * @var string
      */
-    protected $signature = 'sqlServerDataTransfer:transfer {from_district} {from_block} {from_panchayat} {to_district} {to_block} {to_panchyat}';
+    protected $signature = 'sqlServerDataTransfer:transfer';
 
 
     /**
@@ -39,28 +39,46 @@ class sqlServerDataTransfer extends Command
      *
      * @return mixed
      */
+    
     public function handle()
     { 
+        //For Testing
         ini_set('max_execution_time', '7200');
         ini_set('memory_limit','999M');
         ini_set("pcre.backtrack_limit", "100000000");
       
-        $from_district = $this->argument('from_district');
-        $from_block = $this->argument('from_block'); 
-        $from_panchayat = $this->argument('from_panchayat'); 
-        $to_district = $this->argument('to_district'); 
-        $to_block = $this->argument('to_block'); 
-        $to_panchyat = $this->argument('to_panchyat'); 
-
         echo "Porting Started \n";
 
-        $this->import_data($from_district, $from_block, $from_panchayat, $to_district, $to_block, $to_panchyat);
+        $rs_fetch = DB::connection('sqlsrv2')->select("select  top 10 * from eroll_data");  
+        echo "Sucess\n";
+        echo count($rs_fetch)."\n";
+        
+
+        // $this->import_data($from_district, $from_block, $from_panchayat, $to_district, $to_block, $to_panchyat);  
+    }
+
+    // public function handle()
+    // { 
+    //     ini_set('max_execution_time', '7200');
+    //     ini_set('memory_limit','999M');
+    //     ini_set("pcre.backtrack_limit", "100000000");
+      
+    //     $from_district = $this->argument('from_district');
+    //     $from_block = $this->argument('from_block'); 
+    //     $from_panchayat = $this->argument('from_panchayat'); 
+    //     $to_district = $this->argument('to_district'); 
+    //     $to_block = $this->argument('to_block'); 
+    //     $to_panchyat = $this->argument('to_panchyat'); 
+
+    //     echo "Porting Started \n";
+
+    //     $this->import_data($from_district, $from_block, $from_panchayat, $to_district, $to_block, $to_panchyat);
         
 
 
         
       
-    }
+    // }
 
 
     public function import_data($from_district, $from_block, $from_panchayat, $to_district, $to_block, $to_panchyat)

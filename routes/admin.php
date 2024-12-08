@@ -518,20 +518,20 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	 	  Route::get('VillageWardImportForm', 'ImportExportController@VillageWardImportForm')->name('admin.import.VillageWardImportForm');
 // 	 	  Route::post('VillageWardImportStore', 'ImportExportController@VillageWardImportStore')->name('admin.import.VillageWardImportStore');
 //     });       
-//     Route::group(['prefix' => 'Database'], function() {
+    Route::group(['prefix' => 'Database'], function() {
 //                Route::get('Connection', 'DatabaseConnectionController@DatabaseConnection')->name('admin.database.connection');		//OK Done--------------
 //                Route::post('ConnectionStore', 'DatabaseConnectionController@ConnectionStore')->name('admin.database.conection.store');	//OK-------------
 
 //                Route::get('getdata', 'DatabaseConnectionController@getData')->name('admin.database.conection.getData');	
 
-//                Route::get('getTable', 'DatabaseConnectionController@getTable')->name('admin.database.conection.getTable');		//OK Done----------
-//                Route::get('assemblyWisePartNo', 'DatabaseConnectionController@assemblyWisePartNo')->name('admin.database.conection.assemblyWisePartNo');	//OK--------
-//                Route::post('tableRecordStore', 'DatabaseConnectionController@tableRecordStore')->name('admin.database.conection.tableRecordStore');		//OK-------
+               Route::get('getTable', 'DatabaseConnectionController@getTable')->name('admin.database.conection.getTable');		//OK Done----------
+               Route::get('assemblyWisePartNo', 'DatabaseConnectionController@assemblyWisePartNo')->name('admin.database.conection.assemblyWisePartNo');	//OK--------
+               Route::post('tableRecordStore', 'DatabaseConnectionController@tableRecordStore')->name('admin.database.conection.tableRecordStore');		//OK-------
 
 //                 Route::get('imagestore', 'DatabaseConnectionController@imageStore')->name('admin.database.conection.imagestore');
 //                 Route::get('process', 'DatabaseConnectionController@process')->name('admin.database.conection.process');
 
-//                 Route::get('processDelete/{ac_id}/{part_id}', 'DatabaseConnectionController@processDelete')->name('admin.database.conection.processDelete');	//OK-------
+                Route::get('processDelete/{ac_id}/{part_id}', 'DatabaseConnectionController@processDelete')->name('admin.database.conection.processDelete');	//OK-------
 
 
 //                 Route::get('MysqlDataTransfer', 'DatabaseConnectionController@MysqlDataTransfer')->name('admin.export.MysqlDataTransfer');	//OK--------
@@ -543,7 +543,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 //                 Route::post('MysqlDataTransferStore', 'DatabaseConnectionController@MysqlDataTransferStore')->name('admin.database.conection.MysqlDataTransferStore');	//OK-------
                 
-//         });
+        });
 //     Route::group(['prefix' => 'UnlockVoterList'], function() {
 //                Route::get('/', 'PrepareVoterListController@UnlockVoterList')->name('admin.UnlockVoterList.index');	//OK Done-----------------
 //                Route::post('unlock', 'PrepareVoterListController@unlockVoterListUnlock')->name('admin.UnlockVoterList.unlock');	//OK---------
