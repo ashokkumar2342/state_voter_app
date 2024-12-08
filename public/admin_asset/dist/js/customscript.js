@@ -4,10 +4,10 @@ var full_url_js=(("https:"==document.location.protocol?"https://":"http://")+win
     const idleDurationSecs = 1200;
     //Local Setting
     const redirectUrl = full_url_js+'/state_voter_app/public/admin/logout_time';
-    //Live EDMS
-    // const redirectUrl = full_url_js+'/edms/public/admin/logout_time';
-    //Staging EDMS
-    // const redirectUrl = full_url_js+'/stageedms/public/admin/logout_time';
+    //Live
+    // const redirectUrl = full_url_js+'/admin/logout_time';
+    //Staging
+    // const redirectUrl = full_url_js+'/admin/logout_time';
     
     let idleTimeout;
 
