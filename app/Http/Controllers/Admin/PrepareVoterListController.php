@@ -66,7 +66,9 @@ class PrepareVoterListController extends Controller
         $rs_update= DB::select(DB::raw("call `up_process_voterlist_booth` ($ward_id, $booth_id, 0, $full_supplement, $sorting_order)")); 
       }
       if ($rs_update[0]->save_status == 1){
-        \Artisan::queue('voterlist:generate',['district_id'=>$district_id, 'block_id'=>$block_id, 'village_id'=>$village_id, 'ward_id'=>$ward_id, 'booth_id'=>$booth_id]);
+        MyFuncs::startVoterListGenerateQueue();
+
+        // \Artisan::queue('voterlist:generate',['district_id'=>$district_id, 'block_id'=>$block_id, 'village_id'=>$village_id, 'ward_id'=>$ward_id, 'booth_id'=>$booth_id]);
       }      
       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->save_remarks];
       return response()->json($response);

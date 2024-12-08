@@ -11,6 +11,7 @@ namespace App\Helper;
 use Illuminate\Support\Facades\Auth;
 use Route;
 use Illuminate\Support\Facades\DB;
+use App\Jobs;
 
 
 
@@ -325,6 +326,23 @@ class MyFuncs {
       return Redirect::route('logout')->with(['error_msg' => 'Unauthorised Access to Application !!']);
     }
     return true;
+  }
+
+
+  // Voter List Generate Queue Artisan
+  public static function startVoterListGenerateQueue()
+  {
+    $rs_fetch = DB::select(DB::raw("SELECT count(*) as `in_process` from `voter_list_processeds` where `status` = 2 and (HOUR(TIMEDIFF(now(), `start_time`))*60+MINUTE(TIMEDIFF(now(), `start_time`))) < 30;"));
+    if($rs_fetch[0]->in_process < 8){
+      ProcessSomeCommandInBackground::dispatch();
+      // dispatch(function () {
+      //   Artisan::call('voterlist:generate');
+      // });
+
+      // exec('nohup php artisan voterlist:generate > /dev/null &');
+      
+      // \Artisan::call('voterlist:generate');
+    }
   }
 
   // ----------------------- End -------------------------
