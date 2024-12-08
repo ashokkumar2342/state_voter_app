@@ -1,6 +1,4 @@
-<option selected disabled>Select Assembly Booth</option> 
-@foreach ($Parts as $Part)
- 
-<option value="{{ $Part->id }}">{{ $Part->part_no }}</option>
- 
+<option selected disabled value="{{ Crypt::encrypt(0) }}">Select Assembly Booth</option> 
+@foreach ($rs_parts as $rs_val) 
+	<option value="{{ Crypt::encrypt($rs_val->id) }}">{{ $rs_val->part_no }}</option> 
 @endforeach 

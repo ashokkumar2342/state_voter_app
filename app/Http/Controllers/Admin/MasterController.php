@@ -1785,6 +1785,430 @@ class MasterController extends Controller
     }
   }
 
+//MappingVillageAssemblyPart
+
+  public function MappingVillageAssemblyPart()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(74);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.mappingvillageassemblypart.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageAssemblyPart";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageAssemblyPartFilter(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(74);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $district_id = intval(Crypt::decrypt($request->district_id));
+      $rs_assemblys = DB::select(DB::raw("SELECT * from `assemblys` where `district_id` = $district_id order by `code`;"));         
+      return view('admin.master.mappingvillageassemblypart.ac_part_form',compact('rs_assemblys'));
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageAssemblyPartFilter";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageAssemblyPartTable(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(74);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $village_id = intval(Crypt::decrypt($request->id));
+      $rs_records = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+         
+      return view('admin.master.mappingvillageassemblypart.table',compact('rs_records'));
+    } catch (Exception $e) {
+      $e_method = "MappingVillageAssemblyPartTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyWisePartNoUnmapped(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(74);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $ac_id = intval(Crypt::decrypt($request->id));
+      $rs_parts = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id and `village_id` = 0 order by `part_no`;"));
+      return view('admin.master.assemblypart.part_no_select_box',compact('rs_parts'));  
+    } catch (\Exception $e) {
+      $e_method = "imageShowPath";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageAssemblyPartStore(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(74);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'district' => 'required', 
+        'block_mcs' => 'required', 
+        'village' => 'required', 
+        'assembly' => 'required', 
+        'part_no' => 'required', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block_mcs.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'assembly.required'=> 'Please Select Assembly',
+        'part_no.required'=> 'Please Select Part No.',        
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $part_id = intval(Crypt::decrypt($request->part_no));
+      $rs_update = DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = $village_id where `id` = $part_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Record Saved Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageAssemblyPartStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageAssemblyPartRemove($assemblyPart_id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(74);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $part_id = intval(Crypt::decrypt($request->assemblyPart_id));
+      $rs_update = DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = 0 where `id` = $part_id limit 1;"));      
+      $response=['status'=>1,'msg'=>'Remove Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageAssemblyPartRemove";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingAcPartWithPanchayat()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(77);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.mappingAssemblyPartPanchayat.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "MappingAcPartWithPanchayat";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function mappingDistrictWiseAssembly(Request $request)
+  { 
+    try{
+      $permission_flag = MyFuncs::isPermission_route(77);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $district_id = intval(Crypt::decrypt($request->id));
+      $assemblys = DB::select(DB::raw("SELECT * from `assemblys` where `district_id` = $district_id order by `code`;"));
+      return view('admin.master.assembly.assembly_value_select_box',compact('assemblys'));
+    } catch (\Exception $e) {
+      $e_method = "mappingDistrictWiseAssembly";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AssemblyWisePartNoAll(Request $request)
+  { 
+    try {
+      $permission_flag = MyFuncs::isPermission_route(77);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $ac_id = intval(Crypt::decrypt($request->id));
+      $rs_parts = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id order by `part_no`;"));
+      return view('admin.master.assemblypart.part_no_select_box',compact('rs_parts'));  
+    } catch (\Exception $e) {
+      $e_method = "AssemblyWisePartNoAll";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingAcPartVillage(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(77);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $part_id = intval(Crypt::decrypt($request->part_no));
+      $rs_villages = DB::select(DB::raw("SELECT `vil`.`name_e` from `assembly_parts` `ap` inner join `villages` `vil` on `vil`.`id` = `ap`.`village_id` where `ap`.`id` = $part_id limit 1;"));
+      return view('admin.master.mappingAssemblyPartPanchayat.table',compact('rs_villages'));
+    } catch (\Exception $e) {
+      $e_method = "MappingAcPartVillage";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function AcPartVillageMappingStore(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(77);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'district' => 'required', 
+        'block_mcs' => 'required', 
+        'village' => 'required', 
+        'assembly' => 'required', 
+        'part_no' => 'required', 
+      ]; 
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block_mcs.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'assembly.required'=> 'Please Select Assembly',
+        'part_no.required'=> 'Please Select Part No.',        
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $part_id = intval(Crypt::decrypt($request->part_no));
+
+      DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = $village_id where `id` = $part_id limit 1;"));
+      $response=['status'=>1,'msg'=>'Records Saved Successfully'];
+      return response()->json($response);    
+    } catch (\Exception $e) {
+      $e_method = "AcPartVillageMappingStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingBoothWard()
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(71);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.mappingBoothWard.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "MappingBoothWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageWiseBooth(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(71);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $village_id = intval(Crypt::decrypt($request->village_id));
+      $booths = DB::select(DB::raw("SELECT * from `polling_booths` where `village_id` = $village_id order by `booth_no`, `booth_no_c`;"));
+      return view('admin.master.booth.booth_select_box',compact('booths'));
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageWiseBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageOrBoothWiseWard(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(71);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $village_id = intval(Crypt::decrypt($request->village_id));
+      $booth_id = intval(Crypt::decrypt($request->id));
+      $wards=DB::select(DB::raw("SELECT `id`, `ward_no`, 0 as `status` from `ward_villages` where `village_id` = $village_id and `id` not in (Select `wardId` from `booth_ward_voter_mapping`) Union select `id`, `ward_no`, 1 as `status` from `ward_villages` where `village_id` = $village_id and `id` in (Select `wardId` from `booth_ward_voter_mapping` where `boothid` = $booth_id) Order By `ward_no`;"));
+
+      return view('admin.master.mappingBoothWard.ward_select_box',compact('wards'));
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageOrBoothWiseWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingBoothWardStore(Request $request)
+  {  
+    try{
+      $permission_flag = MyFuncs::isPermission_route(71);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'booth' => 'required',
+      ]; 
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'booth.required'=> 'Please Select Booth',      
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $booth_id = intval(Crypt::decrypt($request->booth));
+      if (!empty($request->ward)) {
+        $ward = implode(',',$request->ward);  
+      }else {
+       $ward = 0;  
+      }   
+      $rs_save = DB::select(DB::raw("call `up_process_booth_ward_voters` ('$booth_id','$ward', $village_id)"));
+      $rs_save = DB::select(DB::raw("call `up_map_booth_ward` ('$booth_id','$ward')"));
+      $response=['status'=>1,'msg'=>'Submit Successfully'];
+      return response()->json($response); 
+    } catch (Exception $e) {
+      $e_method = "MappingBoothWardStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingWardBooth()
+  {
+    try{
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.mappingWardBooth.index',compact('rs_district'));     
+    } catch (\Exception $e) {
+      $e_method = "MappingWardBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingWardBoothTable(Request $request)
+  {
+    try{
+      $ward_id = intval(Crypt::decrypt($request->id));
+      $rs_booths = DB::select(DB::raw("SELECT `bwm`.`id`, `pb`.`booth_no`,`pb`.`booth_no_c`,`pb`.`name_e`, `pb`.`name_l`, `bwm`.`fromsrno`, `bwm`.`tosrno` from `booth_ward_voter_mapping` `bwm` Inner Join `polling_booths` `pb` on `pb`.`id` = `bwm`.`boothid` Where `bwm`.`wardId` = $ward_id Order By `bwm`.`fromsrno`;"));
+      return view('admin.master.mappingWardBooth.table',compact('rs_booths'));   
+    } catch (Exception $e) {
+      $e_method = "MappingWardBoothTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingWardBoothSelectBooth(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->village_id));
+      $ward_id = intval(Crypt::decrypt($request->id));
+      $booths=DB::select(DB::raw("SELECT `id`, `booth_no`,`booth_no_c`,`name_e` from `polling_booths` Where `village_id` = $village_id and `id` not in (Select `boothid` from `booth_ward_voter_mapping`  Where `wardId` = $ward_id) Order By `booth_no`;"));
+      return view('admin.master.booth.booth_select_box',compact('booths'));
+    } catch (Exception $e) {
+      $e_method = "MappingWardBoothSelectBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingWardBoothStore(Request $request)
+  {
+    try{
+      $rules=[
+        'ward' => 'required', 
+        'booth' => 'required',
+        'from_sr_no' => 'required',
+        'to_sr_no' => 'required',
+      ];
+      $customMessages = [
+        'ward.required'=> 'Please Select Ward',
+        'booth.required'=> 'Please Select booth',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+        'to_sr_no.required'=> 'Please Enter To Sr. No.',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+
+      $ward_id = intval(Crypt::decrypt($request->ward));
+      $booth_id = intval(Crypt::decrypt($request->booth));
+
+      if ($request->from_sr_no == null) {
+        $from_sr_no = 0;
+      }else {
+        $from_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
+      }
+      if ($request->to_sr_no == null) {
+        $to_sr_no = 0;
+      }else  {
+        $to_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
+      }
+
+      if (empty($request->rec_id)) {
+         $rec_id = 0;
+      }else {
+         $rec_id = intval(Crypt::decrypt($request->rec_id));
+      }
+      $message = DB::select(DB::raw("call `up_process_ward_booth_voters` ($booth_id, $ward_id, $from_sr_no, $to_sr_no);"));
+      $message = DB::select(DB::raw("call `up_map_ward_booth_voters` ($rec_id, $ward_id, $from_sr_no, $to_sr_no, $booth_id);"));
+      $response=['status'=>$message[0]->save_status,'msg'=>$message[0]->Save_Result];
+        return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "MappingWardBoothStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }  
+  }
+
+  public function MappingWardBoothEdit($id)
+  {
+    try{
+      $rec_id = intval(Crypt::decrypt($id));
+      $BoothWardVoterMapping = DB::select(DB::raw("SELECT * from `booth_ward_voter_mapping` where `id` = $rec_id limit 1;"));
+      return view('admin.master.mappingWardBooth.edit',compact('BoothWardVoterMapping'));      
+    } catch (\Exception $e) {
+      $e_method = "MappingWardBoothEdit";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
 
   public function exception_handler()
   {
@@ -2135,134 +2559,25 @@ class MasterController extends Controller
 
 
 // //     //-----Mapping Village Assembly Part-----------------
-//   public function MappingVillageAssemblyPart()
-//   {
-//     try {
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.mappingvillageassemblypart.index',compact('States'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function MappingVillageAssemblyPartFilter(Request $request)
-//   {
-//     try {  
-//       $assemblys = DB::select(DB::raw("select * from `assemblys` where `district_id` = $request->district_id order by `code`;"));
-      
-//       $assemblyParts = DB::select(DB::raw("  select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-         
-//       return view('admin.master.mappingvillageassemblypart.ac_part_form',compact('assemblys', 'assemblyParts'));
-//     } catch (Exception $e) {}
-//   }
-//   public function MappingVillageAssemblyPartTable(Request $request)
-//   {
-//     try {  
-//       $assemblys = DB::select(DB::raw("select * from `assemblys` where `district_id` = $request->district_id order by `code`;"));
-      
-//       $assemblyParts = DB::select(DB::raw("  select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-         
-//       return view('admin.master.mappingvillageassemblypart.value',compact('assemblys', 'assemblyParts'));
-//     } catch (Exception $e) {}
-//   }
+  
+  
 
-//   public function AssemblyWisePartNoUnmapped(Request $request)
-//   { 
-//     try {
-//       $Parts = DB::select(DB::raw("select * from `assembly_parts` where `assembly_id` = $request->id and `village_id` = 0 order by `part_no`;"));
-//       return view('admin.master.assemblypart.part_no_select_box',compact('Parts'));  
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function AssemblyWisePartNoAll(Request $request)
-//   { 
-//     try {
-//       $Parts = DB::select(DB::raw("select * from `assembly_parts` where `assembly_id` = $request->id order by `part_no`;"));
-//       return view('admin.master.assemblypart.part_no_select_box',compact('Parts'));  
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function MappingVillageAssemblyPartStore(Request $request)
-//   {
-//     $rules=[
-//       'states' => 'required', 
-//       'district' => 'required', 
-//       'block_mcs' => 'required', 
-//       'village' => 'required', 
-//       'assembly' => 'required', 
-//       'part_no' => 'required', 
-//     ];
+  
 
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
-//     try {
-//       $rs_update = DB::select(DB::raw("update `assembly_parts` set `village_id` = $request->village where `id` = $request->part_no limit 1;"));
-//       $response=['status'=>1,'msg'=>'Record Saved Successfully'];
-//       return response()->json($response);
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function MappingVillageAssemblyPartRemove($assemblyPart_id)
-//   {
-//     try {
-//       $rs_update = DB::select(DB::raw("update `assembly_parts` set `village_id` = 0 where `id` = $assemblyPart_id limit 1;"));
-      
-//       $response=['status'=>1,'msg'=>'Remove Successfully'];
-//       return response()->json($response);
-//     } catch (Exception $e) {}
-//   }
+  
+  
 
-//   public function MappingAcPartWithPanchayat()
-//   {
-//     try { 
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.mappingAssemblyPartPanchayat.index',compact('States'));
-//     } catch (Exception $e) {}
-//   }
-//   public function mappingDistrictWiseAssembly(Request $request)
-//   { 
-//     try{
-//         $assemblys = DB::select(DB::raw("select * from `assemblys` where `district_id` = $request->id order by `code`;"));
-//         return view('admin.master.assembly.assembly_value_select_box',compact('assemblys'));
-//       } catch (Exception $e) {}
-//   }
+  
 
-//   public function MappingAcPartVillage(Request $request)
-//   {
-//     try { 
-//       $rs_villages = DB::select(DB::raw("select `vil`.`name_e` from `assembly_parts` `ap` inner join `villages` `vil` on `vil`.`id` = `ap`.`village_id` where `ap`.`id` = $request->part_no limit 1;"));
-//       return view('admin.master.mappingAssemblyPartPanchayat.table',compact('rs_villages'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function AcPartVillageMappingStore(Request $request)
-//   {
-//     try {
-//       $rules=[
-//       'states' => 'required', 
-//       'district' => 'required', 
-//       'block_mcs' => 'required', 
-//       'village' => 'required', 
-//       'assembly' => 'required', 
-//       'part_no' => 'required', 
-//     ]; 
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     } 
-//       DB::select(DB::raw("update `assembly_parts` set `village_id` = $request->village where `id` = $request->part_no limit 1;"));
-//       $response=['status'=>1,'msg'=>'Records Saved Successfully'];
-//       return response()->json($response);    
-//     } catch (Exception $e) {}
-//   }
+  
 
 // //   //------------------------Mapping-Village Ward -To-PS Ward----------
 
@@ -2560,110 +2875,25 @@ class MasterController extends Controller
 
 
 //    //---------MappingBoothWard----------MappingBoothWard-----------------MappingBoothWard
-// public function MappingBoothWard($value='')
-// {
-//   try{
-//     $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//     return view('admin.master.mappingBoothWard.index',compact('States'));
-//   } catch (Exception $e) {}
-// }
+  
 
-// public function MappingVillageWiseBooth(Request $request)
-// {
-//   try{
-//     $booths = DB::select(DB::raw("select * from `polling_booths` where `village_id` = $request->village_id order by `booth_no`, `booth_no_c`;"));
-//     return view('admin.master.booth.booth_select_box',compact('booths'));
-//   } catch (Exception $e) {}
-// }
+  
 
-// public function MappingVillageOrBoothWiseWard(Request $request)
-// {  
-//   try{
-//     $wards=DB::select(DB::raw("select `id`, `ward_no`, 0 as `status` from `ward_villages` where `village_id` =$request->village_id and `id` not in (Select `wardId` from `booth_ward_voter_mapping`)Union select `id`, `ward_no`, 1 as `status` from `ward_villages` where `village_id` = $request->village_id and `id` in (Select `wardId` from `booth_ward_voter_mapping` where `boothid` =$request->id) Order By `ward_no`;"));
+  
 
-//     return view('admin.master.mappingBoothWard.ward_select_box',compact('wards'));
-//   } catch (Exception $e) {}
-// }
-
-// public function MappingBoothWardStore(Request $request)
-// {  
-//   try{
-//     if (!empty($request->ward)) {
-//       $ward=implode(',',$request->ward);  
-//     }else {
-//      $ward=0;  
-//     } 
- 
- 
-//     DB::select(DB::raw("call `up_process_booth_ward_voters` ('$request->booth','$ward', $request->village)"));
-
-//     DB::select(DB::raw("call `up_map_booth_ward` ('$request->booth','$ward')"));
-//     $response=['status'=>1,'msg'=>'Submit Successfully'];
-//     return response()->json($response); 
-//   } catch (Exception $e) {}
-// }
+  
 
 // //    //------MappingWardBooth-----------------MappingWardBooth--------MappingWardBooth
    
-// public function MappingWardBooth()
-// {
-//   try{
-//     $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//     return view('admin.master.mappingWardBooth.index',compact('States'));     
-//   } catch (Exception $e) {}
-// }
+  
 
-// public function MappingWardBoothTable(Request $request)
-// {
-//   try{
-//     $booths=DB::select(DB::raw("select `bwm`.`id`, `pb`.`booth_no`,`pb`.`booth_no_c`,`pb`.`name_e`, `pb`.`name_l`, `bwm`.`fromsrno`, `bwm`.`tosrno` from `booth_ward_voter_mapping` `bwm` Inner Join `polling_booths` `pb` on `pb`.`id` = `bwm`.`boothid` Where `bwm`.`wardId` =$request->id Order By `bwm`.`fromsrno`;"));
-//     return view('admin.master.mappingWardBooth.table',compact('booths'));   
-//   } catch (Exception $e) {}
-// }
+  
 
-// public function MappingWardBoothSelectBooth(Request $request)
-// {
-//   try{
-//     $booths=DB::select(DB::raw("select `id`, `booth_no`,`booth_no_c`,`name_e` from `polling_booths` Where `village_id` =$request->village_id And `id` not in (Select `boothid` from `booth_ward_voter_mapping`  Where `wardId` =$request->id) Order By `booth_no`;"));
-//     return view('admin.master.booth.booth_select_box',compact('booths'));
-//   } catch (Exception $e) {}
-// }
+  
 
-// public function MappingWardBoothStore(Request $request)
-// {  
-//   try{
-//     if (empty($request->from_sr_no)) {
-//       $from_sr_no=0;
-//     }else{
-//       $from_sr_no=$request->from_sr_no;
-//     }
-//     if(empty($request->to_sr_no)){
-//       $to_sr_no=0;
-//     }else{
-//       $to_sr_no=$request->to_sr_no;
-//     }
-//     if (empty($request->id)) {
-//        $id=0;
-//     }else {
-//        $id=$request->id;
-//     }
-//     $message=DB::select(DB::raw("call `up_process_ward_booth_voters` ('$request->booth','$request->ward','$from_sr_no','$to_sr_no')"));
+  
 
-//     $message=DB::select(DB::raw("call `up_map_ward_booth_voters` ('$id','$request->ward','$from_sr_no','$to_sr_no','$request->booth')"));
-
-//     $response=['status'=>$message[0]->save_status,'msg'=>$message[0]->Save_Result];
-//       return response()->json($response); 
-    
-//   } catch (Exception $e) {}  
-// }
-
-// public function MappingWardBoothEdit($id)
-// {
-//   try{
-//     $BoothWardVoterMapping = DB::select(DB::raw("select * from `booth_ward_voter_mapping` where `id` = $id limit 1;"));
-//     return view('admin.master.mappingWardBooth.edit',compact('BoothWardVoterMapping'));      
-//   } catch (Exception $e) {}
-// }
+  
 
 
 // //----------ward-bandi----------WardBandi----------------------------------------------------//

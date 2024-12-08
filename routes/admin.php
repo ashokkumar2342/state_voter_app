@@ -216,18 +216,18 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 
 // 	    //-Mapping---//
-// 	    Route::get('MappingVillageAssemblyPart', 'MasterController@MappingVillageAssemblyPart')->name('admin.Master.MappingVillageAssemblyPart');	//OK Done---------------
-// 	    Route::get('MappingVillageAssemblyPartFilter', 'MasterController@MappingVillageAssemblyPartFilter')->name('admin.Master.MappingVillageAssemblyPartFilter');		//OK------------
-// 	    Route::get('MappingVillageAssemblyPartTable', 'MasterController@MappingVillageAssemblyPartTable')->name('admin.Master.MappingVillageAssemblyPartTable');		//OK------------
-// 	    Route::get('MappingAssemblyWisePartNo', 'MasterController@AssemblyWisePartNoUnmapped')->name('admin.Master.MappingAssemblyWisePartNo');		//OK------------
-// 	    Route::post('MappingVillageAssemblyPartStore', 'MasterController@MappingVillageAssemblyPartStore')->name('admin.Master.MappingVillageAssemblyPartStore');		//OK----------
-// 	    Route::get('MappingVillageAssemblyPartRemove/{id}', 'MasterController@MappingVillageAssemblyPartRemove')->name('admin.Master.MappingVillageAssemblyPartRemove');		//OK----------
+	    Route::get('MappingVillageAssemblyPart', 'MasterController@MappingVillageAssemblyPart')->name('admin.Master.MappingVillageAssemblyPart');
+	    Route::get('MappingVillageAssemblyPartFilter', 'MasterController@MappingVillageAssemblyPartFilter')->name('admin.Master.MappingVillageAssemblyPartFilter');
+	    Route::get('MappingVillageAssemblyPartTable', 'MasterController@MappingVillageAssemblyPartTable')->name('admin.Master.MappingVillageAssemblyPartTable');
+	    Route::get('MappingAssemblyWisePartNo', 'MasterController@AssemblyWisePartNoUnmapped')->name('admin.Master.MappingAssemblyWisePartNo');
+	    Route::post('MappingVillageAssemblyPartStore', 'MasterController@MappingVillageAssemblyPartStore')->name('admin.Master.MappingVillageAssemblyPartStore');
+	    Route::get('MappingVillageAssemblyPartRemove/{id}', 'MasterController@MappingVillageAssemblyPartRemove')->name('admin.Master.MappingVillageAssemblyPartRemove');
 
-// 	    Route::get('mapping-ac-part-with-panchayat', 'MasterController@MappingAcPartWithPanchayat')->name('admin.Master.mapping.ac.part.with.panchayat');	//OK Done---------
-// 	    Route::get('AssemblyWiseAllPartNo', 'MasterController@AssemblyWisePartNoAll')->name('admin.Master.AssemblyWiseAllPartNo');	//OK--------------
-// 	    Route::get('mapping-district-wise-ac', 'MasterController@mappingDistrictWiseAssembly')->name('admin.Master.mapping.district.wise.ac');	//OK-----------
-// 	    Route::get('mapping-ac-part-wise-table', 'MasterController@MappingAcPartVillage')->name('admin.Master.mapping.ac.part.wise.table');	//OK----------
-// 	    Route::post('mapping-ac-part-wise-store', 'MasterController@AcPartVillageMappingStore')->name('admin.Master.mapping.ac.part.store');	//OK----------
+	    Route::get('mapping-ac-part-with-panchayat', 'MasterController@MappingAcPartWithPanchayat')->name('admin.Master.mapping.ac.part.with.panchayat');
+	    Route::get('mapping-district-wise-ac', 'MasterController@mappingDistrictWiseAssembly')->name('admin.Master.mapping.district.wise.ac');
+	    Route::get('AssemblyWiseAllPartNo', 'MasterController@AssemblyWisePartNoAll')->name('admin.Master.AssemblyWiseAllPartNo');
+	    Route::get('mapping-ac-part-wise-table', 'MasterController@MappingAcPartVillage')->name('admin.Master.mapping.ac.part.wise.table');
+	    Route::post('mapping-ac-part-wise-store', 'MasterController@AcPartVillageMappingStore')->name('admin.Master.mapping.ac.part.store');
 
 
 // 	    //-mapping-zp-ward---//
@@ -244,17 +244,17 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 	    
 // 	    //mapping-booth-ward////
-// 	    Route::get('MappingBoothWard', 'MasterController@MappingBoothWard')->name('admin.Master.MappingBoothWard');		//OK Done-------
-// 	    Route::get('MappingVillageWiseBooth', 'MasterController@MappingVillageWiseBooth')->name('admin.Master.MappingVillageWiseBooth');	//OK--------------
-// 	    Route::get('MappingVillageOrBoothWiseWard', 'MasterController@MappingVillageOrBoothWiseWard')->name('admin.Master.MappingVillageOrBoothWiseWard');		//OK---------------
-// 	    Route::post('MappingBoothWardStore', 'MasterController@MappingBoothWardStore')->name('admin.Master.MappingBoothWardStore');		//OK------------
+	    Route::get('MappingBoothWard', 'MasterController@MappingBoothWard')->name('admin.Master.MappingBoothWard');
+	    Route::get('MappingVillageWiseBooth', 'MasterController@MappingVillageWiseBooth')->name('admin.Master.MappingVillageWiseBooth');
+	    Route::get('MappingVillageOrBoothWiseWard', 'MasterController@MappingVillageOrBoothWiseWard')->name('admin.Master.MappingVillageOrBoothWiseWard');
+	    Route::post('MappingBoothWardStore', 'MasterController@MappingBoothWardStore')->name('admin.Master.MappingBoothWardStore');
 
 //         //mapping-ward-booth////
-// 	    Route::get('MappingWardBooth', 'MasterController@MappingWardBooth')->name('admin.Master.MappingWardBooth');		//OK Done-------------
-// 	    Route::get('MappingWardBoothTable', 'MasterController@MappingWardBoothTable')->name('admin.Master.MappingWardBoothTable');		//OK----------
-// 	    Route::get('MappingWardBoothSelectBooth', 'MasterController@MappingWardBoothSelectBooth')->name('admin.Master.MappingWardBoothSelectBooth');	//OK-------
-// 	    Route::post('MappingWardBoothStore', 'MasterController@MappingWardBoothStore')->name('admin.Master.MappingWardBoothStore');		//OK-----------
-// 	    Route::get('MappingWardBoothEdit/{id}', 'MasterController@MappingWardBoothEdit')->name('admin.Master.MappingWardBoothEdit');		//OK------------
+	    Route::get('MappingWardBooth', 'MasterController@MappingWardBooth')->name('admin.Master.MappingWardBooth');
+	    Route::get('MappingWardBoothTable', 'MasterController@MappingWardBoothTable')->name('admin.Master.MappingWardBoothTable');
+	    Route::get('MappingWardBoothSelectBooth', 'MasterController@MappingWardBoothSelectBooth')->name('admin.Master.MappingWardBoothSelectBooth');
+	    Route::post('MappingWardBoothStore', 'MasterController@MappingWardBoothStore')->name('admin.Master.MappingWardBoothStore');
+	    Route::get('MappingWardBoothEdit/{id}', 'MasterController@MappingWardBoothEdit')->name('admin.Master.MappingWardBoothEdit');
 
 
 // 	    //mapping-ward-with-multiple-booth////
@@ -378,7 +378,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //            Route::get('AssemblyWisePartNo', 'VoterDetailsController@AssemblyWisePartNo')->name('admin.voter.AssemblyWisePartNo');	//OK------------
            
 //            Route::get('VillageWiseWard', 'VoterDetailsController@VillageWiseWard')->name('admin.voter.VillageWiseWard');		//OK---------
-//            Route::get('VillageWiseWardAll', 'VoterDetailsController@VillageWiseWardAll')->name('admin.voter.VillageWiseWardAll');		//OK---------
+           Route::get('VillageWiseWardAll', 'VoterDetailsController@VillageWiseWardAll')->name('admin.voter.VillageWiseWardAll');		//OK---------
 //            Route::get('VillageWiseAcParts', 'VoterDetailsController@VillageWiseAcParts')->name('admin.voter.VillageWiseAcParts');		//OK---------
 
 //            Route::get('VillageWiseVoterList', 'VoterDetailsController@VillageWiseVoterList')->name('admin.voter.VillageWiseVoterList');	//OK---------

@@ -46,11 +46,10 @@ class VoterDetailsController extends Controller
 	{
 		try{
 			$r_id = 0;
-			if(!empty($request->id)){
-				$r_id = $request->id;
+			if($request->id!='null'){
+				$r_id = intval(Crypt::decrypt($request->id));
 			}
-			// $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access`($r_id, 1);"));
-      $WardVillages = DB::select(DB::raw("select * from `ward_villages` where `village_id` = $r_id order by `ward_no`;"));
+			$WardVillages = DB::select(DB::raw("SELECT * from `ward_villages` where `village_id` = $r_id order by `ward_no`;"));
 			return view('admin.voterDetails.select_ward_no',compact('WardVillages')); 
 		} catch (Exception $e) {}
 	}

@@ -1,6 +1,6 @@
-<option selected disabled>Select Ward</option> 
+<option selected disabled value="{{ Crypt::encrypt(0) }}">Select Ward</option> 
 @foreach ($WardVillages as $WardVillage)
  
-<option value="{{ $WardVillage->id }}">{{ $WardVillage->ward_no }}</option>
+<option value="{{ Crypt::encrypt($WardVillage->id) }}">{{ $WardVillage->ward_no }}</option>
  
 @endforeach 
