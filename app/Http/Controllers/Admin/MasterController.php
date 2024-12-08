@@ -2210,6 +2210,108 @@ class MasterController extends Controller
     }
   }
 
+  //--------MappingWardWithMultipleBooth---------
+  public function MappingWardWithMultipleBooth()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(73);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      
+      $rs_district = SelectBox::get_district_access_list_v1();  
+      return view('admin.master.MappingWardWithMultipleBooth.index',compact('rs_district'));
+
+    } catch (\Exception $e) {
+      $e_method = "MappingWardWithMultipleBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingWardWithMultipleBoothWardWiseBooth(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(73);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+
+      $vil_id = intval(Crypt::decrypt($request->village_id));
+      $ward_id = intval(Crypt::decrypt($request->ward_id));
+
+      $permission_flag = MyFuncs::check_village_access($vil_id);
+      if($permission_flag == 0){
+        $vil_id = 0;  
+      }
+
+
+      $booths = DB::select(DB::raw("SELECT `id`, concat(`booth_no`, `booth_no_c`,' - ', `name_e`) as `booth_name`, 0 as `status` From `polling_booths` Where `village_id` = $vil_id and `id` not in (select `boothid` from `booth_ward_voter_mapping` where  `is_complete_booth` = 1) Union Select `id`, concat(`booth_no`, ' - ', `name_e`) as `booth_name`, 1 as `status` From `polling_booths` Where `village_id` = $vil_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` =$ward_id and `is_complete_booth` = 1) Order by `booth_name`;"));   
+      return view('admin.master.MappingWardWithMultipleBooth.select_box',compact('booths'));
+    } catch (\Exception $e) {
+      $e_method = "MappingWardWithMultipleBoothWardWiseBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingWardWithMultipleBoothStore(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(73);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong']; 
+        return response()->json($response);
+      }
+
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'ward' => 'required', 
+      ];
+
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block/MC',
+        'village.required'=> 'Please Select Panchayat/MC',
+        'ward.required'=> 'Please Select Ward No.',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+
+      $vil_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($vil_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong']; 
+        return response()->json($response);
+      }
+
+      $ward_id = intval(Crypt::decrypt($request->ward));
+
+      $booth_id=0;
+
+      if (!empty($request->booth)){
+        foreach ($request->booth as $key => $value) {
+          $val_booth_id = intval(Crypt::decrypt($value));
+          $booth_id=$booth_id.",".$val_booth_id;
+        }
+      }
+
+      $saveBooth = DB::select(DB::raw("call `up_map_ward_booths`('$ward_id','$booth_id');"));
+
+      $response=['status'=>1,'msg'=>'Updated Successfully']; 
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "MappingWardWithMultipleBoothStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }      
+
   public function exception_handler()
   {
     try {
@@ -2290,30 +2392,92 @@ class MasterController extends Controller
   //   } catch (Exception $e) {}
   // }
 
-  public function DistrictWiseBlock(Request $request, $print_condition=null)
+  public function DistrictWiseBlock(Request $request, $block_mc_condition=0)
   {
-    try{
+    try {
       $d_id = intval(Crypt::decrypt($request->id));
       $user_id = MyFuncs::getUserId();
-      if (empty($print_condition)) {
-        $BlocksMcs=DB::select(DB::raw("call `up_fetch_block_access` ($user_id, $d_id);")); 
-      }else {
-        $BlocksMcs=DB::select(DB::raw("call `up_fetch_block_access_voterlistprint` ($user_id, $d_id, '$print_condition');")); 
-      } 
-      return view('admin.master.block.value_select_box',compact('BlocksMcs'));
-    } catch (Exception $e) {}
+      
+      $box_caption = "Block/MC";
+      $show_disabled = 1;
+      $rs_records = SelectBox::get_block_access_list_v1($d_id, $block_mc_condition);
+
+      return view('admin.common.select_box_v1',compact('rs_records', 'box_caption', 'show_disabled'));
+    } catch (\Exception $e) {
+      $e_method = "DistrictWiseBlock";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+    // try{
+      
+    //   // if ($block_mc_condition == 0) {
+    //   //   $rs_records = SelectBox::get_block_access_list_v1($d_id, 0);
+    //   // }else {
+    //   //   $rs_records = SelectBox::get_block_access_list_v1($d_id, 0);
+    //   //   $rs_records = DB::select(DB::raw("call `up_fetch_block_access_voterlistprint` ($user_id, $d_id, '$print_condition');")); 
+    //   // } 
+
+      
+    //   // return view('admin.master.block.value_select_box',compact('BlocksMcs'));
+    // } catch (Exception $e) {}
   }
 
   public function BlockWiseVillage(Request $request)
   {
-    try{
-      $user_id = MyFuncs::getUserId();
-      $d_id = intval(Crypt::decrypt($request->district_id));
+    try {
       $b_id = intval(Crypt::decrypt($request->id));
-      $Villages = DB::select(DB::raw("call `up_fetch_village_access` ($user_id, $d_id, $b_id, 0);"));  
-      return view('admin.master.village.value_select_box',compact('Villages'));
-    } catch (Exception $e) {}
+      $is_permission = MyFuncs::check_block_access($b_id);
+      if($is_permission == 0){
+        $b_id = 0;
+      }
+
+      $box_caption = "Panchayat/MC";
+      $show_disabled = 1;
+      $rs_records = SelectBox::get_village_access_list_v1($b_id);
+
+      return view('admin.common.select_box_v1',compact('rs_records', 'box_caption', 'show_disabled'));
+
+    } catch (\Exception $e) {
+      $e_method = "BlockWiseVillage";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
   }
+
+  public function VillageWiseWardAll(Request $request)
+  {
+    try{
+      $vil_id = 0;
+      if($request->id!='null'){
+        $vil_id = intval(Crypt::decrypt($request->id));
+      }
+      
+      $is_permission = MyFuncs::check_village_access($vil_id);
+      if($is_permission == 0){
+        $vil_id = 0;
+      }
+
+      $box_caption = "Ward No.";
+      $show_disabled = 1;
+      $rs_records = SelectBox::get_all_ward_village_v1($vil_id);
+
+      return view('admin.common.select_box_v1',compact('rs_records', 'box_caption', 'show_disabled'));
+    } catch (\Exception $e) {
+      $e_method = "VillageWiseWardAll";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  
+
+  // public function BlockWiseVillage(Request $request)
+  // {
+  //   try{
+  //     $user_id = MyFuncs::getUserId();
+  //     $d_id = intval(Crypt::decrypt($request->district_id));
+  //     $b_id = intval(Crypt::decrypt($request->id));
+  //     $Villages = DB::select(DB::raw("call `up_fetch_village_access` ($user_id, $d_id, $b_id, 0);"));  
+  //     return view('admin.master.village.value_select_box',compact('Villages'));
+  //   } catch (Exception $e) {}
+  // }
 
 
 //   public function BlockWiseVoterListType(Request $request)
@@ -2908,54 +3072,11 @@ class MasterController extends Controller
 
 
 
-// //--------MappingWardWithMultipleBooth---------
-// public function MappingWardWithMultipleBooth()
-// {
-//   try{ 
-//     $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));  
-//     return view('admin.master.MappingWardWithMultipleBooth.index',compact('States'));     
-//   } catch (Exception $e) {}
-// }
 
-// public function MappingWardWithMultipleBoothWardWiseBooth(Request $request)
-// {
-//   try{ 
-//     $booths = DB::select(DB::raw("Select `id`, concat(`booth_no`, `booth_no_c`,' - ', `name_e`) as `booth_name`, 0 as `status` From `polling_booths` Where `village_id` =$request->village_id and `id` not in (select `boothid` from `booth_ward_voter_mapping` where  `is_complete_booth` = 1) Union Select `id`, concat(`booth_no`, ' - ', `name_e`) as `booth_name`, 1 as `status` From `polling_booths` Where `village_id` = $request->village_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` =$request->ward_id and `is_complete_booth` = 1) Order by `booth_name`;"));   
-//     return view('admin.master.MappingWardWithMultipleBooth.select_box',compact('booths')); 
-//   } catch (Exception $e) {}     
-// }
 
-//   public function MappingWardWithMultipleBoothStore(Request $request)
-//   { 
-//     $rules=[
-//       'states' => 'required', 
-//       'district' => 'required', 
-//       'block' => 'required', 
-//       'village' => 'required', 
-//       'ward' => 'required', 
-//     ];
 
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }  
-//     try{ 
-//       if (!empty($request->booth)) {
-//         $booth_id=implode(',',$request->booth);  
-//       }elseif (empty($request->booth)) {
-//         $booth_id=0;  
-//       }
 
-//       $saveBooth = DB::select(DB::raw("call `up_map_ward_booths`('$request->ward','$booth_id')"));
 
-//       $response=['status'=>1,'msg'=>'Submit Successfully']; 
-//       return response()->json($response); 
-//     } catch (Exception $e) {}
-//   }    
 //   //--------mappingAcpartBoothWardwise---------
 //   public function mappingAcpartBoothWardwise()
 //   {

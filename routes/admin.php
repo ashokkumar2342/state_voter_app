@@ -258,9 +258,9 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 
 // 	    //mapping-ward-with-multiple-booth////
-// 	  	Route::get('MappingWardWithMultipleBooth', 'MasterController@MappingWardWithMultipleBooth')->name('admin.Master.MappingWardWithMultipleBooth');		//OK Done--------
-// 	  	Route::get('MappingWardWithMultipleBoothWardWiseBooth', 'MasterController@MappingWardWithMultipleBoothWardWiseBooth')->name('admin.Master.MappingWardWithMultipleBoothWardWiseBooth');	//OK--------
-// 	  	Route::post('MappingWardWithMultipleBoothStore', 'MasterController@MappingWardWithMultipleBoothStore')->name('admin.Master.MappingWardWithMultipleBoothStore');		//OK---------
+	  	Route::get('MappingWardWithMultipleBooth', 'MasterController@MappingWardWithMultipleBooth')->name('admin.Master.MappingWardWithMultipleBooth');		//OK Done--------
+	  	Route::get('MappingWardWithMultipleBoothWardWiseBooth', 'MasterController@MappingWardWithMultipleBoothWardWiseBooth')->name('admin.Master.MappingWardWithMultipleBoothWardWiseBooth');	//OK--------
+	  	Route::post('MappingWardWithMultipleBoothStore', 'MasterController@MappingWardWithMultipleBoothStore')->name('admin.Master.MappingWardWithMultipleBoothStore');		//OK---------
 
 // 	  	//mapping_acpart_booth_wardwise////
 // 	  	Route::get('mapping-acpart-booth-wardwise', 'MasterController@mappingAcpartBoothWardwise')->name('admin.Master.mapping.acpart.booth.wardwise');		//OK Done--------
@@ -378,7 +378,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //            Route::get('AssemblyWisePartNo', 'VoterDetailsController@AssemblyWisePartNo')->name('admin.voter.AssemblyWisePartNo');	//OK------------
            
 //            Route::get('VillageWiseWard', 'VoterDetailsController@VillageWiseWard')->name('admin.voter.VillageWiseWard');		//OK---------
-           Route::get('VillageWiseWardAll', 'VoterDetailsController@VillageWiseWardAll')->name('admin.voter.VillageWiseWardAll');		//OK---------
+           Route::get('VillageWiseWardAll', 'MasterController@VillageWiseWardAll')->name('admin.voter.VillageWiseWardAll');		//OK---------
 //            Route::get('VillageWiseAcParts', 'VoterDetailsController@VillageWiseAcParts')->name('admin.voter.VillageWiseAcParts');		//OK---------
 
 //            Route::get('VillageWiseVoterList', 'VoterDetailsController@VillageWiseVoterList')->name('admin.voter.VillageWiseVoterList');	//OK---------

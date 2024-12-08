@@ -28,21 +28,6 @@ class VoterDetailsController extends Controller
     }
   }
 
-  public function VillageWiseWardAll(Request $request)
-  {
-    try{
-      $r_id = 0;
-      if($request->id!='null'){
-        $r_id = intval(Crypt::decrypt($request->id));
-      }
-      $WardVillages = DB::select(DB::raw("SELECT * from `ward_villages` where `village_id` = $r_id order by `ward_no`;"));
-      return view('admin.voterDetails.select_ward_no',compact('WardVillages')); 
-    } catch (\Exception $e) {
-      $e_method = "VillageWiseWardAll";
-      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
-    }
-  }
-
   public function VillageWiseWardMultiple(Request $request)
   { 
     try{
