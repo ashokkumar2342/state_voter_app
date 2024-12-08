@@ -132,7 +132,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	 
 	 // 
 
-//     Route::group(['prefix' => 'Master'], function() {
+    Route::group(['prefix' => 'Master'], function() {
 //     	//-states-//
 // 	    Route::get('/', 'MasterController@index')->name('admin.Master.index');	//OK Done-------   
 // 	    Route::post('Store/{id?}', 'MasterController@store')->name('admin.Master.store');	
@@ -367,8 +367,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	    Route::get('voter-slip-notes-delete/{id}', 'MasterController@voterSlipNotesDelete')->name('admin.Master.voter.slip.notes.delete');
 // 	    Route::get('voter-slip-notes-edit/{id}', 'MasterController@voterSlipNotesEditForm')->name('admin.Master.voter.slip.notes.edit');
 	     
-// 	});
-//     Route::group(['prefix' => 'VoterDetails'], function() {
+	});
+    Route::group(['prefix' => 'VoterDetails'], function() {
 //            Route::get('/', 'VoterDetailsController@index')->name('admin.voter.details');	//OK---------
            
            Route::get('districtWiseAssembly', 'VoterDetailsController@districtWiseAssembly')->name('admin.voter.districtWiseAssembly');		//OK-------------
@@ -409,16 +409,16 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //     //-------prepare-voter-list--------------prepare-voter-list-----///
            
 //            Route::get('PrepareVoterListPanchayat', 'VoterDetailsController@PrepareVoterListPanchayat')->name('admin.voter.PrepareVoterListPanchayat');		//OK Done--------
-//            Route::get('VillageWiseWardMultiple', 'VoterDetailsController@VillageWiseWardMultiple')->name('admin.voter.VillageWiseWardMultiple');	//OK------------
+           Route::get('VillageWiseWardMultiple', 'VoterDetailsController@VillageWiseWardMultiple')->name('admin.voter.VillageWiseWardMultiple');	//OK------------
 
 //            // Route::post('PrepareVoterListGenerate', 'VoterDetailsController@PrepareVoterListGenerate')->name('admin.voter.PrepareVoterListGenerate');
 
-//            Route::post('PrepareVoterListGenerate', 'PrepareVoterListController@PrepareVoterListGenerate')->name('admin.voter.GenerateVoterListAll'); 	//OK--------
+           Route::post('PrepareVoterListGenerate', 'PrepareVoterListController@PrepareVoterListGenerate')->name('admin.voter.GenerateVoterListAll'); 	//OK--------
 //            Route::get('PrepareVoterListMunicipal', 'VoterDetailsController@PrepareVoterListMunicipal')->name('admin.voter.PrepareVoterListMunicipal');		//OK Done-----------
 
 //            Route::post('PrepareVoterListMunicipalGenerate', 'VoterDetailsController@PrepareVoterListMunicipalGenerate')->name('admin.voter.PrepareVoterListMunicipalGenerate');
 
-//            Route::get('PrepareVoterListBoothWise', 'VoterDetailsController@PrepareVoterListBoothWise')->name('admin.voter.PrepareVoterListBoothWise');		//OK Done-----------
+           Route::get('PrepareVoterListBoothWise', 'VoterDetailsController@PrepareVoterListBoothWise')->name('admin.voter.PrepareVoterListBoothWise');		//OK Done-----------
             
 //            Route::get('VoterListDownload', 'VoterDetailsController@VoterListDownload')->name('admin.voter.VoterListDownload');		//OK Done------------
 //            Route::get('BlockWiseDownloadTable', 'VoterDetailsController@BlockWiseDownloadTable')->name('admin.voter.BlockWiseDownloadTable');	//OK -------------
@@ -432,7 +432,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
            
            
             
-//     });
+    });
 // 	Route::group(['prefix' => 'BoothVoterList'], function() {
 //            Route::get('/', 'BoothVoterListController@index')->name('admin.booth.voter.list');	//OK---------
 //            Route::get('block-wise-booth-list', 'BoothVoterListController@blockWiseBoothList')->name('admin.booth.voter.list.block.wise.booth.list');	//OK------------
@@ -544,13 +544,13 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //                 Route::post('MysqlDataTransferStore', 'DatabaseConnectionController@MysqlDataTransferStore')->name('admin.database.conection.MysqlDataTransferStore');	//OK-------
                 
         });
-//     Route::group(['prefix' => 'UnlockVoterList'], function() {
+    Route::group(['prefix' => 'UnlockVoterList'], function() {
 //                Route::get('/', 'PrepareVoterListController@UnlockVoterList')->name('admin.UnlockVoterList.index');	//OK Done-----------------
-//                Route::post('unlock', 'PrepareVoterListController@unlockVoterListUnlock')->name('admin.UnlockVoterList.unlock');	//OK---------
+               Route::post('unlock', 'PrepareVoterListController@unlockVoterListUnlock')->name('admin.UnlockVoterList.unlock');	//OK---------
 //                Route::get('mc', 'PrepareVoterListController@UnlockVoterListMc')->name('admin.UnlockVoterList.mc');	//OK Done---------
-//                Route::get('booth', 'PrepareVoterListController@UnlockVoterListBooth')->name('admin.UnlockVoterList.booth');	//OK Done-----------
+               Route::get('booth', 'PrepareVoterListController@UnlockVoterListBooth')->name('admin.UnlockVoterList.booth');	//OK Done-----------
 
-//  	});
+ 	});
 //  	Route::group(['prefix' => 'check-photo-quality'], function() {
 //                Route::get('/', 'PrepareVoterListController@checkPhotoQuality')->name('admin.check.photo.quality');	//OK Done-----------------
 //                Route::post('store', 'PrepareVoterListController@checkPhotoQualityStore')->name('admin.check.photo.quality.store');	//OK Done-----------------
