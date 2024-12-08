@@ -2479,19 +2479,20 @@ class MasterController extends Controller
   //   } catch (Exception $e) {}
   // }
 
+  public function BlockWiseVoterListType(Request $request)
+  {
+    try{  
+      $b_id = 0;
+      if(!empty($request->id)){
+        $b_id = intval(Crypt::decrypt($request->id));
+      }
+      $VoterListType = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $b_id;"));  
+      return view('admin.voterlistmaster.value_select_box',compact('VoterListType'));
+    } catch (Exception $e) {}
+  }
 
-//   public function BlockWiseVoterListType(Request $request)
-//   {
-//     try{  
-//       $b_id = 0;
-//       if(!empty($request->id)){$b_id = $request->id;}
 
-//       $admin = Auth::guard('admin')->user(); 
-
-//       $VoterListType = DB::select(DB::raw("select * from `voter_list_master` where `block_id` = $b_id;"));  
-//       return view('admin.voterlistmaster.value_select_box',compact('VoterListType'));
-//     } catch (Exception $e) {}
-//   }  
+    
 
 // //     //------------block-mcs-type---------------------------//
 //   public function BlockMCSType()

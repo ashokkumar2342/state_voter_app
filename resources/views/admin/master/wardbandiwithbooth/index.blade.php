@@ -10,7 +10,7 @@
     </div>
     <div class="card card-info">
         <div class="card-body">
-            <form action="{{ route('admin.Master.WardBandiWithBoothStore') }}" method="post" class="add_form" @if ($refreshdata == 1)select-triger="assembly_part_select_box,booth_select_box"@endif no-reset="true">
+            <form action="{{ route('admin.Master.WardBandiWithBoothStore') }}" method="post" class="add_form" @if ($refreshdata == 1)select-triger="assembly_part_select_box,booth_select_box"@endif no-reset="true" reset-input-text="from_sr_no,to_sr_no">
             {{ csrf_field() }}
                 <div class="row">
                     <div class="col-lg-4 form-group">

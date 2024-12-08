@@ -335,9 +335,9 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	     	   
 // 	    //-----------------onchange-----------------------------//
 //	    Route::get('stateWiseDistrict', 'MasterController@stateWiseDistrict')->name('admin.Master.stateWiseDistrict');  	//OK----------- 
-	    Route::get('DistrictWiseBlock/{print_condition?}', 'MasterController@DistrictWiseBlock')->name('admin.Master.DistrictWiseBlock');	//OK--------------
-	    Route::get('BlockWiseVillage', 'MasterController@BlockWiseVillage')->name('admin.Master.BlockWiseVillage');		//OK-----------
-// 	    Route::get('BlockWiseVoterListType', 'MasterController@BlockWiseVoterListType')->name('admin.Master.BlockWiseVoterListType');		//OK-----------
+	    Route::get('DistrictWiseBlock/{print_condition?}', 'MasterController@DistrictWiseBlock')->name('admin.Master.DistrictWiseBlock');
+	    Route::get('BlockWiseVillage', 'MasterController@BlockWiseVillage')->name('admin.Master.BlockWiseVillage');	
+	    Route::get('BlockWiseVoterListType', 'MasterController@BlockWiseVoterListType')->name('admin.Master.BlockWiseVoterListType');
 
 
 
@@ -420,9 +420,9 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
            Route::get('PrepareVoterListBoothWise', 'VoterDetailsController@PrepareVoterListBoothWise')->name('admin.voter.PrepareVoterListBoothWise');		//OK Done-----------
             
-//            Route::get('VoterListDownload', 'VoterDetailsController@VoterListDownload')->name('admin.voter.VoterListDownload');		//OK Done------------
-//            Route::get('BlockWiseDownloadTable', 'VoterDetailsController@BlockWiseDownloadTable')->name('admin.voter.BlockWiseDownloadTable');	//OK -------------
-//            Route::get('VoterListDownloadPDF/{path}/{condition}', 'VoterDetailsController@VoterListDownloadPDF')->name('admin.voter.VoterListDownloadPDF');		//OK ------------
+           Route::get('VoterListDownload', 'VoterDetailsController@VoterListDownload')->name('admin.voter.VoterListDownload');
+           Route::get('BlockWiseDownloadTable', 'VoterDetailsController@BlockWiseDownloadTable')->name('admin.voter.BlockWiseDownloadTable');
+           Route::get('VoterListDownloadPDF/{path}/{condition}', 'VoterDetailsController@VoterListDownloadPDF')->name('admin.voter.VoterListDownloadPDF');
 //            Route::get('processing-status', 'VoterDetailsController@processingStatus')->name('admin.voter.processing.status');		//OK ------------
 
 

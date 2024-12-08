@@ -64,6 +64,51 @@ class VoterDetailsController extends Controller
     }
   }
 
+  public function VoterListDownload()
+  {
+    try{
+      $rs_district = SelectBox::get_district_access_list_v1();    
+      return view('admin.master.voterlistdownload.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "VoterListDownload";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function BlockWiseDownloadTable(Request $request)
+  {
+    try{
+      $block_id = intval(Crypt::decrypt($request->block_id));
+      $voter_list_master_id = intval(Crypt::decrypt($request->voter_list_master_id));
+      $voterlistprocesseds = DB::select(DB::raw("SELECT `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`,  `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `block_id` = $block_id and `voter_list_master_id` = $voter_list_master_id order by `vil`.`name_e`, `wv`.`ward_no`;"));
+      return view('admin.master.voterlistdownload.download_table',compact('voterlistprocesseds')); 
+    } catch (Exception $e) {
+      $e_method = "BlockWiseDownloadTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function VoterListDownloadPDF($id, $condition)
+  {  
+    try{
+      $rec_id = intval(Crypt::decrypt($id));
+      $voterlistprocesseds = DB::select(DB::raw("SELECT `folder_path`, `file_path_p`, `file_path_w`, `file_path_h` from `voter_list_processeds` where `id` = $rec_id limit 1;"));
+      if(count($voterlistprocesseds)==0){
+        return null;
+      }
+      $voterlistprocesseds = reset($voterlistprocesseds);
+
+      $documentUrl = Storage_path().$voterlistprocesseds->folder_path;
+      if($condition == 'p'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_p;} 
+      elseif($condition == 'w'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_w;} 
+      elseif($condition == 'h'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_h;} 
+      return response()->file($documentUrl);          
+    } catch (\Exception $e) {
+      $e_method = "VoterListDownloadPDF";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function exception_handler()
   {
     try {
@@ -115,13 +160,7 @@ class VoterDetailsController extends Controller
 
 
 // //-------------------VoterListDownload---------------------
-//   public function VoterListDownload($value='')
-//   {
-//     try{
-//       $States= DB::select(DB::raw("select * from `states` order by `name_e`;"));    
-//       return view('admin.master.voterlistdownload.index',compact('States'));
-//     } catch (Exception $e) {}
-//   }
+  
 
 //   public function NewVoterListDownload($value='')
 //   {
@@ -131,32 +170,9 @@ class VoterDetailsController extends Controller
 //     } catch (Exception $e) {}
 //   }
 
-//   public function BlockWiseDownloadTable(Request $request)
-//   { 
-//     try{
+ 
 
-//       $voterlistprocesseds = DB::select(DB::raw("select `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`,  `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `block_id` = $request->block_id and `voter_list_master_id` = $request->voter_list_master_id order by `vil`.`name_e`, `wv`.`ward_no`;"));
-
-//       return view('admin.master.voterlistdownload.download_table',compact('voterlistprocesseds')); 
-//     } catch (Exception $e) {}
-//   }
-
-//   public function VoterListDownloadPDF($id,$condition)
-//   {  
-//     try{
-//       $voterlistprocesseds = DB::select(DB::raw("select `folder_path`, `file_path_p`, `file_path_w`, `file_path_h` from `voter_list_processeds` where `id` = $id limit 1;"));
-//       if(count($voterlistprocesseds)==0){
-//         return null;
-//       }
-//       $voterlistprocesseds = reset($voterlistprocesseds);
-
-//       $documentUrl = Storage_path().$voterlistprocesseds->folder_path;
-//       if($condition == 'p'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_p;} 
-//       elseif($condition == 'w'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_w;} 
-//       elseif($condition == 'h'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_h;} 
-//       return response()->file($documentUrl);          
-//     } catch (Exception $e) {}
-//   }
+  
 
 //   public function processingStatus(Request $request)
 //   { 
