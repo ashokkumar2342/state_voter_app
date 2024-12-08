@@ -257,6 +257,16 @@ class MyFuncs {
     return $result;
   }
 
+  public static function isPermission_reports($role_id, $report_id)
+  { 
+    $rs_fetch = DB::select(DB::raw("SELECT * from `report_types` where `report_id` = $report_id and `report_for` = $role_id limit 1;"));
+    
+    if(count($rs_fetch)>0){
+      return true;  
+    }
+    return false;
+  }
+
   // ----------------------- End -------------------------
 
   // all permission check

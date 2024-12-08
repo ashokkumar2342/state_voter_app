@@ -31,7 +31,17 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	// Route::get('profile-photo', 'DashboardController@profilePhoto')->name('admin.profile.photo');
 	// Route::post('upload-photo', 'DashboardController@profilePhotoUpload')->name('admin.profile.photo.upload');
 	// Route::get('photo-refrash', 'DashboardController@profilePhotoRefrash')->name('admin.profile.photo.refrash');
-	//---------------account-----------------------------------------	
+	//---------------account-----------------------------------------
+
+	// 	  // ---------------Report----------------------------------------
+ 	Route::group(['prefix' => 'report'], function() {
+     	Route::get('mdi', 'ReportController@master_data_index')->name('admin.report.master_data_index');
+     	
+     	Route::get('report-formControls', 'ReportController@formControlShow')->name('admin.report.formControl.show');
+
+     	Route::post('show', 'ReportController@show')->name('admin.report.show');
+ 	});
+
 	Route::prefix('account')->group(function () {
 		//User List (1)
 		Route::get('list', 'AccountController@usr_lst_index')->name('admin.account.list');	//OK Done----
