@@ -19,6 +19,7 @@
             <div class="col-md-12"> 
               {{ Form::label('User','Users',['class'=>' control-label']) }}
               <select class="form-control select2"  duallistbox="true" data-table-all-record="class_section_list" name="user" id="user_id"  onchange="callAjax(this,'{{route('admin.account.DistrictBlockAssign')}}'+'?id='+this.value,'state_select_box')" required> 
+                <option selected disabled>Select User</option>
                 @foreach ($users as $val_rec)
                   <option value="{{ Crypt::encrypt($val_rec->opt_id) }}">{{ $val_rec->opt_text }}</option>
                 @endforeach  

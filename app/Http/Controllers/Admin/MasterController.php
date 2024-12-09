@@ -1359,7 +1359,7 @@ class MasterController extends Controller
       $rec_id = intval(Crypt::decrypt($id));
       $block_id = 0;
       $rs_fetch = DB::select(DB::raw("SELECT `block_id` from `voter_list_master` where `id` = $rec_id limit 1;"));
-      if(count($block_id) > 0){
+      if(count($rs_fetch) > 0){
         $block_id = $rs_fetch[0]->block_id;
       }
       $permission_flag = MyFuncs::check_block_access($block_id);
