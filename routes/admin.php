@@ -301,8 +301,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	    Route::get('change-voter-with-ward-table', 'MasterController@changeVoterWithWardTable')->name('admin.Master.change.voter.with.ward.table');	   //OK--------------
 // 	    Route::get('change-voter-village-wise-ward', 'MasterController@changeVotervillageWiseWard')->name('admin.Master.change.voter.village.wise.ward');	//OK------
 // 	    Route::post('change-voter-with-ward-store', 'MasterController@changeVoterWithWardStore')->name('admin.Master.change.voter.with.ward.store');	//OK--------
-// 	    Route::get('change-voter-with-ward-restore/{id}/{ward_id}', 'MasterController@changeVoterWithWardReStore')->name('admin.Master.change.voter.with.ward.restore');	//OK----------	    
-// 	    Route::get('change-voter-with-ward-report', 'MasterController@changeVoterWithWardReport')->name('admin.Master.change.voter.with.ward.report');		//OK------------
+	    Route::get('change-voter-with-ward-restore/{id}/{ward_id}', 'MasterController@changeVoterWithWardReStore')->name('admin.Master.change.voter.with.ward.restore');	//OK----------	    
+	    Route::get('change-voter-with-ward-report', 'MasterController@changeVoterWithWardReport')->name('admin.Master.change.voter.with.ward.report');		//OK------------
 // 	    Route::post('change-voter-with-ward-report-pdf', 'MasterController@changeVoterWithWardReportPdf')->name('admin.Master.change.voter.with.ward.report.pdf');	//OK----------
 
 
@@ -323,9 +323,9 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 // 	    Route::get('add-suppliment-voter-with-ward-booth-report', 'MasterController@addSupplimentVoterWithWardBoothReport')->name('admin.Master.add.voter.with.ward.booth.report');	//OK--------
              	
-// 	    Route::get('delete-suppliment-voter-ward-booth', 'MasterController@deleteSupplimentVoterWardBooth')->name('admin.Master.delete.voter.ward.booth');	//OK Done-----------------
-// 	    Route::get('showform-suppliment-voter-ward-booth', 'MasterController@showformSupplimentVoterWardBooth')->name('admin.Master.showform.voter.ward.booth');	//OK----------------
-// 	    Route::post('submit-suppliment-voter-ward-booth', 'MasterController@submitSupplimentVoterWardBooth')->name('admin.Master.submit.voter.ward.booth');		//OK----------
+	    Route::get('delete-suppliment-voter-ward-booth', 'MasterController@deleteSupplimentVoterWardBooth')->name('admin.Master.delete.voter.ward.booth');
+	    Route::get('showform-suppliment-voter-ward-booth', 'MasterController@showformSupplimentVoterWardBooth')->name('admin.Master.showform.voter.ward.booth');	//OK----------------
+	    Route::post('submit-suppliment-voter-ward-booth', 'MasterController@submitSupplimentVoterWardBooth')->name('admin.Master.submit.voter.ward.booth');		//OK----------
 
 // 	    Route::get('add-suppliment-ward-voter-booth', 'MasterController@addSupplimentVoterWardBooth')->name('admin.Master.add.voter.ward.booth');	//OK--------
 // 	    Route::get('add-suppliment-ward-voter-booth-showform', 'MasterController@showFormAddSupplimentVoterWardBooth')->name('admin.Master.add.voter.ward.booth.showform');		//OK---------
@@ -335,12 +335,12 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	    Route::get('change-voter-with-ward-sample', 'MasterController@changeVoterWithWardSample')->name('admin.Master.change.voter.with.ward.sample');
 // 	    Route::post('change-voter-with-ward-excel-store', 'MasterController@changeVoterWithWardExcelStore')->name('admin.Master.change.voter.with.ward.excel.store');
 
-// 	    Route::get('change-voter-ward-with-booth', 'MasterController@changeVoterWardWithBooth')->name('admin.Master.change.voter.ward.with.booth');		//OK Done-------   
-// 	    Route::get('change-voter-ward-with-booth-table', 'MasterController@changeVoterWardWithBoothTable')->name('admin.Master.change.voter.ward.with.booth.table'); 	//OK-------
-// 	    Route::get('change-voter-village-wise-ward-booth', 'MasterController@changeVotervillageWiseWardBooth')->name('admin.Master.change.voter.village.wise.ward.booth');	//OK-------------	    
-// 	    Route::post('change-voter-ward-with-booth-store', 'MasterController@changeVoterWardWithBoothStore')->name('admin.Master.change.voter.ward.with.booth.store');	//OK---------
-// 	    Route::get('change-voter-ward-with-booth-report', 'MasterController@changeVoterWardWithBoothReport')->name('admin.Master.change.voter.ward.with.booth.report');	 	//OK---------------
-// 	    Route::post('change-voter-ward-with-booth-report.pdf', 'MasterController@changeVoterWardWithBoothReportPdf')->name('admin.Master.change.voter.ward.with.booth.report.pdf');	 	//OK---------  	   
+	    Route::get('change-voter-ward-with-booth', 'MasterController@changeVoterWardWithBooth')->name('admin.Master.change.voter.ward.with.booth');
+	    Route::get('change-voter-village-wise-ward-booth', 'MasterController@changeVotervillageWiseWardBooth')->name('admin.Master.change.voter.village.wise.ward.booth');
+	    Route::get('change-voter-ward-with-booth-table', 'MasterController@changeVoterWardWithBoothTable')->name('admin.Master.change.voter.ward.with.booth.table');
+	    Route::post('change-voter-ward-with-booth-store', 'MasterController@changeVoterWardWithBoothStore')->name('admin.Master.change.voter.ward.with.booth.store');
+	    Route::get('change-voter-ward-with-booth-report', 'MasterController@changeVoterWardWithBoothReport')->name('admin.Master.change.voter.ward.with.booth.report');
+	    Route::post('change-voter-ward-with-booth-report.pdf', 'MasterController@changeVoterWardWithBoothReportPdf')->name('admin.Master.change.voter.ward.with.booth.report.pdf');
 	     
 	     	   
 // 	    //-----------------onchange-----------------------------//
@@ -687,7 +687,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 //  	});
 
-//  	Route::group(['prefix' => 'claim-obj-ac-part-srno'], function() {
+ 	Route::group(['prefix' => 'claim-obj-ac-part-srno'], function() {
 //                Route::get('change-ward', 'MasterController@claimObjAcPartSrnoChangeWard')->name('admin.claim.obj.ac.part.srno.changeWard');//OK
 //                Route::get('change-ward-form', 'MasterController@claimObjAcPartSrnoChangeWardForm')->name('admin.claim.obj.ac.part.srno.changeWardForm');//OK--------
 //                Route::get('change-ward-table', 'MasterController@claimObjAcPartSrnoChangeWardTable')->name('admin.claim.obj.ac.part.srno.changeWardTable');	//OK-----
@@ -705,25 +705,24 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
                
 
 // //-------------------Delete Voter Ac- Part No. Wise--------------------------------------------
-//                Route::get('delete-voter', 'MasterController@claimObjAcPartSrnoDeleteVoter')->name('admin.claim.obj.ac.part.srno.deleteVoter');//OK
-//                Route::get('delete-voter-form', 'MasterController@claimObjAcPartSrnoDeleteVoterForm')->name('admin.claim.obj.ac.part.srno.deleteVoterForm');//OK
-//                Route::get('delete-voter-table', 'MasterController@claimObjAcPartSrnoDeleteVoterFormTable')->name('admin.claim.obj.ac.part.srno.deleteVoterFormTable');	//OK-------
-//                Route::post('delete-voter-store', 'MasterController@claimObjAcPartSrnoDeleteVoterStore')->name('admin.claim.obj.ac.part.srno.deleteVoterStore');	//OK---------
+               Route::get('delete-voter', 'MasterController@claimObjAcPartSrnoDeleteVoter')->name('admin.claim.obj.ac.part.srno.deleteVoter');//OK
+               Route::get('delete-voter-form', 'MasterController@claimObjAcPartSrnoDeleteVoterForm')->name('admin.claim.obj.ac.part.srno.deleteVoterForm');
+               Route::get('delete-voter-table', 'MasterController@claimObjAcPartSrnoDeleteVoterFormTable')->name('admin.claim.obj.ac.part.srno.deleteVoterFormTable');
+               Route::post('delete-voter-store', 'MasterController@claimObjAcPartSrnoDeleteVoterStore')->name('admin.claim.obj.ac.part.srno.deleteVoterStore');	//OK---------
 
 
 	    
 
 // //-------------------change-booth--------------------------------------------
 
-//                Route::get('change-booth', 'MasterController@claimObjAcPartSrnoChangeBooth')->name('admin.claim.obj.ac.part.srno.changebooth');	//OK--------
-//                Route::get('change-booth-form', 'MasterController@claimObjAcPartSrnoChangeBoothForm')->name('admin.claim.obj.ac.part.srno.changeBoothForm');	//OK-------------
-//                Route::get('change-booth-table', 'MasterController@claimObjAcPartSrnoChangeBoothTable')->name('admin.claim.obj.ac.part.srno.changeBoothTable');	//OK-----------
-
-//                Route::post('change-booth-form-Store', 'MasterController@claimObjAcPartSrnoChangeBoothFormStore')->name('admin.claim.obj.ac.part.srno.changeBoothFormStore');
+               Route::get('change-booth', 'MasterController@claimObjAcPartSrnoChangeBooth')->name('admin.claim.obj.ac.part.srno.changebooth');
+               Route::get('change-booth-form', 'MasterController@claimObjAcPartSrnoChangeBoothForm')->name('admin.claim.obj.ac.part.srno.changeBoothForm');
+               Route::get('change-booth-table', 'MasterController@claimObjAcPartSrnoChangeBoothTable')->name('admin.claim.obj.ac.part.srno.changeBoothTable');
+               Route::post('change-booth-form-Store', 'MasterController@claimObjAcPartSrnoChangeBoothFormStore')->name('admin.claim.obj.ac.part.srno.changeBoothFormStore');
                
                
                
-//  	});
+ 	});
 
 //  	Route::group(['prefix' => 'vidhansabha'], function() {
 //  		Route::get('index', 'PrepareVidhansabhaListController@index')->name('admin.prepare.vidhansabha.List.index');

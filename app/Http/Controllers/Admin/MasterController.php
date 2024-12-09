@@ -2310,7 +2310,528 @@ class MasterController extends Controller
       $e_method = "MappingWardWithMultipleBoothStore";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
-  }      
+  }
+
+  public function changeVoterWardWithBooth()
+  {
+    try {
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.changeVoterWardWithBooth.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWardWithBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVotervillageWiseWardBooth(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->id));
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();  
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, '0')")); 
+      return view('admin.master.changeVoterWardWithBooth.ward_booth_select',compact('WardVillages', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "changeVotervillageWiseWardBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWardWithBoothTable(Request $request)
+  {
+    try{
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $ward_id = intval(Crypt::decrypt($request->from_ward_id));
+      $booth_id = intval(Crypt::decrypt($request->from_booth));
+      $results = DB::select(DB::raw("call `up_fetch_list_suppliment_deleted_voter_detail` (0, $ward_id, $booth_id);"));  
+      return view('admin.master.changeVoterWithWard.table',compact('results', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWardWithBoothTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWardWithBoothStore(Request $request)
+  {
+    try {
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'from_ward' => 'required', 
+        'from_booth' => 'required', 
+        'from_sr_no' => 'required',
+        'to_ward' => 'required', 
+        'to_booth' => 'required', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'from_ward.required'=> 'Please Select From Ward',
+        'from_booth.required'=> 'Please Select From Booth',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+        'to_ward.required'=> 'Please Select To Ward',
+        'to_booth.required'=> 'Please Select To Booth',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
+      $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
+      if($from_sn == 0 && $to_sn == 0){
+        $response=['status'=>0,'msg'=>'From Sr. No. and To Sr. No. Cannot Be Blank'];
+        return response()->json($response);  
+      }
+      if($from_sn == 0){
+        $from_sn = $to_sn;
+      }
+      if($to_sn == 0){
+        $to_sn = $from_sn;
+      }
+      $from_booth = intval(Crypt::decrypt($request->from_booth));
+      $to_booth = intval(Crypt::decrypt($request->to_booth));
+
+      if($from_booth == $to_booth){
+        $response=['status'=>0,'msg'=>'From Polling booth and To Polling Booth Cannot Be Same'];
+        return response()->json($response);  
+      }
+      $user_id = MyFuncs::getUserId();
+      $block_id = intval(Crypt::decrypt($request->block));
+      $village_id = intval(Crypt::decrypt($request->village));
+      $from_ward = intval(Crypt::decrypt($request->from_ward));
+      $to_ward = intval(Crypt::decrypt($request->to_ward));
+      
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards` ($user_id, $block_id, $village_id, $from_ward, $from_booth, $from_sn, $to_sn, $to_ward, $to_booth)"));
+      $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWardWithBoothStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWithWardReStore($id, $ward_id)
+  {
+    try{
+      $user_id = MyFuncs::getUserId();
+      $rec_id = intval(Crypt::decrypt($id));
+      $ward_id = intval(Crypt::decrypt($ward_id));
+      $rs_restore = DB::select(DB::raw("call `up_restore_ward_booth_change` ($user_id, '$id', $ward_id)"));
+      $rs_restore = reset($rs_restore);
+
+      $response=['status'=>$rs_restore->rstatus,'msg'=>$rs_restore->rremarks];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWithWardReStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWardWithBoothReport(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->village_id));
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);"));   
+      return view('admin.master.changeVoterWardWithBooth.report_popup',compact('WardVillages'));
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWardWithBoothReport";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWardWithBoothReportPdf(Request $request)
+  {
+    try {
+      if (empty($request->report_type)) {
+        $response=['status'=>0,'msg'=>'Plz Select Report Type'];
+        return response()->json($response);   
+      }
+      if (empty($request->ward)) {
+        $response=['status'=>0,'msg'=>'Plz Select Ward'];
+        return response()->json($response);   
+      }
+      if (empty($request->booth)) {
+        $response=['status'=>0,'msg'=>'Plz Select Polling Booth'];
+        return response()->json($response);   
+      }
+      $report_selected = intval(Crypt::decrypt($request->report_type));
+      $ward_id = intval(Crypt::decrypt($request->ward));
+      $booth_id = intval(Crypt::decrypt($request->booth));
+
+      $wardno_rs = DB::select(DB::raw("SELECT `wv`.`ward_no` from `ward_villages` `wv` where `wv`.`id` = $ward_id;"));
+      $wardno = $wardno_rs[0]->ward_no;
+
+      $booth_rs = DB::select(DB::raw("SELECT concat(`booth_no`, `booth_no_c`) as `booth` from `polling_booths` where `id` = $booth_id;"));
+      $polling_booth = $booth_rs[0]->booth;
+      
+      $report_heading = '';
+      if ($report_selected == 1) {
+        $results= DB::select(DB::raw("call `up_fetch_list_suppliment_deleted_voter_detail`(0, $ward_id, $booth_id);"));
+        $report_heading = 'Deleted (From Ward And Polling Booth) :: '.$wardno.' And '.$polling_booth;
+      }else{
+        $results= DB::select(DB::raw("call `up_fetch_list_suppliment_new_voter_detail`($ward_id, $booth_id);"));
+        $report_heading = 'Added (To Ward And Polling Booth) :: '.$wardno.' And '.$polling_booth;
+      }
+      $path=Storage_path('fonts/');
+      $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+      $fontDirs = $defaultConfig['fontDir']; 
+      $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+      $fontData = $defaultFontConfig['fontdata']; 
+      $mpdf = new \Mpdf\Mpdf([
+        'fontDir' => array_merge($fontDirs, [
+          __DIR__ . $path,
+        ]),
+        'fontdata' => $fontData + [
+          'frutiger' => [
+            'R' => 'FreeSans.ttf',
+            'I' => 'FreeSansOblique.ttf',
+          ]
+        ],
+        'default_font' => 'freesans',
+        'pagenumPrefix' => '',
+        'pagenumSuffix' => '',
+        'nbpgPrefix' => ' कुल ',
+        'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
+      ]); 
+      $showbooth_flag = 1;
+      $html = view('admin.master.changeVoterWithWard.pdf',compact('results', 'report_heading', 'showbooth_flag')); 
+      $mpdf->WriteHTML($html); 
+      $mpdf->Output();
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWardWithBoothReportPdf";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function deleteSupplimentVoterWardBooth()
+  {
+    try {
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.deleteVoterWithWardBooth.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "deleteSupplimentVoterWardBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function showformSupplimentVoterWardBooth(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->id));
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);")); 
+      return view('admin.master.deleteVoterWithWardBooth.ward_booth_select',compact('WardVillages', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "showformSupplimentVoterWardBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function submitSupplimentVoterWardBooth(Request $request)
+  {
+    try {
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'from_ward' => 'required', 
+        'from_booth' => 'required', 
+        'from_sr_no' => 'required',
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'from_ward.required'=> 'Please Select Ward',
+        'from_booth.required'=> 'Please Select Booth',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
+      $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
+      if($from_sn == 0 && $to_sn == 0){
+        $response=['status'=>0,'msg'=>'From Sr. No. and To Sr. No. Cannot Be Blank'];
+        return response()->json($response);  
+      }
+      if($from_sn == 0){
+        $from_sn = $to_sn;
+      }
+      if($to_sn == 0){
+        $to_sn = $from_sn;
+      }      
+      
+      $user_id = MyFuncs::getUserId();
+      $block_id = intval(Crypt::decrypt($request->block));
+      $village_id = intval(Crypt::decrypt($request->village));
+      $from_ward = intval(Crypt::decrypt($request->from_ward));
+      $from_booth = intval(Crypt::decrypt($request->from_booth));
+
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards` ($user_id, $block_id, $village_id, $from_ward, $from_booth, $from_sn, $to_sn, 0, 0)"));
+      $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
+      return response()->json($response);      
+    } catch (\Exception $e) {
+      $e_method = "submitSupplimentVoterWardBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }    
+  }
+
+  public function claimObjAcPartSrnoChangeBooth()
+  {
+    try {
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.claimObjAcPartSrno.changebooth.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoChangeBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartSrnoChangeBoothForm(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->id)); 
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);"));
+      $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+      $importTypes = DB::select(DB::raw("select * from `import_type`"));
+      return view('admin.master.claimObjAcPartSrno.changebooth.select_box_page',compact('WardVillages','assemblyParts','importTypes', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoChangeBoothForm";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartSrnoChangeBoothTable(Request $request)
+  {
+    try{
+      if($request->block_id == "null" || empty($request->block_id)){
+        $block_id = 0;
+      }else{
+        $block_id = intval(Crypt::decrypt($request->block_id));
+      }
+
+      if($request->part_id == "null" || empty($request->part_id)){
+        $part_id = 0;
+      }else{
+        $part_id = intval(Crypt::decrypt($request->part_id));
+      }
+
+      if($request->data_list_id == "null" || empty($request->data_list_id)){
+        $data_list_id = 0;
+      }else{
+        $data_list_id = intval(Crypt::decrypt($request->data_list_id));
+      }
+      
+      $results= DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
+      if(count($results) == 0){
+        $voter_list_id  = 0;
+      }else{
+        $voter_list_id  = $results[0]->id;
+      }    
+    
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $results= DB::select(DB::raw("SELECT `vt`.`id`, `vt`.`voter_card_no`, `vt`.`name_e`, `vt`.`father_name_e`, `vt`.`sr_no`, `vt`.`print_sr_no`, case `vt`.`status` when 2 then '' else concat(`vil`.`name_e`, ' - ', `wv`.`ward_no`, ' Booth :: ', `pb`.`booth_no`, ifnull(`pb`.`booth_no_c`, '')) end as `vil_ward`, case ifnull(`svd`.`ward_id`,0) when 0 then `vt`.`ward_id` else `svd`.`ward_id` end as `ward_id`, ifnull(concat(`fv`.`name_e`, ' - ', `fw`.`ward_no`, ' Booth :: ', `fpb`.`booth_no`, ifnull(`fpb`.`booth_no_c`, '')),'') as `from_vil_ward`, `vt`.`status` from `voters` `vt` left join `villages` `vil` on `vil`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vt`.`booth_id` left join `suppliment_voters_deleted` `svd` on `svd`.`voters_id` = `vt`.`id` and `svd`.`suppliment_no` = $voter_list_id left join `villages` `fv` on `fv`.`id` = `svd`.`village_id` left join `ward_villages` `fw` on `fw`.`id` = `svd`.`ward_id` left join `polling_booths` `fpb` on `fpb`.`id` = `svd`.`booth_id` where `vt`.`assembly_part_id` = $part_id and `vt`.`data_list_id` = $data_list_id and `vt`.`suppliment_no` = $voter_list_id order by `vt`.`sr_no`;"));  
+      $showbooth_flag = 0;
+      return view('admin.master.claimObjAcPartSrno.changeWard.table',compact('results', 'showbooth_flag', 'refreshdata'));
+    } catch (Exception $e) {
+      $e_method = "claimObjAcPartSrnoChangeBoothTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartSrnoChangeBoothFormStore(Request $request)
+  {
+    try {
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required',
+        'data_list' => 'required', 
+        'assembly_part' => 'required',  
+        'from_sr_no' => 'required',
+        'to_ward' => 'required', 
+        'to_booth' => 'required', 
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'data_list.required'=> 'Please Select Data List',
+        'assembly_part.required'=> 'Please Select Assembly Part',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+        'to_ward.required'=> 'Please Select Ward',
+        'to_booth.required'=> 'Please Select Booth',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
+      $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
+      if($from_sn == 0 && $to_sn == 0){
+        $response=['status'=>0,'msg'=>'From Sr. No. and To Sr. No. Cannot Be Blank'];
+        return response()->json($response);  
+      }
+      if($from_sn == 0){
+        $from_sn = $to_sn;
+      }
+      if($to_sn == 0){
+        $to_sn = $from_sn;
+      }
+      
+      $user_id = MyFuncs::getUserId();
+      $block_id = intval(Crypt::decrypt($request->block));
+      $village_id = intval(Crypt::decrypt($request->village));
+      $data_list = intval(Crypt::decrypt($request->data_list));
+      $assembly_part = intval(Crypt::decrypt($request->assembly_part));
+      $to_ward = intval(Crypt::decrypt($request->to_ward));
+      $to_booth = intval(Crypt::decrypt($request->to_booth));
+
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $block_id, $village_id, $assembly_part, $data_list, $from_sn, $to_sn, $to_ward, $to_booth)"));
+      $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoChangeBoothFormStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }    
+  }
+
+  public function claimObjAcPartSrnoDeleteVoter()
+  {
+    try {
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.claimObjAcPartSrno.deleteVoter.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoDeleteVoter";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartSrnoDeleteVoterForm(Request $request)
+  {
+    try {
+      $village_id = intval(Crypt::decrypt($request->id));
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+      $importTypes = DB::select(DB::raw("select * from `import_type`"));
+      return view('admin.master.claimObjAcPartSrno.deleteVoter.form',compact('assemblyParts', 'importTypes', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoDeleteVoterForm";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartSrnoDeleteVoterFormTable(Request $request)
+  {
+    try{
+      if($request->block_id == "null" || empty($request->block_id)){
+        $block_id = 0;
+      }else{
+        $block_id = intval(Crypt::decrypt($request->block_id));
+      }
+
+      if($request->part_id == "null" || empty($request->part_id)){
+        $part_id = 0;
+      }else{
+        $part_id = intval(Crypt::decrypt($request->part_id));
+      }
+
+      if($request->data_list_id == "null" || empty($request->data_list_id)){
+        $data_list_id = 0;
+      }else{
+        $data_list_id = intval(Crypt::decrypt($request->data_list_id));
+      }
+      
+      $results = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
+      if(count($results) == 0){
+        $voter_list_id  = 0;
+      }else{
+        $voter_list_id  = $results[0]->id;
+      }    
+    
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $results= DB::select(DB::raw("SELECT `vt`.`id`, `vt`.`voter_card_no`, `vt`.`name_e`, `vt`.`father_name_e`, `vt`.`sr_no`, `vt`.`print_sr_no`, ifnull(concat(`vil`.`name_e`, ' - ', `wv`.`ward_no`), '') as `vil_ward`, case ifnull(`svd`.`ward_id`,0) when 0 then `vt`.`ward_id` else `svd`.`ward_id` end as `ward_id`, ifnull(concat(`fv`.`name_e`, ' - ', `fw`.`ward_no`),'') as `from_vil_ward`, `vt`.`status` from `voters` `vt` left join `villages` `vil` on `vil`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `suppliment_voters_deleted` `svd` on `svd`.`voters_id` = `vt`.`id` and `svd`.`suppliment_no` = $voter_list_id left join `villages` `fv` on `fv`.`id` = `svd`.`village_id` left join `ward_villages` `fw` on `fw`.`id` = `svd`.`ward_id` where `vt`.`assembly_part_id` = $part_id and `vt`.`data_list_id` = $data_list_id and `vt`.`suppliment_no` = $voter_list_id order by `vt`.`sr_no`;"));  
+      return view('admin.master.claimObjAcPartSrno.deleteVoter.table',compact('results', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoDeleteVoterFormTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }    
+  }
+
+  public function claimObjAcPartSrnoDeleteVoterStore(Request $request)
+  {
+    try {
+      $rules=[
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required',
+        'data_list' => 'required', 
+        'assembly_part' => 'required',  
+        'from_sr_no' => 'required',
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'data_list.required'=> 'Please Select Data List',
+        'assembly_part.required'=> 'Please Select Assembly Part',
+        'from_sr_no.required'=> 'Please Enter From Sr. No.',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
+      $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
+      if($from_sn == 0 && $to_sn == 0){
+        $response=['status'=>0,'msg'=>'From Sr. No. and To Sr. No. Cannot Be Blank'];
+        return response()->json($response);  
+      }
+      if($from_sn == 0){
+        $from_sn = $to_sn;
+      }
+      if($to_sn == 0){
+        $to_sn = $from_sn;
+      }
+      
+      $user_id = MyFuncs::getUserId();
+      $block_id = intval(Crypt::decrypt($request->block));
+      $village_id = intval(Crypt::decrypt($request->village));
+      $data_list = intval(Crypt::decrypt($request->data_list));
+      $assembly_part = intval(Crypt::decrypt($request->assembly_part));
+
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $block_id, $village_id, $assembly_part, $data_list, $from_sn, $to_sn, 0, 0)"));
+      $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartSrnoDeleteVoterStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
 
   public function exception_handler()
   {
@@ -2407,18 +2928,6 @@ class MasterController extends Controller
       $e_method = "DistrictWiseBlock";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
-    // try{
-      
-    //   // if ($block_mc_condition == 0) {
-    //   //   $rs_records = SelectBox::get_block_access_list_v1($d_id, 0);
-    //   // }else {
-    //   //   $rs_records = SelectBox::get_block_access_list_v1($d_id, 0);
-    //   //   $rs_records = DB::select(DB::raw("call `up_fetch_block_access_voterlistprint` ($user_id, $d_id, '$print_condition');")); 
-    //   // } 
-
-      
-    //   // return view('admin.master.block.value_select_box',compact('BlocksMcs'));
-    // } catch (Exception $e) {}
   }
 
   public function BlockWiseVillage(Request $request)
@@ -3172,19 +3681,7 @@ class MasterController extends Controller
 //     }
 //   }
 
-//   public function changeVoterWithWardReStore($id, $ward_id)
-//   {
-//     try{
-//       $admin = Auth::guard('admin')->user();
-//       $userid = $admin->id;
-      
-//       $rs_restore = DB::select(DB::raw("call `up_restore_ward_booth_change` ($userid, '$id', $ward_id)"));
-//       $rs_restore = reset($rs_restore);
-
-//       $response=['status'=>$rs_restore->rstatus,'msg'=>$rs_restore->rremarks];
-//       return response()->json($response);
-//     } catch (Exception $e) {}
-//   }
+  
 
 
 //   public function changeVoterWithWardReport(Request $request)
@@ -3303,160 +3800,17 @@ class MasterController extends Controller
 //     return response()->json($response);
 //   }
 
-//   public function changeVoterWardWithBooth($value='')
-//   {
-//     try {
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.changeVoterWardWithBooth.index',compact('States', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function changeVoterWardWithBoothStore(Request $request)
-//   {
-//     $rules=[ 
+  
 
-//       'states' => 'required',  
-//       'district' => 'required',  
-//       'block' => 'required',  
-//       'village' => 'required',  
-//       'from_ward' => 'required',  
-//       'from_booth' => 'required',  
-//       'from_sr_no' => 'required',  
-//       'to_ward' => 'required',  
-//       'to_booth' => 'required',  
-           
-//     ];
+  
 
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
+  
 
-//     $from_sn = trim($request->from_sr_no);
-//     $to_sn = trim($request->to_sr_no);
-//     if($from_sn == '' && $to_sn == ''){
-//       $response=['status'=>0,'msg'=>'From Sr. No. and To Sr. No. Cannot Be Blank'];
-//       return response()->json($response);  
-//     }
-//     if($from_sn == ''){
-//       $from_sn = $to_sn;
-//     }
-//     if($to_sn == ''){
-//       $to_sn = $from_sn;
-//     }
-//     if($request->from_booth == $request->to_booth){
-//       $response=['status'=>0,'msg'=>'From Polling booth and To Polling Booth Cannot Be Same'];
-//       return response()->json($response);  
-//     }
-    
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;
-//     $block_id = $request->block;
-//     $village_id = $request->village;
-    
-//     $rs_update = DB::select(DB::raw("call `up_change_voters_wards` ($userid, $block_id, $village_id, $request->from_ward, $request->from_booth, $from_sn, $to_sn, $request->to_ward, $request->to_booth)"));
-//     $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
-//     return response()->json($response);
-//   }
+  
 
-//   public function changeVotervillageWiseWardBooth(Request $request)
-//   {
-//     try{
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();  
-//       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ('$request->id','0')")); 
-//       return view('admin.master.changeVoterWardWithBooth.ward_booth_select',compact('WardVillages', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function changeVoterWardWithBoothTable(Request $request)
-//   {
-//     try{
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $ward_id = $request->from_ward_id;
-//       $booth_id = $request->from_booth;
-//       $results= DB::select(DB::raw("call `up_fetch_list_suppliment_deleted_voter_detail` (0, $ward_id, $booth_id);"));  
-//       return view('admin.master.changeVoterWithWard.table',compact('results', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function changeVoterWardWithBoothReport(Request $request)
-//   {
-//     try{  
-//       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ('$request->village_id','0')"));   
-//       return view('admin.master.changeVoterWardWithBooth.report_popup',compact('WardVillages'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function changeVoterWardWithBoothReportPdf(Request $request)
-//   {
-
-//     $report_selected = $request->report_type;
-//     $ward_id = $request->ward;
-//     $booth_id = $request->booth;
-
-//     if ($report_selected == 0) {
-//       $response=['status'=>0,'msg'=>'Plz Select Report Type'];
-//       return response()->json($response);   
-//     }
-//     if ($ward_id == 0) {
-//       $response=['status'=>0,'msg'=>'Plz Select Ward'];
-//       return response()->json($response);   
-//     }
-//     if ($booth_id == 0) {
-//       $response=['status'=>0,'msg'=>'Plz Select Polling Booth'];
-//       return response()->json($response);   
-//     }
-
-//     $wardno_rs = DB::select(DB::raw("select `wv`.`ward_no` from `ward_villages` `wv` where `wv`.`id` = $request->ward;"));
-//     $wardno = $wardno_rs[0]->ward_no;
-
-//     $booth_rs = DB::select(DB::raw("select concat(`booth_no`, `booth_no_c`) as `booth` from `polling_booths` where `id` = $booth_id;"));
-//     $polling_booth = $booth_rs[0]->booth;
-    
-
-    
-//     $report_heading = '';
-//     if ($report_selected == 1) {
-//       $results= DB::select(DB::raw("call `up_fetch_list_suppliment_deleted_voter_detail`(0, $ward_id, $booth_id);"));
-//       $report_heading = 'Deleted (From Ward And Polling Booth) :: '.$wardno.' And '.$polling_booth;
-//     }else{
-//       $results= DB::select(DB::raw("call `up_fetch_list_suppliment_new_voter_detail`($ward_id, $booth_id);"));
-//       $report_heading = 'Added (To Ward And Polling Booth) :: '.$wardno.' And '.$polling_booth;
-//     }
-    
-
-//     $path=Storage_path('fonts/');
-//     $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
-//     $fontDirs = $defaultConfig['fontDir']; 
-//     $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
-//     $fontData = $defaultFontConfig['fontdata']; 
-//     $mpdf = new \Mpdf\Mpdf([
-//     'fontDir' => array_merge($fontDirs, [
-//     __DIR__ . $path,
-//     ]),
-//     'fontdata' => $fontData + [
-//     'frutiger' => [
-//     'R' => 'FreeSans.ttf',
-//     'I' => 'FreeSansOblique.ttf',
-//     ]
-//     ],
-//     'default_font' => 'freesans',
-//     'pagenumPrefix' => '',
-//     'pagenumSuffix' => '',
-//     'nbpgPrefix' => ' कुल ',
-//     'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
-//     ]); 
-//     $showbooth_flag = 1;
-//     $html = view('admin.master.changeVoterWithWard.pdf',compact('results', 'report_heading', 'showbooth_flag')); 
-//     $mpdf->WriteHTML($html); 
-//     $mpdf->Output();
-
-//   }
+  
 
 
 //   public function deleteSupplimentVoterWard()
@@ -3710,72 +4064,6 @@ class MasterController extends Controller
 // //   $mpdf->Output();
 
 // // }
-
-//   public function deleteSupplimentVoterWardBooth()
-//   {
-//     try {
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.deleteVoterWithWardBooth.index',compact('States', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function showformSupplimentVoterWardBooth(Request $request)
-//   {
-//     try{  
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ('$request->id','0')")); 
-//       return view('admin.master.deleteVoterWithWardBooth.ward_booth_select',compact('WardVillages', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-
-//   public function submitSupplimentVoterWardBooth(Request $request)
-//   { 
-    
-//     $rules=[ 
-
-//       'states' => 'required',  
-//       'district' => 'required',  
-//       'block' => 'required',  
-//       'village' => 'required',  
-//       'from_ward' => 'required',  
-//       'from_booth' => 'required',     
-//       'from_sr_no' => 'required',     
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
-//     $from_sn = trim($request->from_sr_no);
-//     $to_sn = trim($request->to_sr_no);
-//     if($from_sn == '' && $to_sn == ''){
-//       $response=['status'=>0,'msg'=>'From Sr. No. and To. Sr. No. Cannot Be Blank'];
-//       return response()->json($response);  
-//     }
-//     if($from_sn == ''){
-//       $from_sn = $to_sn;
-//     }
-//     if($to_sn == ''){
-//       $to_sn = $from_sn;
-//     }
-
-//     $from_booth = $request->from_booth;
-
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;
-//     $block_id = $request->block;
-//     $village_id = $request->village;
-    
-//     $rs_update = DB::select(DB::raw("call `up_change_voters_wards` ($userid, $block_id, $village_id, $request->from_ward, $from_booth, $from_sn, $to_sn, 0, 0)"));
-//     $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
-//     return response()->json($response);
-//   }
 
 
 //   //-----------Colony Detail Ward--------------
@@ -5073,203 +5361,22 @@ class MasterController extends Controller
 //   }
 
 // //   //-------------delete-voter-------------------
-//   public function claimObjAcPartSrnoDeleteVoter($value='')
-//   {
-//     try {
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.claimObjAcPartSrno.deleteVoter.index',compact('States', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function claimObjAcPartSrnoDeleteVoterForm(Request $request)
-//   {
-//     try {
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $assemblyParts = DB::select(DB::raw("  select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-//       $importTypes = DB::select(DB::raw("select * from `import_type`"));
-//       return view('admin.master.claimObjAcPartSrno.deleteVoter.form',compact('assemblyParts', 'importTypes', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function claimObjAcPartSrnoDeleteVoterFormTable(Request $request)
-//   { 
-//     $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//     $block_id = $request->block_id;
-//     $part_id = $request->part_id;
-//     $data_list_id = $request->data_list_id;
-//     if($part_id == "null"){
-//       $part_id = 0;
-//     }
-//     if($data_list_id == "null"){
-//       $data_list_id = 0;
-//     }
-//     if($block_id == "null"){
-//       $block_id = 0;
-//     }
-//     $results= DB::select(DB::raw("select * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
-//     if(count($results) == 0){
-//       $voter_list_id  = 0;
-//     }else{
-//       $voter_list_id  = $results[0]->id;
-//     }
-    
-//     try{
-      
-//       $results= DB::select(DB::raw("select `vt`.`id`, `vt`.`voter_card_no`, `vt`.`name_e`, `vt`.`father_name_e`, `vt`.`sr_no`, `vt`.`print_sr_no`, ifnull(concat(`vil`.`name_e`, ' - ', `wv`.`ward_no`), '') as `vil_ward`, case ifnull(`svd`.`ward_id`,0) when 0 then `vt`.`ward_id` else `svd`.`ward_id` end as `ward_id`, ifnull(concat(`fv`.`name_e`, ' - ', `fw`.`ward_no`),'') as `from_vil_ward`, `vt`.`status` from `voters` `vt` left join `villages` `vil` on `vil`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `suppliment_voters_deleted` `svd` on `svd`.`voters_id` = `vt`.`id` and `svd`.`suppliment_no` = $voter_list_id left join `villages` `fv` on `fv`.`id` = `svd`.`village_id` left join `ward_villages` `fw` on `fw`.`id` = `svd`.`ward_id` where `vt`.`assembly_part_id` = $part_id and `vt`.`data_list_id` = $data_list_id and `vt`.`suppliment_no` = $voter_list_id order by `vt`.`sr_no`;"));  
-//       return view('admin.master.claimObjAcPartSrno.deleteVoter.table',compact('results', 'refreshdata'));
-//     } catch (Exception $e) {}
-    
-//   }
+  
 
-//   public function claimObjAcPartSrnoDeleteVoterStore(Request $request)
-//   {
-
-//     $rules=[ 
-
-//       'states' => 'required',  
-//       'district' => 'required',  
-//       'block' => 'required',  
-//       'village' => 'required',  
-//       'assembly_part' => 'required',  
-//       'data_list' => 'required',  
-//       'from_sr_no' => 'required'       
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
-//     $from_sn = trim($request->from_sr_no);
-//     $to_sn = trim($request->to_sr_no);
-//     if($from_sn == '' && $to_sn == ''){
-//       $response=['status'=>0,'msg'=>'From Sr. No. and To. Sr. No. Cannot Be Blank'];
-//       return response()->json($response);  
-//     }
-//     if($from_sn == ''){
-//       $from_sn = $to_sn;
-//     }
-//     if($to_sn == ''){
-//       $to_sn = $from_sn;
-//     }
-    
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;
-//     $block_id = $request->block;
-//     $village_id = $request->village;
-//     $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($userid, $block_id, $village_id, $request->assembly_part, $request->data_list, $from_sn, $to_sn, 0, 0)"));
-//     $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
-//     return response()->json($response);
-//   }
+  
 
 // //   //-------------change-booth-------------------
-//   public function claimObjAcPartSrnoChangeBooth()
-//   {
-//     try {
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.claimObjAcPartSrno.changebooth.index',compact('States', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function claimObjAcPartSrnoChangeBoothForm(Request $request)
-//   {
-//     try{  
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ('$request->id','0')"));
-//       $assemblyParts = DB::select(DB::raw("  select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-//       $importTypes = DB::select(DB::raw("select * from `import_type`"));
-//       return view('admin.master.claimObjAcPartSrno.changebooth.select_box_page',compact('WardVillages','assemblyParts','importTypes', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function claimObjAcPartSrnoChangeBoothTable(Request $request)
-//   {
-//     $block_id = $request->block_id;
-//     $part_id = $request->part_id;
-//     $data_list_id = $request->data_list_id;
-//     if($part_id == "null"){
-//       $part_id = 0;
-//     }
-//     if($data_list_id == "null"){
-//       $data_list_id = 0;
-//     }
-//     if($block_id == "null"){
-//       $block_id = 0;
-//     }
-//     $results= DB::select(DB::raw("select * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
-//     if(count($results) == 0){
-//       $voter_list_id  = 0;
-//     }else{
-//       $voter_list_id  = $results[0]->id;
-//     }
-    
-//     try{
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $results= DB::select(DB::raw("select `vt`.`id`, `vt`.`voter_card_no`, `vt`.`name_e`, `vt`.`father_name_e`, `vt`.`sr_no`, `vt`.`print_sr_no`, case `vt`.`status` when 2 then '' else concat(`vil`.`name_e`, ' - ', `wv`.`ward_no`, ' Booth :: ', `pb`.`booth_no`, ifnull(`pb`.`booth_no_c`, '')) end as `vil_ward`, case ifnull(`svd`.`ward_id`,0) when 0 then `vt`.`ward_id` else `svd`.`ward_id` end as `ward_id`, ifnull(concat(`fv`.`name_e`, ' - ', `fw`.`ward_no`, ' Booth :: ', `fpb`.`booth_no`, ifnull(`fpb`.`booth_no_c`, '')),'') as `from_vil_ward`, `vt`.`status` from `voters` `vt` left join `villages` `vil` on `vil`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vt`.`booth_id` left join `suppliment_voters_deleted` `svd` on `svd`.`voters_id` = `vt`.`id` and `svd`.`suppliment_no` = $voter_list_id left join `villages` `fv` on `fv`.`id` = `svd`.`village_id` left join `ward_villages` `fw` on `fw`.`id` = `svd`.`ward_id` left join `polling_booths` `fpb` on `fpb`.`id` = `svd`.`booth_id` where `vt`.`assembly_part_id` = $part_id and `vt`.`data_list_id` = $data_list_id and `vt`.`suppliment_no` = $voter_list_id order by `vt`.`sr_no`;"));  
-//       $showbooth_flag = 0;
-//       return view('admin.master.claimObjAcPartSrno.changeWard.table',compact('results', 'showbooth_flag', 'refreshdata'));
-//     } catch (Exception $e) {}
+  
 
-//   }
-
-//   public function claimObjAcPartSrnoChangeBoothFormStore(Request $request)
-//   {
-//     $rules=[ 
-
-//       'states' => 'required',  
-//       'district' => 'required',  
-//       'block' => 'required',  
-//       'village' => 'required',
-//       'assembly_part' => 'required',  
-//       'data_list' => 'required',  
-//       'from_sr_no' => 'required',  
-//       'to_ward' => 'required',  
-//       'to_booth' => 'required',  
-           
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
-
-//     $from_sn = trim($request->from_sr_no);
-//     $to_sn = trim($request->to_sr_no);
-//     if($from_sn == '' && $to_sn == ''){
-//       $response=['status'=>0,'msg'=>'From Sr. No. and To Sr. No. Cannot Be Blank'];
-//       return response()->json($response);  
-//     }
-//     if($from_sn == ''){
-//       $from_sn = $to_sn;
-//     }
-//     if($to_sn == ''){
-//       $to_sn = $from_sn;
-//     }
-//     if(empty($request->to_booth)){
-//       $to_booth = 0;
-//       $response=['status'=>0,'msg'=>'Plz Select Booth No.'];
-//       return response()->json($response);
-//     }else{
-//       $to_booth = $request->to_booth;
-//     }
-    
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;
-//     $block_id = $request->block;
-//     $village_id = $request->village;
-//     $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($userid, $block_id, $village_id, $request->assembly_part, $request->data_list, $from_sn, $to_sn, $request->to_ward, $to_booth)"));
-//     $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
-//     return response()->json($response);
-//   }
+  
 
 
 //   public function reportClaimObjWardACPart(Request $request)
