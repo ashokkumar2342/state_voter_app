@@ -4,7 +4,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h3>Panchayat / MC's</h3>
+                <h3>Voter List Master</h3>
             </div>
         </div> 
     </div>

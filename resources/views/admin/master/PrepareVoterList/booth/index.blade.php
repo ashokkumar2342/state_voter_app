@@ -27,17 +27,17 @@
                             </select>
                         </div>
                         <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">MC's</label>
+                            <label for="exampleInputEmail1">Block/MC's</label>
                             <span class="fa fa-asterisk"></span>
                             <select name="block" class="form-control select2" id="block_select_box" onchange="callAjax(this,'{{ route('admin.Master.BlockWiseVillage') }}'+'?id='+this.value+'&district_id='+$('#district_select_box').val(),'village_select_box')">
-                                <option selected disabled>Select MC's</option> 
+                                <option selected disabled>Select Block/MC's</option> 
                             </select>
                         </div>
                         <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">MC's</label>
+                            <label for="exampleInputEmail1">Panchayat/MC's</label>
                             <span class="fa fa-asterisk"></span>
                             <select name="village" class="form-control select2" id="village_select_box" onchange="callAjax(this,'{{ route('admin.voter.VillageWiseWardMultiple') }}','value_div_id')">
-                                <option selected disabled>Select MC's</option>
+                                <option selected disabled>Select Panchayat/MC's</option>
                             </select>
                         </div>
                         <div class="col-lg-3 form-group"> 

@@ -612,7 +612,7 @@ class MasterController extends Controller
       }
 
       $Village_Name = DB::select(DB::raw("SELECT `name_e` from villages where `id` = $village_id limit 1;")); 
-      return view('admin.master.village.add_ward',compact('Village_Name'));
+      return view('admin.master.village.add_ward',compact('Village_Name', 'village_id'));
     } catch (\Exception $e) {
       $e_method = "villageWardAdd";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
