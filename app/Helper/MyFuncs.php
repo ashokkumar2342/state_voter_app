@@ -344,7 +344,7 @@ class MyFuncs {
       
       // \Artisan::call('voterlist:generate');
 
-      \Artisan::queue('voterlist:generate');
+      // \Artisan::queue('voterlist:generate');
     }
   }
 
