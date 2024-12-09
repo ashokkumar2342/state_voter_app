@@ -37,6 +37,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
  	Route::group(['prefix' => 'report'], function() {
      	Route::get('mdi', 'ReportController@master_data_index')->name('admin.report.master_data_index');
      	
+     	Route::get('misc_rep', 'ReportController@misc_rep_index')->name('admin.report.misc_rep_index');
+     	
      	Route::get('report-formControls', 'ReportController@formControlShow')->name('admin.report.formControl.show');
 
      	Route::post('show', 'ReportController@show')->name('admin.report.show');

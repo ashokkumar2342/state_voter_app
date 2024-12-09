@@ -42,6 +42,24 @@ class ReportController extends Controller
         }
     }
 
+    public function misc_rep_index()
+    {
+        try {
+            $permission_flag = MyFuncs::isPermission_route("101");
+            if(!$permission_flag){
+                return view('admin.common.error');
+            }
+            $role_id = MyFuncs::getUserRoleId();
+            $report_type_id = 2;
+            
+            $reportTypes = DB::select(DB::raw("SELECT * from `report_types` where `report_for` = $role_id and `report_type_id` = $report_type_id order by `id`; "));
+            return view('admin.report.master_data.master_index',compact('reportTypes'));       
+        } catch (\Exception $e) {
+            $e_method = "misc_rep_index";
+            return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+        }
+    }
+
     // public function student_info_index()
     // {
     //     try {
@@ -145,10 +163,10 @@ class ReportController extends Controller
             if($report_id == 1){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_1',compact('rs_district'));
-            }elseif($report_id == 2){
+            }elseif($report_id == 21){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
-            }elseif($report_id == 3){
+            }elseif($report_id == 22){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
             }elseif($report_id == 4){
@@ -228,7 +246,7 @@ class ReportController extends Controller
                 );
 
                 $rs_result=DB::select(DB::raw("SELECT `ap`.`part_no`, `vtd`.`first`, `vtd`.`last`, `vtd`.`total_voters` from `assembly_parts` `ap` inner join (select `vt`.`assembly_part_id`, count(*) as `total_voters`, min(`vt`.`sr_no`) as `first`, max(`vt`.`sr_no`) as `last` from `voters` `vt` where `vt`.`district_id` = $d_id and `vt`.`assembly_id` = $ac_id group by `vt`.`assembly_part_id`) `vtd` on `vtd`.`assembly_part_id` = `ap`.`id` where `ap`.`assembly_id` = $ac_id order by `ap`.`part_no`;"));
-            }elseif($report_type == 2){
+            }elseif($report_type == 21){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
                 }else{
@@ -262,31 +280,54 @@ class ReportController extends Controller
                     $vil_id = 0;
                 }                
 
-                $result_type = 2;
-                $show_total_row = 0;
-                $tcols = 6;
-                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Block Name',25, 'block_name', 0, '', 'left'),
-                    array('Village Name',25, 'name_e', 0, '', 'left'),
-                    array('Male',25, 'tmale', 0, '', 'left'),
-                    array('Female',25, 'tfemale', 0, '', 'left'),
-                    array('Other',25, 'third', 0, '', 'left'),
-                    array('Total',25, 'tvote', 0, '', 'left'),
-                );
+                
                 $condition = "";
-                if($d_id > 0){
-                    $condition = " Where `v`.`districts_id` = $d_id ";
-                }elseif($b_id > 0){
-                    $condition = " where `v`.`blocks_id` = $b_id ";
-                }elseif($vil_id > 0){
+                if($role_id == 4){
                     $condition = " where `v`.`id` = $vil_id ";
+                }elseif($role_id == 3){
+                    $condition = " where `v`.`blocks_id` = $b_id ";
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }elseif($role_id == 2){
+                    $condition = " Where `v`.`districts_id` = $d_id ";
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }else{
+                    if($d_id > 0){
+                        $condition = " Where `v`.`districts_id` = $d_id ";    
+                    }
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }   
                 }
 
-                $query = "SELECT `b`.`name_e` as `block_name`, `v`.`name_e`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 1 and `village_id` = `v`.`id`) as `tmale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 2 and `village_id` = `v`.`id`) as `tfemale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 3 and `village_id` = `v`.`id`) as `third`, (Select Count(`id`) from `voters` where `status` <> 2 and `village_id` = `v`.`id`) as `tvote` from  `villages` `v` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` $condition Order By `v`.`districts_id`, `b`.`name_e`, `v`.`name_e`;";
+                
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 7;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('District', 20, 'd_name', 0, '', 'left'),
+                    array('Block/MC', 20, 'b_name', 0, '', 'left'),
+                    array('Panchayat/MC', 20, 'v_name', 0, '', 'left'),
+                    array('Male', 10, 'tmale', 0, '', 'left'),
+                    array('Female', 10, 'tfemale', 0, '', 'left'),
+                    array('Other', 10, 'third', 0, '', 'left'),
+                    array('Total', 10, 'tvote', 0, '', 'left'),
+                );
+                
+                $query = "SELECT `s_v`.`d_name`, `s_v`.`b_name`, `s_v`.`v_name`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 1 and `village_id` = `s_v`.`id`) as `tmale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 2 and `village_id` = `s_v`.`id`) as `tfemale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 3 and `village_id` = `s_v`.`id`) as `third`, (Select Count(`id`) from `voters` where `status` <> 2 and `village_id` = `s_v`.`id`) as `tvote` from `villages` `vil` inner join ( select `v`.`id`, `dist`.`name_e` as `d_name`, `b`.`name_e` as `b_name`, `v`.`name_e` as `v_name` from `villages` `v` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` inner join `districts` `dist` on `dist`.`id` = `b`.`districts_id` $condition) `s_v` on `s_v`.`id` = `vil`.`id` Order By `s_v`.`d_name`, `s_v`.`b_name`, `s_v`.`v_name`;";
                 $rs_result = DB::select(DB::raw("$query"));
 
                 
-            }elseif($report_type == 3){
+            }elseif($report_type == 22){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
                 }else{
@@ -318,31 +359,51 @@ class ReportController extends Controller
                 $permission_flag = MyFuncs::check_village_access($vil_id);
                 if($permission_flag == 0){
                     $vil_id = 0;
-                }                
+                }
+
+                $condition = "";
+                if($role_id == 4){
+                    $condition = " where `v`.`id` = $vil_id ";
+                }elseif($role_id == 3){
+                    $condition = " where `v`.`blocks_id` = $b_id ";
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }elseif($role_id == 2){
+                    $condition = " Where `v`.`districts_id` = $d_id ";
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }else{
+                    if($d_id > 0){
+                        $condition = " Where `v`.`districts_id` = $d_id ";    
+                    }
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }   
+                }
 
                 $result_type = 2;
                 $show_total_row = 0;
                 $tcols = 8;
                 $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Block Name',10, 'block_name', 0, '', 'left'),
-                    array('Village Name',10, 'name_e', 0, '', 'left'),
-                    array('Ward No.',10, 'ward_no', 0, '', 'left'),
-                    array('PS Ward No.',10, 'ps_wardno', 0, '', 'left'),
-                    array('Male',10, 'tmale', 0, '', 'left'),
-                    array('Female',10, 'tfemale', 0, '', 'left'),
-                    array('Other',10, 'third', 0, '', 'left'),
-                    array('Total',10, 'tvote', 0, '', 'left'),
+                    array('District', 15, 'd_name', 0, '', 'left'),
+                    array('Block/MC', 15, 'b_name', 0, '', 'left'),
+                    array('Panchayat/MC', 15, 'v_name', 0, '', 'left'),
+                    array('Ward No.', 15, 'ward_no', 0, '', 'left'),
+                    array('Male', 10, 'tmale', 0, '', 'left'),
+                    array('Female', 10, 'tfemale', 0, '', 'left'),
+                    array('Other', 10, 'third', 0, '', 'left'),
+                    array('Total', 10, 'tvote', 0, '', 'left'),
                 );
-                $condition = "";
-                if($d_id > 0){
-                    $condition = " Where `v`.`districts_id` = $d_id ";
-                }elseif($b_id > 0){
-                    $condition = " where `v`.`blocks_id` = $b_id ";
-                }elseif($vil_id > 0){
-                    $condition = " where `v`.`id` = $vil_id ";
-                }
-
-                $query = "SELECT `b`.`name_e` as `block_name`, `v`.`name_e`, `wv`.`ward_no`, `wps`.`ward_no` as `ps_wardno`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 1 and `ward_id` = `wv`.`id`) as `tmale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 2 and `ward_id` = `wv`.`id`) as `tfemale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 3 and `ward_id` = `wv`.`id`) as `third`, (Select Count(`id`) from `voters` where `status` <> 2 and `ward_id` = `wv`.`id`) as `tvote` from `ward_villages` `wv` Inner Join `villages` `v` on `v`.`id` = `wv`.`village_id` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` Left Join `ward_ps` `wps` on `wps`.`id` = `wv`.`ps_ward_id` $condition Order By `v`.`districts_id`, `b`.`name_e`, `v`.`name_e`, `wv`.`ward_no`;";
+                
+                $query = "SELECT `s_v`.`d_name`, `s_v`.`b_name`, `s_v`.`v_name`, `s_v`.`ward_no`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 1 and `ward_id` = `s_v`.`id`) as `tmale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 2 and `ward_id` = `s_v`.`id`) as `tfemale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 3 and `ward_id` = `s_v`.`id`) as `third`, (Select Count(`id`) from `voters` where `status` <> 2 and `ward_id` = `s_v`.`id`) as `tvote` from `ward_villages` `w_vil` inner join ( select `wv`.`id`, `dist`.`name_e` as `d_name`, `b`.`name_e` as `b_name`, `v`.`name_e` as `v_name`, `wv`.`ward_no` from `villages` `v` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` inner join `districts` `dist` on `dist`.`id` = `b`.`districts_id` inner join `ward_villages` `wv` on `wv`.`village_id` = `v`.`id` $condition) `s_v` on `s_v`.`id` = `w_vil`.`id` Order By `s_v`.`d_name`, `s_v`.`b_name`, `s_v`.`v_name`, `s_v`.`ward_no`;";
 
                 $rs_result = DB::select(DB::raw("$query"));
 
