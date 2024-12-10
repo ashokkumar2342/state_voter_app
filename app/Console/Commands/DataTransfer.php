@@ -144,7 +144,7 @@ class DataTransfer extends Command
       $maxid=$totalImport[0]->maxid;
       
       // $datas = DB::connection('sqlsrv')->select("SELECT SlNoInPart, C_House_no, C_House_No_V1, FM_Name_EN + ' ' + IsNULL(LastName_EN,'') as name_en, FM_Name_V1 + ' ' + isNULL(LastName_V1,'') as name_l, RLN_Type, RLN_FM_NM_EN + ' ' + IsNULL(RLN_L_NM_EN,'') as fname_en, RLN_FM_NM_V1 + ' ' + IsNULL(RLN_L_NM_V1,'') as FName_L, EPIC_No, STATUS_TYPE, GENDER, AGE, EMAIL_ID, MOBILE_NO, PHOTO from Query where ac_no = $ac_code and part_no = $part_no order by SlNoInPart");
-      $datas = DB::connection('sqlsrv2')->select("SELECT EPIC_NUMBER, Applicant_First_Name, isnull(Applicant_last_name, '') as Applicant_last_name, Applicant_First_Name_l1, isnull(Applicant_last_name_l1, '') as Applicant_last_name_l1, part_serial_number, age, gender, relation_type, Relation_name, isnull(relation_l_name, '') as relation_l_name, relation_name_l1, isnull(rln_l_nm_v1, '') as rln_l_nm_v1, isnull(house_number, '') as house_number, isnull(house_number_l1, '') as house_number_l1, photo from eroll_data where Assembly_constituency_number = $ac_code and Part_number = $part_no and part_serial_number > $maxid order by part_serial_number");
+      $datas = DB::connection('sqlsrv2')->select("SELECT EPIC_NUMBER, Applicant_First_Name, isnull(Applicant_last_name, '') as Applicant_last_name, Applicant_First_Name_l1, isnull(Applicant_last_name_l1, '') as Applicant_last_name_l1, part_serial_number, age, gender, relation_type, Relation_name, isnull(relation_l_name, '') as relation_l_name, relation_name_l1, isnull(rln_l_nm_v1, '') as rln_l_nm_v1, isnull(house_number, '') as house_number, isnull(house_number_l1, '') as house_number_l1, photo, isnull(convert(varchar, dob, 103), '') as dob from eroll_data where Assembly_constituency_number = $ac_code and Part_number = $part_no and part_serial_number > $maxid order by part_serial_number");
 
       if(count($datas)>0){
         echo("Porting :: ".$ac_code."-".$part_no." Records (".count($datas).")\n");  
@@ -247,8 +247,11 @@ class DataTransfer extends Command
         $part_sr_no = intval($value->part_serial_number);
         $age = intval($value->age);
         $epic_no = trim($value->EPIC_NUMBER);
+
+        $dob = $value->dob;
+
         if($data_exists == 0){
-          $newId = DB::select(DB::raw("call up_save_voter_detail($o_district_id, $ac_id, $ac_part_id, $part_sr_no, '$epic_no', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $age, '', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag');"));          
+          $newId = DB::select(DB::raw("call `up_save_voter_detail`($o_district_id, $ac_id, $ac_part_id, $part_sr_no, '$epic_no', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $age, '', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag', '$dob');"));          
         }else{
           // $newId = DB::select(DB::raw("call up_save_voter_detail_if_not_exists($o_district_id, $ac_id, $ac_part_id, $value->SlNoInPart, '$value->EPIC_No', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $value->AGE, '$value->MOBILE_NO', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag');"));  
         }

@@ -1944,13 +1944,27 @@ class MasterController extends Controller
   public function AssemblyWisePartNoAll(Request $request)
   { 
     try {
-      $permission_flag = MyFuncs::isPermission_route(77);
-      if(!$permission_flag){
-        return view('admin.common.error');
-      }
+      // $permission_flag = MyFuncs::isPermission_route(77);
+      // if(!$permission_flag){
+      //   return view('admin.common.error');
+      // }
+
       $ac_id = intval(Crypt::decrypt($request->id));
-      $rs_parts = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id order by `part_no`;"));
-      return view('admin.master.assemblypart.part_no_select_box',compact('rs_parts'));  
+
+      $d_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = $ac_id limit 1;"));
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $ac_id = 0;
+      }
+      
+      $rs_records = DB::select(DB::raw("SELECT `id` as `opt_id`, `part_no` as `opt_text` from `assembly_parts` where `assembly_id` = $ac_id order by `part_no`;"));
+      $show_disabled = 1;
+      $box_caption = "Part No.";
+      return view('admin.common.select_box_v1',compact('rs_records'));  
     } catch (\Exception $e) {
       $e_method = "AssemblyWisePartNoAll";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());

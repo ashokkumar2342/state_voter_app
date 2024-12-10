@@ -163,15 +163,19 @@ class ReportController extends Controller
             if($report_id == 1){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_1',compact('rs_district'));
+            }elseif($report_id == 2){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_dist_ac_ap',compact('rs_district'));
             }elseif($report_id == 21){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
             }elseif($report_id == 22){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
-            }elseif($report_id == 4){
+            }elseif($report_id == 23){
                 $rs_district = SelectBox::get_district_access_list_v1();
-                return view('admin.report.master_data.form_4',compact('rs_district'));
+                return view('admin.report.master_data.form_2',compact('rs_district'));
+                // return view('admin.report.master_data.form_4',compact('rs_district'));
             }elseif($report_id == 5){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
@@ -246,6 +250,60 @@ class ReportController extends Controller
                 );
 
                 $rs_result=DB::select(DB::raw("SELECT `ap`.`part_no`, `vtd`.`first`, `vtd`.`last`, `vtd`.`total_voters` from `assembly_parts` `ap` inner join (select `vt`.`assembly_part_id`, count(*) as `total_voters`, min(`vt`.`sr_no`) as `first`, max(`vt`.`sr_no`) as `last` from `voters` `vt` where `vt`.`district_id` = $d_id and `vt`.`assembly_id` = $ac_id group by `vt`.`assembly_part_id`) `vtd` on `vtd`.`assembly_part_id` = `ap`.`id` where `ap`.`assembly_id` = $ac_id order by `ap`.`part_no`;"));
+            }elseif($report_type == 2){
+                if($request->district == 'null' || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }
+                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                if($request->assembly == 'null' || empty($request->assembly)){
+                    $ac_id = 0;
+                }else{
+                    $ac_id = intval(Crypt::decrypt($request->assembly));    
+                }                
+
+                if($request->ac_part == 'null' || empty($request->ac_part)){
+                    $part_id = 0;
+                }else{
+                    $part_id = intval(Crypt::decrypt($request->ac_part));    
+                } 
+
+                if($part_id > 0){
+                    $rs_fetch = DB::select(DB::raw("SELECT `ap`.`id` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`id` = $part_id and `ap`.`assembly_id` = $ac_id and `ac`.`district_id` = $d_id limit 1;"));
+                    if(count($rs_fetch)==0){
+                        $part_id = 0;      
+                    }
+                }               
+
+                
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 10;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('Code', 5, 'code', 0, '', 'left'),
+                    array('Part No.', 5, 'part_no', 0, '', 'left'),
+                    array('Sr. No.', 5, 'sr_no', 0, '', 'left'),
+                    array('EPIC No.', 15, 'voter_card_no', 0, '', 'left'),
+                    array('Name', 15, 'name_e', 0, '', 'left'),
+                    array('Relation Name', 15, 'father_name_e', 0, '', 'left'),
+                    array('Gender', 5, 'genders', 0, '', 'left'),
+                    array('House No.', 15, 'house_no_e', 0, '', 'left'),
+                    array('Age', 5, 'age', 0, '', 'left'),
+                    array('DOB', 15, 'dob', 0, '', 'left'),
+                );
+                
+                $query = "SELECT `ac`.`code`, `ap`.`part_no`, `vt`.`sr_no`, `vt`.`voter_card_no`, `vt`.`name_e`, `vt`.`father_name_e`, `g`.`genders`, `vt`.`house_no_e`, `vt`.`age`, `vt`.`dob` from `voters` `vt` inner join `assemblys` `ac` on `ac`.`id` = `vt`.`assembly_id` inner join `assembly_parts` `ap` on `ap`.`id` = `vt`.`assembly_part_id` inner join `genders` `g` on `g`.`id` = `vt`.`gender_id` where `vt`.`assembly_part_id` = $part_id order by `vt`.`sr_no`;";
+
+                $rs_result = DB::select(DB::raw("$query"));
+
+                
             }elseif($report_type == 21){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
@@ -408,7 +466,7 @@ class ReportController extends Controller
                 $rs_result = DB::select(DB::raw("$query"));
 
                 
-            }elseif($report_type == 4){
+            }elseif($report_type == 23){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
                 }else{
@@ -442,38 +500,51 @@ class ReportController extends Controller
                     $vil_id = 0;
                 }
 
-                if($request->ward == null || empty($request->ward)){
-                    $ward_id = 0;
+                $condition = "";
+                if($role_id == 4){
+                    $condition = " where `v`.`id` = $vil_id ";
+                }elseif($role_id == 3){
+                    $condition = " where `v`.`blocks_id` = $b_id ";
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }elseif($role_id == 2){
+                    $condition = " Where `v`.`districts_id` = $d_id ";
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
                 }else{
-                    $ward_id = intval(Crypt::decrypt($request->ward));    
-                }               
+                    if($d_id > 0){
+                        $condition = " Where `v`.`districts_id` = $d_id ";    
+                    }
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }   
+                }              
 
                 $result_type = 2;
                 $show_total_row = 0;
-                $tcols = 9;
+                $tcols = 10;
                 $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Block Name',10, 'block_name', 0, '', 'left'),
-                    array('Village Name',10, 'name_e', 0, '', 'left'),
-                    array('Booth No.',10, 'booth_no', 0, '', 'left'),
-                    array('Booth (E)',10, 'booth_e', 0, '', 'left'),
-                    array('Booth (H)',10, 'booth_l', 0, '', 'left'),
-                    array('Male',10, 'tmale', 0, '', 'left'),
-                    array('Female',10, 'tfemale', 0, '', 'left'),
-                    array('Other',10, 'third', 0, '', 'left'),
-                    array('Total',10, 'tvote', 0, '', 'left'),
+                    array('District', 10, 'd_name', 0, '', 'left'),
+                    array('Block/MC', 10, 'block_name', 0, '', 'left'),
+                    array('Panchayat/MC', 10, 'name_e', 0, '', 'left'),
+                    array('Booth No.', 10, 'booth_no', 0, '', 'left'),
+                    array('Booth (E)', 10, 'booth_e', 0, '', 'left'),
+                    array('Booth (H)', 10, 'booth_l', 0, '', 'left'),
+                    array('Male', 10, 'tmale', 0, '', 'left'),
+                    array('Female', 10, 'tfemale', 0, '', 'left'),
+                    array('Other', 10, 'third', 0, '', 'left'),
+                    array('Total', 10, 'tvote', 0, '', 'left'),
                 );
-                $condition = "";
-                if($d_id > 0){
-                    $condition = " Where `v`.`districts_id` = $d_id ";
-                }elseif($b_id > 0){
-                    $condition = " where `v`.`blocks_id` = $b_id ";
-                }elseif($vil_id > 0){
-                    $condition = " where `v`.`id` = $vil_id ";
-                }elseif($ward_id > 0){
-                    $condition = " where `wv`.`id` = $ward_id ";
-                }
-
-                $query = "SELECT `b`.`name_e` as `block_name`, `v`.`name_e`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `pb`.`name_e` as `booth_e`, `pb`.`name_l` as `booth_l`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 1 and `booth_id` = `pb`.`id`) as `tmale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 2 and `booth_id` = `pb`.`id`) as `tfemale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 3 and `booth_id` = `pb`.`id`) as `third`, (Select Count(`id`) from `voters` where `status` <> 2 and `booth_id` = `pb`.`id`) as `tvote` from `polling_booths` `pb` Inner Join `villages` `v` on `v`.`id` = `pb`.`village_id` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` $condition Order By `v`.`districts_id`, `b`.`name_e`, `v`.`name_e`, `pb`.`booth_no`;";
+                
+                $query = "SELECT `dist`.`name_e` as `d_name`, `b`.`name_e` as `block_name`, `v`.`name_e`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `pb`.`name_e` as `booth_e`, `pb`.`name_l` as `booth_l`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 1 and `booth_id` = `pb`.`id`) as `tmale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 2 and `booth_id` = `pb`.`id`) as `tfemale`, (Select Count(`id`) from `voters` where `status` <> 2 and `gender_id` = 3 and `booth_id` = `pb`.`id`) as `third`, (Select Count(`id`) from `voters` where `status` <> 2 and `booth_id` = `pb`.`id`) as `tvote` from `polling_booths` `pb` Inner Join `villages` `v` on `v`.`id` = `pb`.`village_id` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` inner join `districts` `dist` on `dist`.`id` = `b`.`districts_id` $condition Order By `dist`.`name_e`, `b`.`name_e`, `v`.`name_e`, `pb`.`booth_no`;";
 
                 $rs_result = DB::select(DB::raw("$query"));
 
@@ -515,10 +586,10 @@ class ReportController extends Controller
                 $show_total_row = 0;
                 $tcols = 4;
                 $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Part No.',25, 'block_name', 0, '', 'left'),
-                    array('From Sr. No.',25, 'name_e', 0, '', 'left'),
-                    array('To Sr. No.',25, 'booth_no', 0, '', 'left'),
-                    array('Ward No.',25, 'booth_e', 0, '', 'left'),
+                    array('Part No.', 25, 'block_name', 0, '', 'left'),
+                    array('From Sr. No.', 25, 'name_e', 0, '', 'left'),
+                    array('To Sr. No.', 25, 'booth_no', 0, '', 'left'),
+                    array('Ward No.', 25, 'booth_e', 0, '', 'left'),
                 );
 
                 $rs_result=DB::select(DB::raw("call `up_prepare_asmb_part_srn_list_wardwise_report`($vil_id);"));
