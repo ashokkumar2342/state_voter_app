@@ -166,6 +166,12 @@ class ReportController extends Controller
             }elseif($report_id == 2){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_dist_ac_ap',compact('rs_district'));
+            }elseif($report_id == 3){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_dist_bl',compact('rs_district'));
+            }elseif($report_id == 4){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_2',compact('rs_district'));
             }elseif($report_id == 21){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
@@ -176,16 +182,10 @@ class ReportController extends Controller
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
                 // return view('admin.report.master_data.form_4',compact('rs_district'));
-            }elseif($report_id == 5){
+            }elseif($report_id == 24){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
-            }elseif($report_id == 6){
-                $rs_district = SelectBox::get_district_access_list_v1();
-                return view('admin.report.master_data.form_2',compact('rs_district'));
-            }elseif($report_id == 7){
-                $rs_district = SelectBox::get_district_access_list_v1();
-                return view('admin.report.master_data.form_2',compact('rs_district'));
-            }elseif($report_id == 8){
+            }elseif($report_id == 25){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
             }elseif($report_id == 2001){
@@ -304,6 +304,138 @@ class ReportController extends Controller
                 $rs_result = DB::select(DB::raw("$query"));
 
                 
+            }elseif ($report_type == 3){
+                if($request->district == null || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                if($request->block == null || empty($request->block)){
+                    $b_id = 0;
+                }else{
+                    $b_id = intval(Crypt::decrypt($request->block));    
+                }
+
+                $permission_flag = MyFuncs::check_block_access($b_id);
+                if($permission_flag == 0){
+                    $b_id = 0;
+                }
+
+                $condition = "";
+                if($role_id == 4){
+                    $condition = " where `v`.`id` = 0 ";
+                }elseif($role_id == 3){
+                    $condition = " where `v`.`blocks_id` = $b_id ";
+                }elseif($role_id == 2){
+                    $condition = " Where `v`.`districts_id` = $d_id ";
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                }else{
+                    if($d_id > 0){
+                        $condition = " Where `v`.`districts_id` = $d_id ";    
+                    }
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }   
+                }
+
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 6;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('District',15, 'd_name', 0, '', 'left'),
+                    array('Block/MC',15, 'block_name', 0, '', 'left'),
+                    array('Panchayat/MC (E)',15, 'name_e', 0, '', 'left'),
+                    array('Panchayat/MC (H)',15, 'name_l', 0, '', 'left'),
+                    array('Total Wards',15, 'twards', 0, '', 'left'),
+                    array('Zila Parishad Ward No.',15, 'zp_wardno', 0, '', 'left'),
+                );
+                $query = "SELECT `dist`.`name_e` as `d_name`, `b`.`name_e` as `block_name`, `v`.`name_e`, `v`.`name_l`, (Select Count(*) From `ward_villages` `wv` Where `wv`.`village_id` = `v`.`id`) as `twards`, `wz`.`ward_no` as `zp_wardno` from `villages` `v` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` inner join `districts` `dist` on `dist`.`id` = `b`.`districts_id` Left Join `ward_zp` `wz` on `wz`.`id` = `v`.`zp_ward_id` $condition Order By `dist`.`name_e`, `b`.`name_e`, `v`.`name_e`;";
+                // return $query;
+                $rs_result = DB::select(DB::raw("$query"));
+            }elseif ($report_type == 4){
+                if($request->district == null || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                if($request->block == null || empty($request->block)){
+                    $b_id = 0;
+                }else{
+                    $b_id = intval(Crypt::decrypt($request->block));    
+                }
+
+                $permission_flag = MyFuncs::check_block_access($b_id);
+                if($permission_flag == 0){
+                    $b_id = 0;
+                }
+
+                if($request->village == null || empty($request->village)){
+                    $vil_id = 0;
+                }else{
+                    $vil_id = intval(Crypt::decrypt($request->village));    
+                }
+
+                $permission_flag = MyFuncs::check_village_access($vil_id);
+                if($permission_flag == 0){
+                    $vil_id = 0;
+                }
+
+                $condition = "";
+                if($role_id == 4){
+                    $condition = " where `v`.`id` = $vil_id ";
+                }elseif($role_id == 3){
+                    $condition = " where `v`.`blocks_id` = $b_id ";
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }elseif($role_id == 2){
+                    $condition = " Where `v`.`districts_id` = $d_id ";
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }
+                }else{
+                    if($d_id > 0){
+                        $condition = " Where `v`.`districts_id` = $d_id ";    
+                    }
+                    if($b_id > 0){
+                        $condition = " where `v`.`blocks_id` = $b_id ";    
+                    }
+                    if($vil_id > 0){
+                        $condition = " where `v`.`id` = $vil_id ";    
+                    }   
+                }
+
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 6;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('District',15, 'name_e', 0, '', 'left'),
+                    array('Block/MC',15, 'bl_name', 0, '', 'left'),
+                    array('Panchayat/MC',15, 'vil_name', 0, '', 'left'),
+                    array('Booth No.',15, 'boothno', 0, '', 'left'),
+                    array('Booth Name (E)',15, 'name_e', 0, '', 'left'),
+                    array('Booth Name (H).',15, 'name_l', 0, '', 'left'),
+                );
+
+                $query = "SELECT `dist`.`name_e`, `bl`.`name_e` as `bl_name`, `v`.`name_e` as `vil_name`, concat(`pb`.`booth_no`,`pb`.`booth_no_c`) as `boothno`, `pb`.`name_e`, `pb`.`name_l` from `polling_booths` `pb` inner join `blocks_mcs` `bl` on `bl`.`id` = `pb`.`blocks_id` inner join `districts` `dist` on `dist`.`id` = `bl`.`districts_id` left join `villages` `v` on `v`.`id` = `pb`.`village_id` $condition Order By `dist`.`name_e`, `bl`.`name_e`, `v`.`name_e`, `pb`.`booth_no`,`pb`.`booth_no_c`;";
+                $rs_result = DB::select(DB::raw("$query"));
             }elseif($report_type == 21){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
@@ -549,7 +681,7 @@ class ReportController extends Controller
                 $rs_result = DB::select(DB::raw("$query"));
 
                 
-            }elseif ($report_type == 5){
+            }elseif ($report_type == 24){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
                 }else{
@@ -582,20 +714,23 @@ class ReportController extends Controller
                 if($permission_flag == 0){
                     $vil_id = 0;
                 }
+
                 $result_type = 2;
                 $show_total_row = 0;
-                $tcols = 4;
+                $tcols = 5;
                 $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Part No.', 25, 'block_name', 0, '', 'left'),
-                    array('From Sr. No.', 25, 'name_e', 0, '', 'left'),
-                    array('To Sr. No.', 25, 'booth_no', 0, '', 'left'),
-                    array('Ward No.', 25, 'booth_e', 0, '', 'left'),
+                    array('AC No.', 20, 'assembly_no', 0, '', 'left'),
+                    array('Part No.', 20, 'partno', 0, '', 'left'),
+                    array('From Sr. No.', 20, 'fromsrno', 0, '', 'left'),
+                    array('To Sr. No.', 20, 'tosrno', 0, '', 'left'),
+                    array('Ward No.', 20, 'wardno', 0, '', 'left'),
                 );
-
-                $rs_result=DB::select(DB::raw("call `up_prepare_asmb_part_srn_list_wardwise_report`($vil_id);"));
-                $query = 'SELECT `partno`, `fromsrno`, `tosrno`, `wardno` from `voters_srno_detail_village` where `village_id` = '.$vil_id. ' order by `partno`, `fromsrno`';
+                if($vil_id > 0){
+                    $rs_process = DB::select(DB::raw("call `up_prepare_asmb_part_srn_list_wardwise_report`($vil_id);"));    
+                }
+                $query = 'SELECT `assembly_no`, `partno`, `fromsrno`, `tosrno`, `wardno` from `voters_srno_detail_village` where `village_id` = '.$vil_id. ' order by `assembly_no`, `partno`, `fromsrno`';
                 $rs_result = DB::select(DB::raw("$query"));
-            }elseif ($report_type == 6){
+            }elseif ($report_type == 25){
                 if($request->district == null || empty($request->district)){
                     $d_id = 0;
                 }else{
@@ -639,119 +774,8 @@ class ReportController extends Controller
                     array('Ward No.',10, 'booth_e', 0, '', 'left'),
                     array('Booth No.',10, 'booth_e', 0, '', 'left'),
                 );
-                $rs_result = DB::select(DB::raw("call `up_prepare_asmb_part_srn_list_wardwise__for_mc_report`($vil_id);"));
+                $rs_result = DB::select(DB::raw("call `up_prepare_asmb_part_srn_list_wardwise_for_mc_report`($vil_id);"));
                 $query = 'SELECT `acno`, `partno`, `fromsrno`, `tosrno`, `wardno`, `booth_no` from `voters_srno_detail_mc` where `village_id` = '.$vil_id. ' order by `acno`, `partno`, `fromsrno`';
-                $rs_result = DB::select(DB::raw("$query"));
-            }elseif ($report_type == 7){
-                if($request->district == null || empty($request->district)){
-                    $d_id = 0;
-                }else{
-                    $d_id = intval(Crypt::decrypt($request->district));
-                }                
-
-                $permission_flag = MyFuncs::check_district_access($d_id);
-                if($permission_flag == 0){
-                    $d_id = 0;
-                }
-
-                if($request->block == null || empty($request->block)){
-                    $b_id = 0;
-                }else{
-                    $b_id = intval(Crypt::decrypt($request->block));    
-                }
-
-                $permission_flag = MyFuncs::check_block_access($b_id);
-                if($permission_flag == 0){
-                    $b_id = 0;
-                }
-
-                if($request->village == null || empty($request->village)){
-                    $vil_id = 0;
-                }else{
-                    $vil_id = intval(Crypt::decrypt($request->village));    
-                }
-
-                $permission_flag = MyFuncs::check_village_access($vil_id);
-                if($permission_flag == 0){
-                    $vil_id = 0;
-                }
-
-                $result_type = 2;
-                $show_total_row = 0;
-                
-                $tcols = 5;
-                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Block Name',15, 'block_name', 0, '', 'left'),
-                    array('Village Name (E)',15, 'name_e', 0, '', 'left'),
-                    array('Village Name (H)',15, 'name_l', 0, '', 'left'),
-                    array('Total Wards',15, 'twards', 0, '', 'left'),
-                    array('Zila Parishad Ward No.',15, 'zp_wardno', 0, '', 'left'),
-                );
-                $condition = "";
-                if($vil_id > 0){
-                    $condition = "where `v`.`id` = $vil_id ";
-                }elseif($b_id > 0){
-                    $condition = "where `v`.`blocks_id` = $b_id ";
-                }elseif($d_id > 0){
-                    $condition = "where `v`.`districts_id` = $d_id ";
-                }
-                $query = "SELECT `b`.`name_e` as `block_name`, `v`.`name_e`, `v`.`name_l`, (Select Count(*) From `ward_villages` `wv` Where `wv`.`village_id` = `v`.`id`) as `twards`, `wz`.`ward_no` as `zp_wardno` from `villages` `v` Inner Join `blocks_mcs` `b` on `b`.`id` = `v`.`blocks_id` Left Join `ward_zp` `wz` on `wz`.`id` = `v`.`zp_ward_id` $condition Order By `v`.`districts_id`, `b`.`name_e`, `v`.`name_e`;";
-                $rs_result = DB::select(DB::raw("$query"));
-            }elseif ($report_type == 8){
-                if($request->district == null || empty($request->district)){
-                    $d_id = 0;
-                }else{
-                    $d_id = intval(Crypt::decrypt($request->district));
-                }                
-
-                $permission_flag = MyFuncs::check_district_access($d_id);
-                if($permission_flag == 0){
-                    $d_id = 0;
-                }
-
-                if($request->block == null || empty($request->block)){
-                    $b_id = 0;
-                }else{
-                    $b_id = intval(Crypt::decrypt($request->block));    
-                }
-
-                $permission_flag = MyFuncs::check_block_access($b_id);
-                if($permission_flag == 0){
-                    $b_id = 0;
-                }
-
-                if($request->village == null || empty($request->village)){
-                    $vil_id = 0;
-                }else{
-                    $vil_id = intval(Crypt::decrypt($request->village));    
-                }
-
-                $permission_flag = MyFuncs::check_village_access($vil_id);
-                if($permission_flag == 0){
-                    $vil_id = 0;
-                }
-
-                $result_type = 2;
-                $show_total_row = 0;
-                
-                $tcols = 5;
-                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
-                    array('Block Name',15, 'bl_name', 0, '', 'left'),
-                    array('Panchayat Name',15, 'vil_name', 0, '', 'left'),
-                    array('Booth No.',15, 'boothno', 0, '', 'left'),
-                    array('Booth Name (E)',15, 'name_e', 0, '', 'left'),
-                    array('Booth Name (H).',15, 'name_l', 0, '', 'left'),
-                );
-
-                
-                $condition = "";
-                if($b_id > 0){
-                    $condition = "where `pb`.`blocks_id` = $b_id ";
-                }elseif($d_id > 0){
-                    $condition = "where `pb`.`districts_id` = $d_id ";
-                }
-
-                $query = "SELECT `bl`.`name_e` as `bl_name`, `vil`.`name_e` as `vil_name`, concat(`pb`.`booth_no`,`pb`.`booth_no_c`) as `boothno`, `pb`.`name_e`, `pb`.`name_l` from `polling_booths` `pb` inner join `blocks_mcs` `bl` on `bl`.`id` = `pb`.`blocks_id` left join `villages` `vil` on `vil`.`id` = `pb`.`village_id`  $condition Order By `bl`.`name_e`, `pb`.`booth_no`,`pb`.`booth_no_c`;";
                 $rs_result = DB::select(DB::raw("$query"));
             }elseif ($report_type == 2000){
                 $tcols = 2;
