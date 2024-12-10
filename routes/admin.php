@@ -305,7 +305,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 // 	    Route::post('change-voter-with-ward-store', 'MasterController@changeVoterWithWardStore')->name('admin.Master.change.voter.with.ward.store');	//OK--------
 	    Route::get('change-voter-with-ward-restore/{id}/{ward_id}', 'MasterController@changeVoterWithWardReStore')->name('admin.Master.change.voter.with.ward.restore');	//OK----------	    
 	    Route::get('change-voter-with-ward-report', 'MasterController@changeVoterWithWardReport')->name('admin.Master.change.voter.with.ward.report');		//OK------------
-// 	    Route::post('change-voter-with-ward-report-pdf', 'MasterController@changeVoterWithWardReportPdf')->name('admin.Master.change.voter.with.ward.report.pdf');	//OK----------
+	    Route::post('change-voter-with-ward-report-pdf', 'MasterController@changeVoterWithWardReportPdf')->name('admin.Master.change.voter.with.ward.report.pdf');	//OK----------
 
 
 // 	    Route::get('delete-suppliment-ward-voter', 'MasterController@deleteSupplimentVoterWard')->name('admin.Master.delete.voter.ward');	//OK Done-------------------

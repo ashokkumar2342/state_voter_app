@@ -16,6 +16,7 @@
             <div class="row">
                 <div class="col-lg-6 form-group"> 
                     <label>Data List</label>
+                    <span class="fa fa-asterisk"></span>
                     <select name="data_list" id="data_list" class="form-control select2" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.claim.obj.ac.part.srno.deleteVoterFormTable') }}'+'?data_list_id='+this.value+'&part_id='+$('#assembly_part_select_box').val()+'&block_id='+$('#block_select_box').val(),'result_table');" required>
                         <option selected disabled>Select Data List</option>
                         @foreach ($importTypes as $importType)
@@ -25,6 +26,7 @@
                 </div>
                 <div class="col-lg-6 form-group"> 
                     <label>Assembly--Part</label>
+                    <span class="fa fa-asterisk"></span>
                     <select name="assembly_part" id="assembly_part_select_box" class="form-control select2" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.claim.obj.ac.part.srno.deleteVoterFormTable') }}'+'?data_list_id='+$('#data_list').val()+'&part_id='+this.value+'&block_id='+$('#block_select_box').val(),'result_table');" required>
                         <option selected disabled>Select Assembly--Part</option>
                         @foreach ($assemblyParts as $assemblyPart)

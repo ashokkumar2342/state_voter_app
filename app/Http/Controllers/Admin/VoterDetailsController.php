@@ -32,9 +32,16 @@ class VoterDetailsController extends Controller
   { 
     try{
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ('$village_id','0')"));   
       return view('admin.master.PrepareVoterList.select_ward_value',compact('WardVillages'));     
-    } catch (Exception $e) {}
+    } catch (\Exception $e) {
+      $e_method = "VillageWiseWardMultiple";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
   }
 
   // public function VillageWiseWard(Request $request)
@@ -53,6 +60,10 @@ class VoterDetailsController extends Controller
   public function PrepareVoterListBoothWise()
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(83);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $rs_district = SelectBox::get_district_access_list_v1();
       $rslistPrepareOption = DB::select(DB::raw("SELECT * from `list_prepare_option`;"));
       $rslistSortingOption = DB::select(DB::raw("SELECT * from `list_sorting_option`;"));
@@ -67,6 +78,10 @@ class VoterDetailsController extends Controller
   public function VoterListDownload()
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(104);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $rs_district = SelectBox::get_district_access_list_v1();    
       return view('admin.master.voterlistdownload.index',compact('rs_district'));
     } catch (\Exception $e) {
@@ -78,7 +93,15 @@ class VoterDetailsController extends Controller
   public function BlockWiseDownloadTable(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(104);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $block_id = intval(Crypt::decrypt($request->block_id));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $block_id = 0;
+      }
       $voter_list_master_id = intval(Crypt::decrypt($request->voter_list_master_id));
       $voterlistprocesseds = DB::select(DB::raw("SELECT `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`,  `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `block_id` = $block_id and `voter_list_master_id` = $voter_list_master_id order by `vil`.`name_e`, `wv`.`ward_no`;"));
       return view('admin.master.voterlistdownload.download_table',compact('voterlistprocesseds')); 
@@ -91,6 +114,10 @@ class VoterDetailsController extends Controller
   public function VoterListDownloadPDF($id, $condition)
   {  
     try{
+      $permission_flag = MyFuncs::isPermission_route(104);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $rec_id = intval(Crypt::decrypt($id));
       $voterlistprocesseds = DB::select(DB::raw("SELECT `folder_path`, `file_path_p`, `file_path_w`, `file_path_h` from `voter_list_processeds` where `id` = $rec_id limit 1;"));
       if(count($voterlistprocesseds)==0){

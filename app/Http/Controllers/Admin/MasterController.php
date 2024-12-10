@@ -1490,6 +1490,13 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $user_id = MyFuncs::getUserId();
       $data_list = intval(Crypt::decrypt($request->data_list));
       $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
@@ -1547,6 +1554,11 @@ class MasterController extends Controller
       if(!$permission_flag){
         return view('admin.common.error_popup');
       }
+      $valid_village = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($valid_village);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
       $village = $request->village;
       $assembly_part = $request->assembly_part;
       $ward = $request->ward;
@@ -1566,6 +1578,10 @@ class MasterController extends Controller
       }
       $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
       $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
       $ward_id = intval(Crypt::decrypt($request->ward));
       if ($request->report == 1) {
         $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` Where `id` = $ac_part_id limit 1;"));
@@ -1647,7 +1663,7 @@ class MasterController extends Controller
       $village_id = intval(Crypt::decrypt($request->id));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
-        return view('admin.common.error');
+        $village_id = 0;
       }
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id` where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
       $rs_dataList = DB::select(DB::raw("SELECT * from `import_type` order by `id`;"));
@@ -1691,6 +1707,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $village_id = intval(Crypt::decrypt($request->village_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $ward_id = intval(Crypt::decrypt($request->ward_id));
       $selectbooths = DB::select(DB::raw("SELECT `id`, concat(`booth_no`,ifnull(`booth_no_c`,''),' - ',`name_e`) as `booth_name` from `polling_booths` Where `village_id` = $village_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` = $ward_id) Order by `booth_name`;"));
       return view('admin.master.wardbandiwithbooth.booth_select_box',compact('selectbooths'));
@@ -1753,6 +1773,12 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $user_id = MyFuncs::getUserId();
       $data_list = intval(Crypt::decrypt($request->data_list));
       $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
@@ -1810,6 +1836,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $district_id = intval(Crypt::decrypt($request->district_id));
+      $permission_flag = MyFuncs::check_district_access($district_id);
+      if($permission_flag == 0){
+        $district_id = 0;
+      }
       $rs_assemblys = DB::select(DB::raw("SELECT * from `assemblys` where `district_id` = $district_id order by `code`;"));         
       return view('admin.master.mappingvillageassemblypart.ac_part_form',compact('rs_assemblys'));
     } catch (\Exception $e) {
@@ -1826,6 +1856,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $rs_records = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
          
       return view('admin.master.mappingvillageassemblypart.table',compact('rs_records'));
@@ -1843,6 +1877,15 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $ac_id = intval(Crypt::decrypt($request->id));
+      $d_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = $ac_id limit 1;"));
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $ac_id = 0;
+      }
       $rs_parts = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id and `village_id` = 0 order by `part_no`;"));
       return view('admin.master.assemblypart.part_no_select_box',compact('rs_parts'));  
     } catch (\Exception $e) {
@@ -1882,6 +1925,11 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $part_id = intval(Crypt::decrypt($request->part_no));
       $rs_update = DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = $village_id where `id` = $part_id limit 1;"));
       $response=['status'=>1,'msg'=>'Record Saved Successfully'];
@@ -1933,6 +1981,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $district_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_district_access($district_id);
+      if($permission_flag == 0){
+        $district_id = 0;
+      }
       $assemblys = DB::select(DB::raw("SELECT * from `assemblys` where `district_id` = $district_id order by `code`;"));
       return view('admin.master.assembly.assembly_value_select_box',compact('assemblys'));
     } catch (\Exception $e) {
@@ -1944,11 +1996,7 @@ class MasterController extends Controller
   public function AssemblyWisePartNoAll(Request $request)
   { 
     try {
-      // $permission_flag = MyFuncs::isPermission_route(77);
-      // if(!$permission_flag){
-      //   return view('admin.common.error');
-      // }
-
+      
       $ac_id = intval(Crypt::decrypt($request->id));
 
       $d_id = 0;
@@ -2018,6 +2066,13 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $village_id = intval(Crypt::decrypt($request->village));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $part_id = intval(Crypt::decrypt($request->part_no));
 
       DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = $village_id where `id` = $part_id limit 1;"));
@@ -2052,6 +2107,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $village_id = intval(Crypt::decrypt($request->village_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $booths = DB::select(DB::raw("SELECT * from `polling_booths` where `village_id` = $village_id order by `booth_no`, `booth_no_c`;"));
       return view('admin.master.booth.booth_select_box',compact('booths'));
     } catch (\Exception $e) {
@@ -2068,6 +2127,10 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $village_id = intval(Crypt::decrypt($request->village_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $booth_id = intval(Crypt::decrypt($request->id));
       $wards=DB::select(DB::raw("SELECT `id`, `ward_no`, 0 as `status` from `ward_villages` where `village_id` = $village_id and `id` not in (Select `wardId` from `booth_ward_voter_mapping`) Union select `id`, `ward_no`, 1 as `status` from `ward_villages` where `village_id` = $village_id and `id` in (Select `wardId` from `booth_ward_voter_mapping` where `boothid` = $booth_id) Order By `ward_no`;"));
 
@@ -2107,6 +2170,11 @@ class MasterController extends Controller
         return response()->json($response);// response as json
       }
       $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $booth_id = intval(Crypt::decrypt($request->booth));
       if (!empty($request->ward)) {
         $ward = implode(',',$request->ward);  
@@ -2126,6 +2194,10 @@ class MasterController extends Controller
   public function MappingWardBooth()
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(72);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.mappingWardBooth.index',compact('rs_district'));     
     } catch (\Exception $e) {
@@ -2137,6 +2209,10 @@ class MasterController extends Controller
   public function MappingWardBoothTable(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(72);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $ward_id = intval(Crypt::decrypt($request->id));
       $rs_booths = DB::select(DB::raw("SELECT `bwm`.`id`, `pb`.`booth_no`,`pb`.`booth_no_c`,`pb`.`name_e`, `pb`.`name_l`, `bwm`.`fromsrno`, `bwm`.`tosrno` from `booth_ward_voter_mapping` `bwm` Inner Join `polling_booths` `pb` on `pb`.`id` = `bwm`.`boothid` Where `bwm`.`wardId` = $ward_id Order By `bwm`.`fromsrno`;"));
       return view('admin.master.mappingWardBooth.table',compact('rs_booths'));   
@@ -2149,7 +2225,15 @@ class MasterController extends Controller
   public function MappingWardBoothSelectBooth(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(72);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->village_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $ward_id = intval(Crypt::decrypt($request->id));
       $booths=DB::select(DB::raw("SELECT `id`, `booth_no`,`booth_no_c`,`name_e` from `polling_booths` Where `village_id` = $village_id and `id` not in (Select `boothid` from `booth_ward_voter_mapping`  Where `wardId` = $ward_id) Order By `booth_no`;"));
       return view('admin.master.booth.booth_select_box',compact('booths'));
@@ -2162,6 +2246,11 @@ class MasterController extends Controller
   public function MappingWardBoothStore(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(72);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[
         'ward' => 'required', 
         'booth' => 'required',
@@ -2215,6 +2304,10 @@ class MasterController extends Controller
   public function MappingWardBoothEdit($id)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(72);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
       $rec_id = intval(Crypt::decrypt($id));
       $BoothWardVoterMapping = DB::select(DB::raw("SELECT * from `booth_ward_voter_mapping` where `id` = $rec_id limit 1;"));
       return view('admin.master.mappingWardBooth.edit',compact('BoothWardVoterMapping'));      
@@ -2329,6 +2422,10 @@ class MasterController extends Controller
   public function changeVoterWardWithBooth()
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(52);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.changeVoterWardWithBooth.index',compact('rs_district', 'refreshdata'));
@@ -2341,7 +2438,15 @@ class MasterController extends Controller
   public function changeVotervillageWiseWardBooth(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(52);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();  
       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, '0')")); 
       return view('admin.master.changeVoterWardWithBooth.ward_booth_select',compact('WardVillages', 'refreshdata'));
@@ -2354,6 +2459,10 @@ class MasterController extends Controller
   public function changeVoterWardWithBoothTable(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(52);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $ward_id = intval(Crypt::decrypt($request->from_ward_id));
       $booth_id = intval(Crypt::decrypt($request->from_booth));
@@ -2368,6 +2477,11 @@ class MasterController extends Controller
   public function changeVoterWardWithBoothStore(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(52);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[
         'district' => 'required', 
         'block' => 'required', 
@@ -2417,7 +2531,21 @@ class MasterController extends Controller
       }
       $user_id = MyFuncs::getUserId();
       $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $from_ward = intval(Crypt::decrypt($request->from_ward));
       $to_ward = intval(Crypt::decrypt($request->to_ward));
       
@@ -2451,6 +2579,10 @@ class MasterController extends Controller
   {
     try{
       $village_id = intval(Crypt::decrypt($request->village_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);"));   
       return view('admin.master.changeVoterWardWithBooth.report_popup',compact('WardVillages'));
     } catch (\Exception $e) {
@@ -2526,6 +2658,10 @@ class MasterController extends Controller
   public function deleteSupplimentVoterWardBooth()
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(54);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.deleteVoterWithWardBooth.index',compact('rs_district', 'refreshdata'));
@@ -2538,7 +2674,15 @@ class MasterController extends Controller
   public function showformSupplimentVoterWardBooth(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(54);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);")); 
       return view('admin.master.deleteVoterWithWardBooth.ward_booth_select',compact('WardVillages', 'refreshdata'));
@@ -2551,6 +2695,11 @@ class MasterController extends Controller
   public function submitSupplimentVoterWardBooth(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(54);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[
         'district' => 'required', 
         'block' => 'required', 
@@ -2590,7 +2739,20 @@ class MasterController extends Controller
       
       $user_id = MyFuncs::getUserId();
       $block_id = intval(Crypt::decrypt($request->block));
+      
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $from_ward = intval(Crypt::decrypt($request->from_ward));
       $from_booth = intval(Crypt::decrypt($request->from_booth));
 
@@ -2606,6 +2768,10 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoChangeBooth()
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(62);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.claimObjAcPartSrno.changebooth.index',compact('rs_district', 'refreshdata'));
@@ -2618,7 +2784,15 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoChangeBoothForm(Request $request)
   {
     try{
-      $village_id = intval(Crypt::decrypt($request->id)); 
+      $permission_flag = MyFuncs::isPermission_route(62);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);"));
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
@@ -2633,6 +2807,10 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoChangeBoothTable(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(62);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       if($request->block_id == "null" || empty($request->block_id)){
         $block_id = 0;
       }else{
@@ -2649,6 +2827,11 @@ class MasterController extends Controller
         $data_list_id = 0;
       }else{
         $data_list_id = intval(Crypt::decrypt($request->data_list_id));
+      }
+
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $block_id = 0;
       }
       
       $results= DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
@@ -2671,6 +2854,11 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoChangeBoothFormStore(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(62);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[
         'district' => 'required', 
         'block' => 'required', 
@@ -2714,7 +2902,20 @@ class MasterController extends Controller
       
       $user_id = MyFuncs::getUserId();
       $block_id = intval(Crypt::decrypt($request->block));
+      
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $data_list = intval(Crypt::decrypt($request->data_list));
       $assembly_part = intval(Crypt::decrypt($request->assembly_part));
       $to_ward = intval(Crypt::decrypt($request->to_ward));
@@ -2732,6 +2933,10 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoDeleteVoter()
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(63);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.claimObjAcPartSrno.deleteVoter.index',compact('rs_district', 'refreshdata'));
@@ -2744,7 +2949,15 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoDeleteVoterForm(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(63);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
       $importTypes = DB::select(DB::raw("select * from `import_type`"));
@@ -2758,6 +2971,10 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoDeleteVoterFormTable(Request $request)
   {
     try{
+      $permission_flag = MyFuncs::isPermission_route(63);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       if($request->block_id == "null" || empty($request->block_id)){
         $block_id = 0;
       }else{
@@ -2776,6 +2993,11 @@ class MasterController extends Controller
         $data_list_id = intval(Crypt::decrypt($request->data_list_id));
       }
       
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $block_id = 0;
+      }
+
       $results = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
       if(count($results) == 0){
         $voter_list_id  = 0;
@@ -2795,6 +3017,11 @@ class MasterController extends Controller
   public function claimObjAcPartSrnoDeleteVoterStore(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(63);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[
         'district' => 'required', 
         'block' => 'required', 
@@ -2834,7 +3061,20 @@ class MasterController extends Controller
       
       $user_id = MyFuncs::getUserId();
       $block_id = intval(Crypt::decrypt($request->block));
+      
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $data_list = intval(Crypt::decrypt($request->data_list));
       $assembly_part = intval(Crypt::decrypt($request->assembly_part));
 
@@ -2843,6 +3083,90 @@ class MasterController extends Controller
       return response()->json($response);
     } catch (\Exception $e) {
       $e_method = "claimObjAcPartSrnoDeleteVoterStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWithWardReport(Request $request)
+  {
+    try{ 
+      $permission_flag = MyFuncs::isPermission_route(63);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $village_id = intval(Crypt::decrypt($request->village_id));
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
+      $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ($village_id, 0);"));   
+      return view('admin.master.changeVoterWithWard.report_popup',compact('WardVillages'));
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWithWardReport";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function changeVoterWithWardReportPdf(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(63);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+
+      if (empty($request->report_type)) {
+        $response=['status'=>0,'msg'=>'Plz Select Report Type'];
+        return response()->json($response);   
+      }
+      if (empty($request->ward)) {
+        $response=['status'=>0,'msg'=>'Plz Select Ward'];
+        return response()->json($response);   
+      }
+      
+      $report_selected = intval(Crypt::decrypt($request->report_type));
+      $ward_id = intval(Crypt::decrypt($request->ward));
+
+      $wardno_rs = DB::select(DB::raw("SELECT `wv`.`ward_no`, `blocks_id` from `ward_villages` `wv` where `wv`.`id` = $ward_id;"));
+      $wardno = $wardno_rs[0]->ward_no;
+      $block_id = $wardno_rs[0]->blocks_id;
+
+      $report_heading = '';
+      if ($report_selected == 1) {
+        $results= DB::select(DB::raw("call `up_fetch_list_suppliment_deleted_voter_detail`($block_id, $ward_id, 0);"));
+        $report_heading = 'Deleted (From Ward) :: '.$wardno;
+      }else{
+        $results= DB::select(DB::raw("call `up_fetch_list_suppliment_new_voter_detail`($ward_id, 0);"));
+        $report_heading = 'Added (To Ward) :: '.$wardno;
+      }
+      $path=Storage_path('fonts/');
+      $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+      $fontDirs = $defaultConfig['fontDir']; 
+      $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+      $fontData = $defaultFontConfig['fontdata']; 
+      $mpdf = new \Mpdf\Mpdf([
+        'fontDir' => array_merge($fontDirs, [
+          __DIR__ . $path,
+        ]),
+        'fontdata' => $fontData + [
+          'frutiger' => [
+            'R' => 'FreeSans.ttf',
+            'I' => 'FreeSansOblique.ttf',
+          ]
+        ],
+        'default_font' => 'freesans',
+        'pagenumPrefix' => '',
+        'pagenumSuffix' => '',
+        'nbpgPrefix' => ' कुल ',
+        'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
+      ]); 
+      $showbooth_flag = 0;
+      $html = view('admin.master.changeVoterWithWard.pdf',compact('results', 'report_heading', 'showbooth_flag')); 
+      $mpdf->WriteHTML($html); 
+      $mpdf->Output(); 
+    } catch (\Exception $e) {
+      $e_method = "changeVoterWithWardReportPdf";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
@@ -3694,76 +4018,7 @@ class MasterController extends Controller
           
 //     }
 //   }
-
-  
-
-
-//   public function changeVoterWithWardReport(Request $request)
-//   {
-//     try{  
-//       $WardVillages = DB::select(DB::raw("call up_fetch_ward_village_access ('$request->village_id','0')"));   
-//       return view('admin.master.changeVoterWithWard.report_popup',compact('WardVillages'));
-//     } catch (Exception $e) {}
-//   }
-
-
-//   public function changeVoterWithWardReportPdf(Request $request)
-//   { 
-//     $report_selected = $request->report_type;
-//     $ward_id = $request->ward;
-
-//     if ($report_selected == 0) {
-//       $response=['status'=>0,'msg'=>'Plz Select Report Type'];
-//       return response()->json($response);   
-//     }
-//     if ($ward_id == 0) {
-//       $response=['status'=>0,'msg'=>'Plz Select Ward'];
-//       return response()->json($response);   
-//     }
-
-//     $wardno_rs = DB::select(DB::raw("select `wv`.`ward_no`, `blocks_id` from `ward_villages` `wv` where `wv`.`id` = $request->ward;"));
-//     $wardno = $wardno_rs[0]->ward_no;
-//     $block_id = $wardno_rs[0]->blocks_id;
-    
-
-    
-//     $report_heading = '';
-//     if ($report_selected == 1) {
-//       $results= DB::select(DB::raw("call `up_fetch_list_suppliment_deleted_voter_detail`($block_id, $ward_id, 0);"));
-//       $report_heading = 'Deleted (From Ward) :: '.$wardno;
-//     }else{
-//       $results= DB::select(DB::raw("call `up_fetch_list_suppliment_new_voter_detail`($ward_id, 0);"));
-//       $report_heading = 'Added (To Ward) :: '.$wardno;
-//     }
-    
-
-//     $path=Storage_path('fonts/');
-//     $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
-//     $fontDirs = $defaultConfig['fontDir']; 
-//     $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
-//     $fontData = $defaultFontConfig['fontdata']; 
-//     $mpdf = new \Mpdf\Mpdf([
-//     'fontDir' => array_merge($fontDirs, [
-//     __DIR__ . $path,
-//     ]),
-//     'fontdata' => $fontData + [
-//     'frutiger' => [
-//     'R' => 'FreeSans.ttf',
-//     'I' => 'FreeSansOblique.ttf',
-//     ]
-//     ],
-//     'default_font' => 'freesans',
-//     'pagenumPrefix' => '',
-//     'pagenumSuffix' => '',
-//     'nbpgPrefix' => ' कुल ',
-//     'nbpgSuffix' => ' पृष्ठों का पृष्ठ'
-//     ]); 
-//     $showbooth_flag = 0;
-//     $html = view('admin.master.changeVoterWithWard.pdf',compact('results', 'report_heading', 'showbooth_flag')); 
-//     $mpdf->WriteHTML($html); 
-//     $mpdf->Output();
-
-//   } 
+ 
 
 //   public function changeVoterWithWardStore(Request $request)
 //   { 

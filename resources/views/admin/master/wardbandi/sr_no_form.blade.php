@@ -15,6 +15,7 @@
         <div class="row"> 
             <div class="col-lg-12 form-group">
                 <label>From Sr.No.</label>
+                <span class="fa fa-asterisk"></span>
                 <input type="text" name="from_sr_no" id="from_sr_no" class="form-control" maxlength="4" onkeypress='return event.charCode >= 48 && event.charCode <= 57' required> 
             </div>
             <div class="col-lg-12 form-group">
