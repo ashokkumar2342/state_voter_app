@@ -46,8 +46,14 @@ class VoterListGenerate extends Command
         ini_set('memory_limit','999M');
         ini_set("pcre.backtrack_limit", "100000000");
 
-        $rs_fetch = DB::select(DB::raw("call `up_fetch_id_for_voterListGenerate`();"));
-        $queue_id = $rs_fetch[0]->queue_id;        
+        $queue_id = 0
+        while($queue_id == 0){
+            $rs_fetch = DB::select(DB::raw("call `up_fetch_id_for_voterListGenerate`();"));
+            $queue_id = $rs_fetch[0]->queue_id;
+            if($queue_id == 0){
+                sleep(30);
+            }
+        }
 
         while ($queue_id > 0) {
             $rs_VoterListProcessed = DB::select(DB::raw("SELECT * from `voter_list_processeds` where `id` = $queue_id limit 1;"));            
@@ -373,7 +379,6 @@ class VoterListGenerate extends Command
                                 $mpdf_wp->WriteHTML($main_page);
                             }
 
-                        
                             if ($totalRows>0){
                                 $main_page=$this->prepareWardEndDetail($mainpagedetails, $totalpage, $votercount, $votermodifiedcount, $voterdeletedcount, $totalnewrows, $totalmodifiedrows, $totaldeletedrows, 9, $rsDataListRemarks, $totalpage);
                                 $mpdf_photo->WriteHTML($main_page);
@@ -409,8 +414,14 @@ class VoterListGenerate extends Command
                 $newId=DB::select(DB::raw("UPDATE `voter_list_processeds` set `status` = 1, `finish_time` = now() where `id` = $VoterListProcessed->id limit 1;"));
             }
 
-            $rs_fetch = DB::select(DB::raw("call `up_fetch_id_for_voterListGenerate`();"));
-            $queue_id = $rs_fetch[0]->queue_id;
+            $queue_id = 0
+            while($queue_id == 0){
+                $rs_fetch = DB::select(DB::raw("call `up_fetch_id_for_voterListGenerate`();"));
+                $queue_id = $rs_fetch[0]->queue_id;
+                if($queue_id == 0){
+                    sleep(30);
+                }
+            }
         }
         
     }

@@ -1540,7 +1540,9 @@ class MasterController extends Controller
       }
       $user_id = MyFuncs::getUserId();
       $vid = intval(Crypt::decrypt($id));
-      $rs_update = DB::select(DB::raw("call `up_reset_voters_wardbandi` ($user_id, $vid);"));
+      $from_ip = MyFuncs::getIp();
+
+      $rs_update = DB::select(DB::raw("call `up_reset_voters_wardbandi` ($user_id, $vid, '$from_ip');"));
       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->Save_Result];
       return response()->json($response);
     } catch (\Exception $e) {
@@ -1803,7 +1805,9 @@ class MasterController extends Controller
         $to_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 4));
       }
 
-      $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, $booth_id, $from_sr_no, $to_sr_no, $forcefully, $data_list) as `save_remarks`;"));
+      $from_ip = MyFuncs::getIp();
+
+      $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, $booth_id, $from_sr_no, $to_sr_no, $forcefully, $data_list, '$from_ip') as `save_remarks`;"));
 
       $response=['status'=>1,'msg'=>$message[0]->save_remarks];
       return response()->json($response);
@@ -2551,7 +2555,7 @@ class MasterController extends Controller
       $from_ward = intval(Crypt::decrypt($request->from_ward));
       $to_ward = intval(Crypt::decrypt($request->to_ward));
       
-      $rs_update = DB::select(DB::raw("call `up_change_voters_wards` ($user_id, $block_id, $village_id, $from_ward, $from_booth, $from_sn, $to_sn, $to_ward, $to_booth)"));
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards` ($user_id, $block_id, $village_id, $from_ward, $from_booth, $from_sn, $to_sn, $to_ward, $to_booth);"));
       $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
       return response()->json($response);
     } catch (\Exception $e) {
@@ -2566,7 +2570,9 @@ class MasterController extends Controller
       $user_id = MyFuncs::getUserId();
       $rec_id = intval(Crypt::decrypt($id));
       $ward_id = intval(Crypt::decrypt($ward_id));
-      $rs_restore = DB::select(DB::raw("call `up_restore_ward_booth_change` ($user_id, '$id', $ward_id)"));
+
+      $from_ip = MyFuncs::getIp();
+      $rs_restore = DB::select(DB::raw("call `up_restore_ward_booth_change` ($user_id, '$id', $ward_id, '$from_ip');"));
       $rs_restore = reset($rs_restore);
 
       $response=['status'=>$rs_restore->rstatus,'msg'=>$rs_restore->rremarks];
