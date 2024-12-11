@@ -368,16 +368,16 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	    Route::get('booth-delete/{id}', 'MasterController@boothDelete')->name('admin.Master.booth.delete');
 	 
 // 	    //----------------Poll Day Time   
-// 	    Route::get('pollingDayTime', 'MasterController@pollingDayTime')->name('admin.Master.pollingDayTime');		//OK Done-------------
-// 	    Route::post('pollingDayTimeStore', 'MasterController@pollingDayTimeStore')->name('admin.Master.pollingDayTimeStore');	//OK---------------
-// 	    Route::get('pollingDayTimeList', 'MasterController@pollingDayTimeList')->name('admin.Master.pollingDayTimeList');	//OK--------------
-// 	    Route::get('pollingDayTimesignature/{path}', 'MasterController@pollingDayTimesignature')->name('admin.Master.pollingDayTimesignature');	//OK--------------
+	    Route::get('pollingDayTime', 'MasterController@pollingDayTime')->name('admin.Master.pollingDayTime');
+	    Route::get('pollingDayTimeList', 'MasterController@pollingDayTimeList')->name('admin.Master.pollingDayTimeList');
+	    Route::post('pollingDayTimeStore', 'MasterController@pollingDayTimeStore')->name('admin.Master.pollingDayTimeStore');
+	    Route::get('pollingDayTimesignature/{path}', 'MasterController@pollingDayTimesignature')->name('admin.Master.pollingDayTimesignature');
 
-// 	    Route::get('voter-slip-notes', 'MasterController@voterSlipNotes')->name('admin.Master.voter.slip.notes');
-// 	    Route::get('voter-slip-notes-show', 'MasterController@voterSlipNotesShow')->name('admin.Master.voter.slip.notes.show');
-// 	    Route::post('voter-slip-notes-store/{id?}', 'MasterController@voterSlipNotesStore')->name('admin.Master.voter.slip.notes.store');
-// 	    Route::get('voter-slip-notes-delete/{id}', 'MasterController@voterSlipNotesDelete')->name('admin.Master.voter.slip.notes.delete');
-// 	    Route::get('voter-slip-notes-edit/{id}', 'MasterController@voterSlipNotesEditForm')->name('admin.Master.voter.slip.notes.edit');
+	    Route::get('voter-slip-notes', 'MasterController@voterSlipNotes')->name('admin.Master.voter.slip.notes');
+	    Route::get('voter-slip-notes-show', 'MasterController@voterSlipNotesShow')->name('admin.Master.voter.slip.notes.show');
+	    Route::post('voter-slip-notes-store/{id}', 'MasterController@voterSlipNotesStore')->name('admin.Master.voter.slip.notes.store');
+	    Route::get('voter-slip-notes-edit/{id}', 'MasterController@voterSlipNotesEditForm')->name('admin.Master.voter.slip.notes.edit');
+	    Route::get('voter-slip-notes-delete/{id}', 'MasterController@voterSlipNotesDelete')->name('admin.Master.voter.slip.notes.delete');
 	     
 	});
     Route::group(['prefix' => 'VoterDetails'], function() {
@@ -435,7 +435,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
            Route::get('VoterListDownload', 'VoterDetailsController@VoterListDownload')->name('admin.voter.VoterListDownload');
            Route::get('BlockWiseDownloadTable', 'VoterDetailsController@BlockWiseDownloadTable')->name('admin.voter.BlockWiseDownloadTable');
            Route::get('VoterListDownloadPDF/{path}/{condition}', 'VoterDetailsController@VoterListDownloadPDF')->name('admin.voter.VoterListDownloadPDF');
-//            Route::get('processing-status', 'VoterDetailsController@processingStatus')->name('admin.voter.processing.status');		//OK ------------
+           Route::get('processing-status', 'VoterDetailsController@processingStatus')->name('admin.voter.processing.status');		//OK ------------
 
 
 //            Route::get('VidhansabhaListDownload', 'VoterDetailsController@VidhanSabhaListDownload')->name('admin.voter.VidhanSabhaListDownload');		//OK Done------------
@@ -452,17 +452,18 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //            Route::get('booth-voter-list-download/{id}', 'BoothVoterListController@boothVoterListDownload')->name('admin.booth.voter.list.download');	//OK---------
 //            Route::get('booth-voter-list-download-wop/{id}', 'BoothVoterListController@boothVoterListDownloadWOP')->name('admin.booth.voter.list.download.wop');		//OK-------------
 //     });
-//     Route::group(['prefix' => 'PrepareVoterSlip'], function() {
-//            Route::get('/', 'PrepareVoterSlipController@index')->name('admin.prepare.voter.slip');	//OK--- 
+    Route::group(['prefix' => 'PrepareVoterSlip'], function() {
+           Route::get('index', 'PrepareVoterSlipController@index')->name('admin.prepare.voter.slip');	//OK--- 
+           Route::post('PrepareVoterSlipGenerate', 'PrepareVoterSlipController@PrepareVoterSlipGenerate')->name('admin.prepare.voter.slip.generate');
+           
+           Route::get('PrepareVoterSlipDownload', 'PrepareVoterSlipController@PrepareVoterSlipDownload')->name('admin.prepare.voter.slip.download');
+           Route::get('PrepareVoterSlipDownloadResult', 'PrepareVoterSlipController@PrepareVoterSlipDownloadResult')->name('admin.prepare.voter.slip.download.result');
+           Route::get('PrepareVoterSlipResultDownload/{id}', 'PrepareVoterSlipController@PrepareVoterSlipResultDownload')->name('admin.prepare.voter.slip.result.download');
            
 //            Route::get('village-wise-ward', 'PrepareVoterSlipController@villageWiseWard')->name('admin.prepare.voter.slip.village.wise.ward');
 //            Route::get('village-wise-booth', 'PrepareVoterSlipController@villageWiseBooth')->name('admin.prepare.voter.slip.village.wise.booth');
 
-//            Route::post('PrepareVoterSlipGenerate', 'PrepareVoterSlipController@PrepareVoterSlipGenerate')->name('admin.prepare.voter.slip.generate');	//OK------
-//            Route::get('PrepareVoterSlipDownload', 'PrepareVoterSlipController@PrepareVoterSlipDownload')->name('admin.prepare.voter.slip.download');	//OK-------
-//            Route::get('PrepareVoterSlipDownloadResult', 'PrepareVoterSlipController@PrepareVoterSlipDownloadResult')->name('admin.prepare.voter.slip.download.result');	//OK----------
-//            Route::get('PrepareVoterSlipResultDownload/{id}', 'PrepareVoterSlipController@PrepareVoterSlipResultDownload')->name('admin.prepare.voter.slip.result.download');	//OK-------
-//     });
+    });
 //     Route::group(['prefix' => 'Report'], function() {
 //            Route::get('PrintVoterList', 'ReportController@PrintVoterList')->name('admin.report.PrintVoterList');
 //            Route::post('PrintVoterListGenerate', 'ReportController@PrintVoterListGenerate')->name('admin.report.PrintVoterListGenerate');
@@ -695,13 +696,13 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //                Route::get('change-ward-table', 'MasterController@claimObjAcPartSrnoChangeWardTable')->name('admin.claim.obj.ac.part.srno.changeWardTable');	//OK-----
 //                Route::post('change-ward-form-Store', 'MasterController@claimObjAcPartSrnoChangeWardFormStore')->name('admin.claim.obj.ac.part.srno.changeWardFormStore'); //OK-----
 
-//                Route::get('change-voter-ward-with-acpart-report', 'MasterController@reportClaimObjWardACPart')->name('admin.Master.change.voter.ward.with.acpart.report');	 	//OK---------------
+               Route::get('change-voter-ward-with-acpart-report', 'MasterController@reportClaimObjWardACPart')->name('admin.Master.change.voter.ward.with.acpart.report');	 	//OK---------------
 //                Route::post('change-voter-with-ward-acpart-report-pdf', 'MasterController@changeVoterWithWardACPartReportPdf')->name('admin.Master.change.voter.with.ward.acpart.report.pdf');	//OK----------
 
-//                Route::get('add-new-voter', 'MasterController@claimObjAcPartEpicNoAddNewVoter')->name('admin.claim.obj.ac.part.addnewvoter');//OK
-//                Route::get('add-new-voter-form', 'MasterController@claimObjAcPartEpicAddWardForm')->name('admin.claim.obj.ac.part.epicno.addnewvoter.form');	//OK-------------
-//                Route::get('addvoter-ward-table', 'MasterController@claimObjAcPartEpicAddVoterWardTable')->name('admin.claim.obj.ac.part.srno.addvoterWardTable');	//OK-----
-//                Route::post('addnew-ward-form-Store', 'MasterController@addNewVoterDataFromServer')->name('admin.claim.obj.ac.part.epic.addNewVoteWardFormStore'); //OK-----
+               Route::get('add-new-voter', 'MasterController@claimObjAcPartEpicNoAddNewVoter')->name('admin.claim.obj.ac.part.addnewvoter');//OK
+               Route::get('add-new-voter-form', 'MasterController@claimObjAcPartEpicAddWardForm')->name('admin.claim.obj.ac.part.epicno.addnewvoter.form');	//OK-------------
+               Route::get('addvoter-ward-table', 'MasterController@claimObjAcPartEpicAddVoterWardTable')->name('admin.claim.obj.ac.part.srno.addvoterWardTable');	//OK-----
+               Route::post('addnew-ward-form-Store', 'MasterController@addNewVoterDataFromServer')->name('admin.claim.obj.ac.part.epic.addNewVoteWardFormStore'); //OK-----
 
                
                

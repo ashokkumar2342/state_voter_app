@@ -136,6 +136,22 @@ class VoterDetailsController extends Controller
     }
   }
 
+  public function processingStatus(Request $request)
+  { 
+    try{
+      $permission_flag = MyFuncs::isPermission_route(106);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $voterlistprocesseds = DB::select(DB::raw("SELECT `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`, `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start`, `dis`.`name_e` as `d_name`, `bl`.`code` as `b_code`, `bl`.`name_e` as `b_name` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` inner join `districts` `dis` on `dis`.`id` = `vil`.`districts_id` inner join `blocks_mcs` `bl` on `bl`.`id` = `vil`.`blocks_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `status` <> 1 order by `vlp`.`id`;"));
+
+      return view('admin.master.voterlistdownload.processing_status',compact('voterlistprocesseds')); 
+    } catch (\Exception $e) {
+      $e_method = "processingStatus";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function exception_handler()
   {
     try {
@@ -199,17 +215,7 @@ class VoterDetailsController extends Controller
 
  
 
-  
 
-//   public function processingStatus(Request $request)
-//   { 
-//     try{
-
-//       $voterlistprocesseds = DB::select(DB::raw("select `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`, `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start`, `dis`.`name_e` as `d_name`, `bl`.`code` as `b_code`, `bl`.`name_e` as `b_name` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` inner join `districts` `dis` on `dis`.`id` = `vil`.`districts_id` inner join `blocks_mcs` `bl` on `bl`.`id` = `vil`.`blocks_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `status` <> 1 order by `vlp`.`id`;"));
-
-//       return view('admin.master.voterlistdownload.processing_status',compact('voterlistprocesseds')); 
-//     } catch (Exception $e) {}
-//   }
 
 //   //--Vidhan Sabha List Download
 //   public function VidhanSabhaListDownload($value='')

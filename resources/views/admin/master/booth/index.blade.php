@@ -10,7 +10,7 @@
     </div>
     <div class="card card-info">
         <div class="card-body">
-            <form action="{{ route('admin.Master.booth.store', Crypt::encrypt(0)) }}" method="post" class="add_form" no-reset="true" reset-input-text="booth_no,booth_name_english,booth_name_local,booth_no_c" select-triger="village_select_box">
+            <form action="{{ route('admin.Master.booth.store', Crypt::encrypt(0)) }}" method="post" class="add_form" no-reset="true" reset-input-text="booth_no,booth_name_english,booth_name_local,booth_no_c,booth_area_english,booth_area_local" select-triger="village_select_box">
             {{ csrf_field() }}
                 <div class="row">
                     <div class="col-lg-4 form-group">
@@ -60,11 +60,11 @@
                     </div>
                     <div class="col-lg-6 form-group">
                         <label for="exampleInputEmail1">Booth Area (English) </label>
-                        <input type="text" name="booth_area_english" id="booth_name_english" class="form-control" placeholder="" maxlength="250">
+                        <input type="text" name="booth_area_english" id="booth_area_english" class="form-control" placeholder="" maxlength="250">
                     </div>
                     <div class="col-lg-6 form-group">
                         <label for="exampleInputEmail1">Booth Area (Hindi)</label>
-                        <input type="text" name="booth_area_local" id="booth_name_local" class="form-control" placeholder="" maxlength="250">
+                        <input type="text" name="booth_area_local" id="booth_area_local" class="form-control" placeholder="" maxlength="250">
                     </div>                    
                 </div>
                 <div class="card-footer text-center">

@@ -3173,6 +3173,420 @@ class MasterController extends Controller
     }
   }
 
+  public function pollingDayTime()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(11);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.pollingDayTime.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "pollingDayTime";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }      
+  }
+
+  public function pollingDayTimeList(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(11);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $block_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $block_id = 0;
+      }
+      $PollingDayTimes = DB::select(DB::raw("SELECT * from `polling_day_time` where `block_id` = $block_id limit 1;"));
+      return view('admin.master.pollingDayTime.list',compact('PollingDayTimes'));
+    } catch (\Exception $e) {
+      $e_method = "pollingDayTimeList";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function pollingDayTimeStore(Request $request,$id=null)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(11);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[ 
+        'district' => 'required',  
+        'block' => 'required',  
+        'polling_day_time_english' => 'required', 
+        'polling_day_time_local' => 'required',
+        'signature' => 'required|image|mimes:jpeg,jpg,png|max:20',
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'polling_day_time_english.required'=> 'Please Enter Polling Day Time English',
+        'polling_day_time_local.required'=> 'Please Enter Polling Day Time Hindi',
+
+        'signature.required'=> 'Please Choose Signature Image',
+        'signature.image'=> 'Signature Should Be Image',
+        'signature.mimes'=> 'Signature Should Be In JPG/JPEG/PNG Format',
+        'signature.max'=> 'Signature Image Size Should Be Maximun of 20 KB',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $b_id = intval(Crypt::decrypt($request->block));
+      $time_e = substr(MyFuncs::removeSpacialChr($request->polling_day_time_english), 0, 500);
+      $time_l = MyFuncs::removeSpacialChr($request->polling_day_time_local);
+
+      if ($request->hasFile('signature')){
+        if($_FILES['signature']['size'] > 20*1024) {
+          $response=['status'=>0,'msg'=>'Signature Image Size cannot be more then 20 KB'];
+          return response()->json($response); 
+        }
+        $image = $request->signature;
+        $filename = $b_id.'.jpg';
+        $vpath = '/blocksign';
+        $sign_path = $vpath.'/'.$filename; 
+        $image->storeAs($vpath,$filename);
+      }else{
+        $response=['status'=>0,'msg'=>'Please Choose Signature Image'];
+        return response()->json($response);
+      }
+      $rs_save = DB::select(DB::raw("call `up_save_pollingDayTime` ($b_id, '$time_e', '$time_l', '$sign_path')"));
+      $response=['status'=>1,'msg'=>'Record Saved Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "pollingDayTimeStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function pollingDayTimesignature(Request $request, $path)
+  {  
+    $path = Crypt::decrypt($path);
+    $storagePath = storage_path('app/'.$path);              
+    $mimeType = mime_content_type($storagePath); 
+    if( ! \File::exists($storagePath)){
+      return view('error.home');
+    }
+    $headers = array(
+      'Content-Type' => $mimeType,
+      'Content-Disposition' => 'inline; '
+    );            
+    return Response::make(file_get_contents($storagePath), 200, $headers);     
+  }
+
+  public function voterSlipNotes()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(26);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.voterSlipNotes.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "voterSlipNotes";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }     
+  }
+
+  public function voterSlipNotesShow(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(26);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $d_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $d_id = 0;
+      }
+      $voterSlipNotes = DB::select(DB::raw("SELECT * from `voter_slip_notes` where `district_id` = $d_id order by `note_srno`;"));
+      return view('admin.master.voterSlipNotes.list',compact('voterSlipNotes'));
+    } catch (\Exception $e) {
+      $e_method = "voterSlipNotesShow";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function voterSlipNotesStore(Request $request, $id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(26);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[ 
+        'district' => 'required', 
+        'srno' => 'required', 
+        'notes' => 'required', 
+      ]; 
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'srno.required'=> 'Please Enter Sr. No.',
+        'notes.required'=> 'Please Enter Notes',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $rec_id = intval(Crypt::decrypt($request->id));
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $srno = intval(substr(MyFuncs::removeSpacialChr($request->srno), 0, 2));
+      $notes_text = substr(MyFuncs::removeSpacialChr($request->notes), 0, 500);
+      if ($rec_id == 0){
+        DB::select(DB::raw("INSERT into `voter_slip_notes` (`district_id`,`note_srno`,`note_text`) value($d_id, $srno, '$notes_text');"));
+      }else{
+        DB::select(DB::raw("UPDATE `voter_slip_notes` set `note_srno` = $srno, `note_text` = '$notes_text' where `id` = $rec_id;"));
+      }
+      $response=['status'=>1,'msg'=>'Record Saved Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "voterSlipNotesStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function voterSlipNotesEditForm($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(26);
+      if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      $id = intval(Crypt::decrypt($id));
+      $rs_edit = DB::select(DB::raw("SELECT * from `voter_slip_notes` where `id` = $id limit 1;"));
+      return view('admin.master.voterSlipNotes.edit',compact('rs_edit'));
+    } catch (\Exception $e) {
+      $e_method = "voterSlipNotesEditForm";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function voterSlipNotesDelete($id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(26);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $id = intval(Crypt::decrypt($id));
+      $voterSlipNotes = DB::select(DB::raw("DELETE from `voter_slip_notes` where `id` = $id limit 1;"));        
+      $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "voterSlipNotesDelete";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartEpicNoAddNewVoter()
+  {
+    try {
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.claimObjAcPartSrno.addVoter.index',compact('rs_district', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartEpicNoAddNewVoter";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartEpicAddWardForm(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->id));
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);"));
+      $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+      $importTypes = DB::select(DB::raw("SELECT * from `import_type`"));
+      return view('admin.master.claimObjAcPartSrno.addVoter.select_box_page',compact('WardVillages', 'assemblyParts', 'importTypes', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartEpicAddWardForm";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function claimObjAcPartEpicAddVoterWardTable(Request $request)
+  {
+    try{
+      $block_id = intval(Crypt::decrypt($request->block_id));
+      $part_id = intval(Crypt::decrypt($request->part_id));
+      $data_list_id = 1;
+      
+      $results= DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
+      if(count($results) == 0){
+        $voter_list_id  = 0;
+      }else{
+        $voter_list_id  = $results[0]->id;
+      }
+    
+    
+      $refreshdata = MyFuncs::Refresh_data_voterEntry();
+      $results= DB::select(DB::raw("SELECT `vt`.`id`, `vt`.`name_e`, `vt`.`father_name_e`, `vt`.`sr_no`, `vt`.`print_sr_no`, ifnull(concat(`vil`.`name_e`, ' - ', `wv`.`ward_no`), '') as `vil_ward`, case ifnull(`svd`.`ward_id`,0) when 0 then `vt`.`ward_id` else `svd`.`ward_id` end as `ward_id`, ifnull(concat(`fv`.`name_e`, ' - ', `fw`.`ward_no`),'') as `from_vil_ward`, `vt`.`status`, `vt`.`voter_card_no` from `voters` `vt` left join `villages` `vil` on `vil`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `suppliment_voters_deleted` `svd` on `svd`.`voters_id` = `vt`.`id` and `svd`.`suppliment_no` = $voter_list_id left join `villages` `fv` on `fv`.`id` = `svd`.`village_id` left join `ward_villages` `fw` on `fw`.`id` = `svd`.`ward_id` where `vt`.`assembly_part_id` = $part_id and `vt`.`suppliment_no` = $voter_list_id order by `vt`.`sr_no`;"));  
+      return view('admin.master.claimObjAcPartSrno.changeWard.table',compact('results', 'refreshdata'));
+    } catch (\Exception $e) {
+      $e_method = "claimObjAcPartEpicAddVoterWardTable";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function addNewVoterDataFromServer(Request $request)
+  {
+    try {
+      $rules=[ 
+        'states' => 'required',  
+        'district' => 'required',  
+        'block' => 'required',  
+        'village' => 'required',
+        'assembly_part' => 'required',  
+        'epic_no' => 'required', 
+        'to_ward' => 'required',      
+      ];
+
+      $validator = Validator::make($request->all(),$rules);
+      if ($validator->fails()) {
+          $errors = $validator->errors()->all();
+          $response=array();
+          $response["status"]=0;
+          $response["msg"]=$errors[0];
+          return response()->json($response);// response as json
+      }
+
+      $district_id = intval(Crypt::decrypt($request->district));
+
+      $epic_no = trim($request->epic_no);
+      $epic_no = str_replace("\\", "", $epic_no);
+      $epic_no = str_replace("\'", "", $epic_no);
+      
+      // if(empty($request->to_booth)){
+        $to_booth = 0;
+      //   $response=['status'=>0,'msg'=>'Plz Select Booth No.'];
+      //   return response()->json($response);
+      // }else{
+      //   $to_booth = $request->to_booth;
+      // }
+
+      $assembly_part = intval(Crypt::decrypt($request->assembly_part));
+
+      $assemblyPart=DB::select(DB::raw("SELECT * from `assembly_parts` where `id` = $assembly_part limit 1;"));
+      $ac_part_id = $assembly_part;
+      $part_no = $assemblyPart[0]->part_no;
+      $ac_id = $assemblyPart[0]->assembly_id;
+      $assembly=DB::select(DB::raw("SELECT * from `assemblys` where `id` = $ac_id and `district_id` = $district_id limit 1;"));
+      $ac_code = $assembly[0]->code;
+
+      
+      $data_import_id = 1;
+
+      $dirpath = Storage_path() . '/app/vimage/'.$data_import_id.'/'.$ac_id.'/'.$ac_part_id;
+      $vpath = '/vimage/'.$data_import_id.'/'.$ac_id.'/'.$ac_part_id;
+      @mkdir($dirpath, 0755, true);
+
+      $datas = DB::connection('sqlsrv')->select("select top 1 SlNoInPart, C_House_no, C_House_No_V1, FM_Name_EN + ' ' + IsNULL(LastName_EN,'') as name_en, FM_Name_V1 + ' ' + isNULL(LastName_V1,'') as name_l, RLN_Type, RLN_FM_NM_EN + ' ' + IsNULL(RLN_L_NM_EN,'') as fname_en, RLN_FM_NM_V1 + ' ' + IsNULL(RLN_L_NM_V1,'') as FName_L, EPIC_No, STATUS_TYPE, GENDER, AGE, EMAIL_ID, MOBILE_NO, PHOTO from eroll where ac_no =$ac_code and part_no =$part_no and EPIC_No = '$epic_no' ");
+          
+      
+      foreach ($datas as $key => $value) { 
+        $o_village_id = 0;
+        $o_ward_id = 0;
+        $o_print_srno = 0;
+        $o_suppliment = 0;
+        $o_booth_id = 0;
+        $o_district_id = $district_id;
+        
+        $o_status = 0;  
+                
+        $name_l=str_replace('਍', '', $value->name_l);
+        $name_l=str_replace('\'', '', $name_l);
+
+        $name_e=substr(str_replace('਍', '', $value->name_en),0,49);
+        $name_e=substr(str_replace('\'', '', $name_e),0,49);
+       
+        $f_name_e=substr(str_replace('਍', '', $value->fname_en),0,49);
+        $f_name_e=substr(str_replace('\'', '', $f_name_e),0,49);
+
+        $f_name_l=str_replace('਍', '', $value->FName_L);
+        $f_name_l=str_replace('\'', '', $f_name_l);
+
+        if ($value->RLN_Type=='F') {
+          $relation=1;  
+        }
+        elseif ($value->RLN_Type=='G') {
+          $relation=2;  
+        } 
+        elseif ($value->RLN_Type=='H') {
+          $relation=3;  
+        } 
+        elseif ($value->RLN_Type=='M') {
+          $relation=4;  
+        } 
+        elseif ($value->RLN_Type=='O') {
+          $relation=5;  
+        } 
+        elseif ($value->RLN_Type=='W') {
+          $relation=6;  
+        }
+        if ($value->GENDER=='M') {
+          $gender_id=1;  
+        }
+        elseif ($value->GENDER=='F') {
+          $gender_id=2;  
+        }else{
+          $gender_id=3;  
+        }  
+        $house_e = substr(str_replace('\\',' ', $value->C_House_no),0,49);
+        $house_e = substr(str_replace('\'',' ', $house_e),0,49);
+
+        $house_l = str_replace("\\",' ', $value->C_House_No_V1);
+        $house_l = str_replace('\'',' ', $house_l);
+        
+        $newId = DB::select(DB::raw("call up_save_voter_detail($o_district_id, $ac_id, $ac_part_id, $value->SlNoInPart, '$value->EPIC_No', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $value->AGE, '$value->MOBILE_NO', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '*');"));
+        
+        $image=$value->PHOTO;
+        $name = $value->SlNoInPart;
+        $image= \Storage::disk('local')->put($vpath.'/'.$name.'.jpg', $image);
+      
+
+        $admin = Auth::guard('admin')->user();
+        $userid = $admin->id;
+        $block_id = $request->block;
+        $village_id = $request->village;
+        $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($userid, $block_id, $village_id, $request->assembly_part, $data_import_id, $value->SlNoInPart, $value->SlNoInPart, $request->to_ward, $to_booth)"));
+        $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
+        return response()->json($response);  
+        
+      }
+
+      if(count($datas) == 0){
+        $response=['status'=>0,'msg'=>'No Data Found'];
+        return response()->json($response);
+      } 
+    } catch (\Exception $e) {
+      $e_method = "addNewVoterDataFromServer";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    } 
+  }
+
   public function exception_handler()
   {
     try {
@@ -3681,157 +4095,24 @@ class MasterController extends Controller
 
 // //------------Poll Day Time Set ----------------
 
-// public function pollingDayTime()
-// {
-//   try {
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;  
-//     $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($userid, 0);"));
-      
-//     return view('admin.master.pollingDayTime.index',compact('Districts'));
-//   } catch (Exception $e) {}      
-// }
 
-// public function pollingDayTimeList(Request $request)
-// {
-//   try {
-//     $PollingDayTimes = DB::select(DB::raw("select * from `polling_day_time` where `block_id` = $request->id limit 1;"));
-      
-//     return view('admin.master.pollingDayTime.list',compact('PollingDayTimes'));
-//   } catch (Exception $e) {}
-// }
 
-// public function pollingDayTimesignature(Request $request,$path)
-//     {  
-//       $path=Crypt::decrypt($path);
-//       $storagePath = storage_path('app/'.$path);              
-//       $mimeType = mime_content_type($storagePath); 
-//       if( ! \File::exists($storagePath)){
 
-//         return view('error.home');
-//       }
-//       $headers = array(
-//         'Content-Type' => $mimeType,
-//         'Content-Disposition' => 'inline; '
-//       );            
-//       return Response::make(file_get_contents($storagePath), 200, $headers);     
-//     }
 
-// public function pollingDayTimeStore(Request $request,$id=null)
-// { 
-//   $rules=[ 
-//     'block' => 'required',  
-//     'polling_day_time_english' => 'required', 
-//     'polling_day_time_local' => 'required', 
-//     'signature' => 'required', 
-//   ];
-
-//   $validator = Validator::make($request->all(),$rules);
-//   if ($validator->fails()) {
-//     $errors = $validator->errors()->all();
-//     $response=array();
-//     $response["status"]=0;
-//     $response["msg"]=$errors[0];
-//     return response()->json($response);// response as json
-//   }
   
-//   try {  
-//     $dirpath = Storage_path() . '/app/blocksign';
-//     $vpath = '/blocksign';
-//     @mkdir($dirpath, 0755, true);
-//     chmod($dirpath, 0755);
-//     $name =$request->block;
-    
-//     $b_id = $request->block;
-//     $time_e = trim(str_replace('\'', '', $request->polling_day_time_english));
-//     $time_l = trim(str_replace('\'', '', $request->polling_day_time_local));
-//     $sign_path = $vpath.'/'.$name.'.jpg';
 
-//     //--start-image-save
-//     $file =$request->signature;
-//     $image = file_get_contents($file); 
-//     $image= \Storage::put($sign_path, $image);
-//     // chmod($sign_path, 0755);
-//     //--end-image-save
-    
-//     DB::select(DB::raw("call `up_save_pollingDayTime` ($b_id, '$time_e', '$time_l', '$sign_path')"));
-//     $response=['status'=>1,'msg'=>'Record Saved Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
+  
 
 // //-----------Voter slip notes -------------------
-// public function voterSlipNotes()
-// {
-//   try {
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;  
-//     $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($userid, 0);"));
-      
-//     return view('admin.master.voterSlipNotes.index',compact('Districts'));
-//   } catch (Exception $e) {}      
-// }
+  
 
-// public function voterSlipNotesShow(Request $request)
-// {
-//   try {
-//     $voterSlipNotes = DB::select(DB::raw("select * from `voter_slip_notes` where `district_id` = $request->id order by `note_srno`;"));
-      
-//     return view('admin.master.voterSlipNotes.list',compact('voterSlipNotes'));
-//   } catch (Exception $e) {}
-// }
 
-// public function voterSlipNotesStore(Request $request,$id=null)
-// { 
-//   $rules=[ 
-//     'district' => 'required', 
-//     'notes' => 'required', 
-//     'srno' => 'required', 
-//   ]; 
-//   $validator = Validator::make($request->all(),$rules);
-//   if ($validator->fails()) {
-//     $errors = $validator->errors()->all();
-//     $response=array();
-//     $response["status"]=0;
-//     $response["msg"]=$errors[0];
-//     return response()->json($response);// response as json
-//   } 
-//   try {  
-//     $record_id = 0;
-//     $notes_text = trim(str_replace('\'', '', $request->notes));
-//     if (!empty($id)){
-//       $record_id = $id;
-//     }
-//     if ($record_id == 0){
-//       DB::select(DB::raw("insert into `voter_slip_notes` (`district_id`,`note_srno`,`note_text`) value('$request->district','$request->srno','$notes_text');"));
-//     }else{
-//       DB::select(DB::raw("update `voter_slip_notes` set `note_srno` = '$request->srno', `note_text` = '$notes_text' where `id` = $record_id;"));
-//     }
-//     $response=['status'=>1,'msg'=>'Record Saved Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
-
-// public function voterSlipNotesDelete($id)
-// {
-//   try {
-//     $voterSlipNotes = DB::select(DB::raw("delete from `voter_slip_notes` where `id` = $id limit 1;"));
-      
-//     $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
-//     return response()->json($response);
-//   } catch (Exception $e) {}
-// }
-
-// public function voterSlipNotesEditForm($id)
-//   {
-//     try {
-//       $rs_edit = DB::select(DB::raw("select * from `voter_slip_notes` where `id` = $id limit 1;"));
-//       return view('admin.master.voterSlipNotes.edit',compact('rs_edit'));
-//     } catch (Exception $e) {}
-//   }
+  
 
 
 // //-----------Voter List Master -------------------
+
+
 
 // public function voterImportType()
 // {
@@ -5717,187 +5998,6 @@ class MasterController extends Controller
 
 //   } 
 
-
-//   public function claimObjAcPartEpicNoAddNewVoter()
-//   {
-//     try {
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.claimObjAcPartSrno.addVoter.index',compact('States', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function claimObjAcPartEpicAddWardForm(Request $request)
-//   {
-//     try{  
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ('$request->id','0')"));
-//       $assemblyParts = DB::select(DB::raw("  select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $request->id order by `ac`.`code`, `ap`.`part_no`;"));
-//       $importTypes = DB::select(DB::raw("select * from `import_type`"));
-//       return view('admin.master.claimObjAcPartSrno.addVoter.select_box_page',compact('WardVillages','assemblyParts','importTypes', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function claimObjAcPartEpicAddVoterWardTable(Request $request)
-//   {
-//     $block_id = $request->block_id;
-//     $part_id = $request->part_id;
-//     $data_list_id = 1;
-//     if($part_id == "null"){
-//       $part_id = 0;
-//     }
-//     if($data_list_id == "null"){
-//       $data_list_id = 0;
-//     }
-//     if($block_id == "null"){
-//       $block_id = 0;
-//     }
-//     $results= DB::select(DB::raw("select * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
-//     if(count($results) == 0){
-//       $voter_list_id  = 0;
-//     }else{
-//       $voter_list_id  = $results[0]->id;
-//     }
-    
-//     try{
-//       $refreshdata = MyFuncs::Refresh_data_voterEntry();
-//       $results= DB::select(DB::raw("select `vt`.`id`, `vt`.`name_e`, `vt`.`father_name_e`, `vt`.`sr_no`, `vt`.`print_sr_no`, ifnull(concat(`vil`.`name_e`, ' - ', `wv`.`ward_no`), '') as `vil_ward`, case ifnull(`svd`.`ward_id`,0) when 0 then `vt`.`ward_id` else `svd`.`ward_id` end as `ward_id`, ifnull(concat(`fv`.`name_e`, ' - ', `fw`.`ward_no`),'') as `from_vil_ward`, `vt`.`status`, `vt`.`voter_card_no` from `voters` `vt` left join `villages` `vil` on `vil`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `suppliment_voters_deleted` `svd` on `svd`.`voters_id` = `vt`.`id` and `svd`.`suppliment_no` = $voter_list_id left join `villages` `fv` on `fv`.`id` = `svd`.`village_id` left join `ward_villages` `fw` on `fw`.`id` = `svd`.`ward_id` where `vt`.`assembly_part_id` = $part_id and `vt`.`suppliment_no` = $voter_list_id order by `vt`.`sr_no`;"));  
-//       return view('admin.master.claimObjAcPartSrno.changeWard.table',compact('results', 'refreshdata'));
-//     } catch (Exception $e) {}
-//   }
-
-
-//   public function addNewVoterDataFromServer(Request $request)
-//   { 
-//     $rules=[ 
-//       'states' => 'required',  
-//       'district' => 'required',  
-//       'block' => 'required',  
-//       'village' => 'required',
-//       'assembly_part' => 'required',  
-//       'epic_no' => 'required', 
-//       'to_ward' => 'required',      
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//         $errors = $validator->errors()->all();
-//         $response=array();
-//         $response["status"]=0;
-//         $response["msg"]=$errors[0];
-//         return response()->json($response);// response as json
-//     }
-
-//     $district_id = $request->district;
-
-//     $epic_no = trim($request->epic_no);
-//     $epic_no = str_replace("\\", "", $epic_no);
-//     $epic_no = str_replace("\'", "", $epic_no);
-    
-//     // if(empty($request->to_booth)){
-//       $to_booth = 0;
-//     //   $response=['status'=>0,'msg'=>'Plz Select Booth No.'];
-//     //   return response()->json($response);
-//     // }else{
-//     //   $to_booth = $request->to_booth;
-//     // }
-
-//     $assembly_part = $request->assembly_part;
-
-//     $assemblyPart=DB::select(DB::raw("select * from `assembly_parts` where `id` = $assembly_part limit 1;"));
-//     $ac_part_id = $assembly_part;
-//     $part_no = $assemblyPart[0]->part_no;
-//     $ac_id = $assemblyPart[0]->assembly_id;
-//     $assembly=DB::select(DB::raw("select * from `assemblys` where `id` = $ac_id and `district_id` = $district_id limit 1;"));
-//     $ac_code = $assembly[0]->code;
-
-    
-//     $data_import_id = 1;
-
-//     $dirpath = Storage_path() . '/app/vimage/'.$data_import_id.'/'.$ac_id.'/'.$ac_part_id;
-//     $vpath = '/vimage/'.$data_import_id.'/'.$ac_id.'/'.$ac_part_id;
-//     @mkdir($dirpath, 0755, true);
-
-//     $datas = DB::connection('sqlsrv')->select("select top 1 SlNoInPart, C_House_no, C_House_No_V1, FM_Name_EN + ' ' + IsNULL(LastName_EN,'') as name_en, FM_Name_V1 + ' ' + isNULL(LastName_V1,'') as name_l, RLN_Type, RLN_FM_NM_EN + ' ' + IsNULL(RLN_L_NM_EN,'') as fname_en, RLN_FM_NM_V1 + ' ' + IsNULL(RLN_L_NM_V1,'') as FName_L, EPIC_No, STATUS_TYPE, GENDER, AGE, EMAIL_ID, MOBILE_NO, PHOTO from eroll where ac_no =$ac_code and part_no =$part_no and EPIC_No = '$epic_no' ");
-        
-    
-//     foreach ($datas as $key => $value) { 
-//       $o_village_id = 0;
-//       $o_ward_id = 0;
-//       $o_print_srno = 0;
-//       $o_suppliment = 0;
-//       $o_booth_id = 0;
-//       $o_district_id = $district_id;
-      
-//       $o_status = 0;  
-              
-//       $name_l=str_replace('਍', '', $value->name_l);
-//       $name_l=str_replace('\'', '', $name_l);
-
-//       $name_e=substr(str_replace('਍', '', $value->name_en),0,49);
-//       $name_e=substr(str_replace('\'', '', $name_e),0,49);
-     
-//       $f_name_e=substr(str_replace('਍', '', $value->fname_en),0,49);
-//       $f_name_e=substr(str_replace('\'', '', $f_name_e),0,49);
-
-//       $f_name_l=str_replace('਍', '', $value->FName_L);
-//       $f_name_l=str_replace('\'', '', $f_name_l);
-
-//       if ($value->RLN_Type=='F') {
-//         $relation=1;  
-//       }
-//       elseif ($value->RLN_Type=='G') {
-//         $relation=2;  
-//       } 
-//       elseif ($value->RLN_Type=='H') {
-//         $relation=3;  
-//       } 
-//       elseif ($value->RLN_Type=='M') {
-//         $relation=4;  
-//       } 
-//       elseif ($value->RLN_Type=='O') {
-//         $relation=5;  
-//       } 
-//       elseif ($value->RLN_Type=='W') {
-//         $relation=6;  
-//       }
-//       if ($value->GENDER=='M') {
-//         $gender_id=1;  
-//       }
-//       elseif ($value->GENDER=='F') {
-//         $gender_id=2;  
-//       }else{
-//         $gender_id=3;  
-//       }  
-//       $house_e = substr(str_replace('\\',' ', $value->C_House_no),0,49);
-//       $house_e = substr(str_replace('\'',' ', $house_e),0,49);
-
-//       $house_l = str_replace("\\",' ', $value->C_House_No_V1);
-//       $house_l = str_replace('\'',' ', $house_l);
-      
-//       $newId = DB::select(DB::raw("call up_save_voter_detail($o_district_id, $ac_id, $ac_part_id, $value->SlNoInPart, '$value->EPIC_No', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $value->AGE, '$value->MOBILE_NO', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '*');"));
-      
-//       $image=$value->PHOTO;
-//       $name = $value->SlNoInPart;
-//       $image= \Storage::disk('local')->put($vpath.'/'.$name.'.jpg', $image);
-    
-
-//       $admin = Auth::guard('admin')->user();
-//       $userid = $admin->id;
-//       $block_id = $request->block;
-//       $village_id = $request->village;
-//       $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($userid, $block_id, $village_id, $request->assembly_part, $data_import_id, $value->SlNoInPart, $value->SlNoInPart, $request->to_ward, $to_booth)"));
-//       $response=['status'=>$rs_update[0]->s_status,'msg'=>$rs_update[0]->result];
-//       return response()->json($response);  
-      
-//     }
-
-//     if(count($datas) == 0){
-//       $response=['status'=>0,'msg'=>'No Data Found'];
-//       return response()->json($response);
-//     }  
-      
-//   }
 
 
 
