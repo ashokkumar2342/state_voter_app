@@ -1101,6 +1101,8 @@ class MasterController extends Controller
       $booth_a = substr(MyFuncs::removeSpacialChr($request->booth_no_c), 0, 1);
       $booth_e = substr(MyFuncs::removeSpacialChr($request->booth_name_english), 0, 100);
       $booth_h = MyFuncs::removeSpacialChr($request->booth_name_local);
+      $booth_area_e = substr(MyFuncs::removeSpacialChr($request->booth_area_english), 0, 250);
+      $booth_area_l = MyFuncs::removeSpacialChr($request->booth_area_local);
 
       $v_id = 0;
       if($rec_id == 0){
@@ -1120,7 +1122,7 @@ class MasterController extends Controller
         return response()->json($response);
       }
 
-      $rs_update = DB::select(DB::raw("call `up_save_polling_booths`($rec_id, $v_id, '$booth_no', '$booth_e', '$booth_h', '$booth_a');"));
+      $rs_update = DB::select(DB::raw("call `up_save_polling_booths`($rec_id, $v_id, '$booth_no', '$booth_e', '$booth_h', '$booth_a', '$booth_area_e', '$booth_area_l');"));
       $response=['status'=>$rs_update[0]->save_status,'msg'=>$rs_update[0]->remarks];
       return response()->json($response);
     } catch (\Exception $e) {

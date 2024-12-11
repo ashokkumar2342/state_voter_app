@@ -8,6 +8,8 @@
                         <th>Booth No.</th>
                         <th>Booth Name (English)</th>
                         <th>Booth Name (Hindi)</th>
+                        <th>Booth Area (English)</th>
+                        <th>Booth Area (Hindi)</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -21,6 +23,8 @@
                             <td>{{ $rs_val->booth_no }}  {{ $rs_val->booth_no_c }}</td>
                             <td>{{ $rs_val->name_e }}</td>
                             <td>{{ $rs_val->name_l }}</td>
+                            <td>{{ $rs_val->booth_area_e }}</td>
+                            <td>{{ $rs_val->booth_area_l }}</td>
                             <td class="text-nowrap">
                                 <button type="button" onclick="callPopupLarge(this,'{{ route('admin.Master.booth.edit', Crypt::encrypt($rs_val->id)) }}')" class="btn btn-info btn-sm"><i class="fa fa-edit"></i> Edit</button>
 

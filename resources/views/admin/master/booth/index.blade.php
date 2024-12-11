@@ -57,6 +57,14 @@
                         <label for="exampleInputEmail1">Booth Name (Hindi)</label>
                         <span class="fa fa-asterisk"></span>
                         <input type="text" name="booth_name_local" id="booth_name_local" class="form-control" placeholder="" maxlength="100" required>
+                    </div>
+                    <div class="col-lg-6 form-group">
+                        <label for="exampleInputEmail1">Booth Area (English) </label>
+                        <input type="text" name="booth_area_english" id="booth_name_english" class="form-control" placeholder="" maxlength="250">
+                    </div>
+                    <div class="col-lg-6 form-group">
+                        <label for="exampleInputEmail1">Booth Area (Hindi)</label>
+                        <input type="text" name="booth_area_local" id="booth_name_local" class="form-control" placeholder="" maxlength="250">
                     </div>                    
                 </div>
                 <div class="card-footer text-center">
