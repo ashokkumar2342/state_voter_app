@@ -129,7 +129,12 @@ class VoterDetailsController extends Controller
       if($condition == 'p'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_p;} 
       elseif($condition == 'w'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_w;} 
       elseif($condition == 'h'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_h;} 
-      return response()->file($documentUrl);          
+      
+      if(file_exists($documentUrl)){                
+        return response()->file($documentUrl);
+      }else{
+        return 'File Not Found';
+      }          
     } catch (\Exception $e) {
       $e_method = "VoterListDownloadPDF";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());

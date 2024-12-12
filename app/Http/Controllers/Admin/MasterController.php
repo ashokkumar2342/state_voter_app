@@ -1520,9 +1520,13 @@ class MasterController extends Controller
         $to_sr_no = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 4));
       }
 
-      $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, 0, $from_sr_no, $to_sr_no, $forcefully, $data_list) as `save_remarks`;"));
+      $from_ip = MyFuncs::getIp();
+
+      $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, 0, $from_sr_no, $to_sr_no, $forcefully, $data_list, '$from_ip') as `save_remarks`;"));
+
+      $results = explode(":", $message[0]->save_remarks);
       
-      $response=['status'=>1,'msg'=>$message[0]->save_remarks];  
+      $response=['status'=>$results[0],'msg'=>$results[1]];  
       return response()->json($response);
     } catch (\Exception $e) {
       $e_method = "WardBandiStore";
@@ -1599,9 +1603,9 @@ class MasterController extends Controller
         $voterReports = DB::select(DB::raw("select `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l` from `voters` `v` Where `v`.`assembly_part_id` = $ac_part_id and `v`.`village_id` = 0 order By `v`.`sr_no` ;")); 
       }elseif ($request->report==3) {
         $village = DB::select(DB::raw("SELECT * from `villages` Where `id` = $village_id limit 1;"));
-        $wardVillage = DB::select(DB::raw("SELECT * from `ward_villages` Where `id` = $request->ward_id limit 1;"));
+        $wardVillage = DB::select(DB::raw("SELECT * from `ward_villages` Where `id` = $ward_id limit 1;"));
         
-        $voterReports = DB::select(DB::raw("SELECT `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` = $request->ward_id order By `v`.`sr_no`;"));
+        $voterReports = DB::select(DB::raw("SELECT `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` = $ward_id order By `v`.`sr_no`;"));
       } 
       
       $path=Storage_path('fonts/');
@@ -1689,11 +1693,15 @@ class MasterController extends Controller
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $data_list_id = 0;
       $part_id = 0;
-      if ($request->data_list_id!='null'){
-        $data_list_id = intval(Crypt::decrypt($request->data_list_id));  
+      if ($request->data_list_id=='null' || empty($request->data_list_id)){
+        $data_list_id = 0;
+      }else{
+        $data_list_id = intval(Crypt::decrypt($request->data_list_id));
       }
-      if ($request->part_id!='null'){
-        $part_id = intval(Crypt::decrypt($request->part_id));  
+      if ($request->part_id=='null' || empty($request->part_id)){
+        $part_id = 0;
+      }else{
+        $part_id = intval(Crypt::decrypt($request->part_id));
       }
       $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `wv`.`ward_no`, `po`.`booth_no`, `v`.`name_e`, `v`.`father_name_e`, `v`.`voter_card_no`, `v`.`village_id` from `voters` `v` Left join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Left Join `polling_booths` `po` on `po`.`id` = `v`.`Booth_Id`  Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id Order By `v`.`sr_no`;"));  
       return view('admin.master.wardbandiwithbooth.voter_list',compact('rs_voterLists', 'refreshdata'));
@@ -1809,7 +1817,9 @@ class MasterController extends Controller
 
       $message = DB::select(DB::raw("SELECT `uf_ward_bandi_voters` ($user_id, $ac_part_id, $ward_id, $booth_id, $from_sr_no, $to_sr_no, $forcefully, $data_list, '$from_ip') as `save_remarks`;"));
 
-      $response=['status'=>1,'msg'=>$message[0]->save_remarks];
+      $results = explode(":", $message[0]->save_remarks);
+      
+      $response=['status'=>$results[0],'msg'=>$results[1]];
       return response()->json($response);
     } catch (\Exception $e) {
       $e_method = "wardBandiWithBoothStore";

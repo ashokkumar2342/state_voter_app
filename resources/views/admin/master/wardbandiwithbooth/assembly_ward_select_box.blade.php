@@ -10,7 +10,7 @@
                 <div class="col-lg-12 form-group">   
                     <label>Data List</label>
                     <span class="fa fa-asterisk"></span>
-                    <select name="data_list" id="data_list" class="form-control select2" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.AssemblywisevoterMapped') }}'+'?data_list_id='+this.value+'&part_id='+$('#assembly_part_select_box').val(),'result_div_id');disablewardNo()" required>
+                    <select name="data_list" id="data_list" class="form-control select2" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.AssemblywisevoterMapped') }}'+'?data_list_id='+$('#data_list').val()+'&part_id='+$('#assembly_part_select_box').val(),'result_div_id');disablewardNo()" required>
                         <option selected disabled>Select Data List</option>
                         @foreach ($rs_dataList as $dataList)
                         <option value="{{ Crypt::encrypt($dataList->id) }}">{{ $dataList->description or '' }}</option> 
@@ -20,8 +20,8 @@
                 <div class="col-lg-12 form-group">   
                     <label>Assembly-Part</label>
                     <span class="fa fa-asterisk"></span>
-                    <select name="assembly_part" id="assembly_part_select_box" class="form-control select2" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.AssemblywisevoterMapped') }}'+'?data_list_id='+$('#data_list').val()+'&part_id='+this.value,'result_div_id');disablewardNo()" required>
-                        <option selected disabled>Select Assembly-Part</option>
+                    <select name="assembly_part" id="assembly_part_select_box" class="form-control select2" data-table-new-without-pagination="ajax_data_table" onchange="callAjax(this,'{{ route('admin.Master.AssemblywisevoterMapped') }}'+'?data_list_id='+$('#data_list').val()+'&part_id='+$('#assembly_part_select_box').val(),'result_div_id');disablewardNo()" required>
+                        <option selected disabled >Select Assembly-Part</option>
                         @foreach ($assemblyParts as $assemblyPart)
                             <option value="{{ Crypt::encrypt($assemblyPart->id) }}">{{ $assemblyPart->code or '' }}-{{ $assemblyPart->part_no }}</option> 
                         @endforeach 
