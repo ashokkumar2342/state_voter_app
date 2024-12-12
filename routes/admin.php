@@ -381,7 +381,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	     
 	});
     Route::group(['prefix' => 'VoterDetails'], function() {
-//            Route::get('/', 'VoterDetailsController@index')->name('admin.voter.details');	//OK---------
+           Route::get('index', 'VoterDetailsController@index')->name('admin.voter.details');	//OK---------
            
            Route::get('districtWiseAssembly', 'VoterDetailsController@districtWiseAssembly')->name('admin.voter.districtWiseAssembly');		//OK-------------
 
@@ -389,16 +389,16 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 //            Route::get('AssemblyWisePartNo', 'VoterDetailsController@AssemblyWisePartNo')->name('admin.voter.AssemblyWisePartNo');	//OK------------
            
-//            Route::get('VillageWiseWard', 'VoterDetailsController@VillageWiseWard')->name('admin.voter.VillageWiseWard');		//OK---------
+           Route::get('VillageWiseWard', 'VoterDetailsController@VillageWiseWard')->name('admin.voter.VillageWiseWard');		//OK---------
            Route::get('VillageWiseWardAll', 'MasterController@VillageWiseWardAll')->name('admin.voter.VillageWiseWardAll');		//OK---------
-//            Route::get('VillageWiseAcParts', 'VoterDetailsController@VillageWiseAcParts')->name('admin.voter.VillageWiseAcParts');		//OK---------
+           Route::get('VillageWiseAcParts', 'VoterDetailsController@VillageWiseAcParts')->name('admin.voter.VillageWiseAcParts');		//OK---------
 
-//            Route::get('VillageWiseVoterList', 'VoterDetailsController@VillageWiseVoterList')->name('admin.voter.VillageWiseVoterList');	//OK---------
+           Route::get('VillageWiseVoterList', 'VoterDetailsController@VillageWiseVoterList')->name('admin.voter.VillageWiseVoterList');	//OK---------
 
 
-//            Route::get('calculateAge', 'VoterDetailsController@calculateAge')->name('admin.voter.calculateAge');	//OK---------
-//            Route::get('NameConvert/{condition_type}', 'VoterDetailsController@NameConvert')->name('admin.voter.NameConvert');	//OK-----
-//            Route::post('store', 'VoterDetailsController@store')->name('admin.voter.details.store');		//OK-----
+           Route::get('calculateAge', 'VoterDetailsController@calculateAge')->name('admin.voter.calculateAge');	//OK---------
+           Route::get('NameConvert/{condition_type}', 'VoterDetailsController@NameConvert')->name('admin.voter.NameConvert');	//OK-----
+           Route::post('store', 'VoterDetailsController@store')->name('admin.voter.details.store');		//OK-----
 
 //            Route::get('voterEdit/{id}', 'VoterDetailsController@voterListEdit')->name('admin.voter.voteredit');
 //            Route::post('voterUpdate/{id}', 'VoterDetailsController@voterUpdate')->name('admin.voter.voterUpdate');

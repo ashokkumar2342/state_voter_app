@@ -44,18 +44,18 @@ class VoterDetailsController extends Controller
     }
   }
 
-  // public function VillageWiseWard(Request $request)
-  // {
-  //   try{
-  //     $r_id = 0;
-  //     if(!empty($request->id)){
-  //       $r_id = $request->id;
-  //     }
-  //     $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access`($r_id, 1);"));
-  //     // $WardVillages = DB::select(DB::raw("select * from `ward_villages` where `village_id` = $r_id order by `ward_no`;"));
-  //     return view('admin.voterDetails.select_ward_no',compact('WardVillages')); 
-  //   } catch (Exception $e) {}
-  // }
+  public function VillageWiseWard(Request $request)
+  {
+    try{
+      $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
+      $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access`($village_id, 1);"));
+      return view('admin.voterDetails.select_ward_no',compact('WardVillages')); 
+    } catch (Exception $e) {}
+  }
 
   public function PrepareVoterListBoothWise()
   {
@@ -148,6 +148,238 @@ class VoterDetailsController extends Controller
       return view('admin.master.voterlistdownload.processing_status',compact('voterlistprocesseds')); 
     } catch (\Exception $e) {
       $e_method = "processingStatus";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function index()
+  {
+    try {
+      $rs_district = SelectBox::get_district_access_list_v1();
+      $genders= DB::select(DB::raw("SELECT * from `genders` order by `id`;"));  
+      $Relations= DB::select(DB::raw("SELECT * from `relation` order by `relation_e`;"));  
+      return view('admin.voterDetails.index',compact('rs_district', 'genders', 'Relations'));
+    } catch (\Exception $e) {
+      $e_method = "index";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }   
+  }
+
+  public function VillageWiseVoterList(Request $request)
+  {
+    try {
+      $village_id = intval(Crypt::decrypt($request->village_id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
+      $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`voter_card_no`, `v`.`name_e`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no`, `v`.`village_id` from `voters` `v` inner join `villages` `vil` on `vil`.`id` = `v`.`village_id` inner join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` where `v`.`status` = 1 and `v`.`source` = 'n' and `v`.`village_id` = $village_id;"));
+      return view('admin.voterDetails.table',compact('rs_voterLists'));
+    } catch (\Exception $e) {
+      $e_method = "VillageWiseVoterList";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function VillageWiseAcParts(Request $request)
+  {
+    try{  
+      $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
+      $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
+      return view('admin.voterDetails.select_box_ac_parts',compact('assemblyParts'));
+    } catch (\Exception $e) {
+      $e_method = "VillageWiseAcParts";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function NameConvert(Request $request, $condition_type)
+  {
+    try {
+      $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+      if ($condition_type==3) {
+        $name_english = DB::select(DB::raw("SELECT uf_house_convert_e_2_h ('$name_english') as 'name_l'"));   
+      }
+      else{  
+        $name_english = DB::select(DB::raw("SELECT uf_name_convert_e_2_h ('$name_english') as 'name_l'")); 
+      }
+
+      $name_l = preg_replace('/[\x00]/', '', $name_english[0]->name_l);
+      return view('admin.voterDetails.name_hindi_value',compact('name_l','condition_type')); 
+    } catch (\Exception $e) {
+      $e_method = "NameConvert";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }   
+  }
+
+  public function calculateAge(Request $request)
+  {
+    try {
+      $date1 = date_create($request->id);
+      $date2 = date_create(date('Y-m-d'));
+      $diff = date_diff($date1, $date2);
+      return view('admin.voterDetails.age_value',compact('diff'));
+    } catch (\Exception $e) {
+      $e_method = "calculateAge";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    } 
+  }
+
+  public function store(Request $request)
+  {
+    try {
+      $rules=[            
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required', 
+        'ward_no' => 'required', 
+        'ac_part_id' => 'required', 
+        'srno_part' => 'required', 
+        'booth_no' => 'required', 
+        'name_english' => 'required', 
+        'name_local_language' => 'required', 
+        'relation' => 'required', 
+        'f_h_name_english' => 'required', 
+        'f_h_name_local_language' => 'required', 
+        'house_no_english' => 'required', 
+        'house_no_local_language' => 'required', 
+        'gender' => 'required', 
+        'age' => 'required', 
+        'voter_id_no' => 'required',
+        'image' => 'required|image|mimes:jpeg,jpg,png|max:20',
+      ];
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select Block / MC\'s',
+        'village.required'=> 'Please Select Panchayat / MC\'s',
+        'ward_no.required'=> 'Please Select Ward No.',
+        'ac_part_id.required'=> 'Please Select Assembly Part',
+        'srno_part.required'=> 'Please Enter Sr No. in Part.',
+        'booth_no.required'=> 'Please Select Booth No.',
+        'name_english.required'=> 'Please Enter Name English',
+        'name_local_language.required'=> 'Please Enter Name Hindi',
+        'relation.required'=> 'Please Select Relation',
+        'f_h_name_english.required'=> 'Please Enter F/H English',
+        'f_h_name_local_language.required'=> 'Please Enter F/H Hindi',
+        'house_no_english.required'=> 'Please Enter House No. English',
+        'house_no_local_language.required'=> 'Please Enter House No. Hindi',
+        'gender.required'=> 'Please Select Gender',
+        'age.required'=> 'Please Enter Age',
+        'voter_id_no.required'=> 'Please Enter Voter/Epic No.',
+
+        'image.required'=> 'Please Choose Image',
+        'image.image'=> 'Image Should Be Image',
+        'image.mimes'=> 'Image Should Be In JPG/JPEG/PNG Format',
+        'image.max'=> 'Image Size Should Be Maximun of 20 KB',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+
+      $d_id = intval(Crypt::decrypt($request->district));
+      $bl_id = intval(Crypt::decrypt($request->block));
+      $vil_id = intval(Crypt::decrypt($request->village));
+      $ward_id = intval(Crypt::decrypt($request->ward_no));
+      $ac_part_id = intval(Crypt::decrypt($request->ac_part_id));
+      $booth_id = intval(Crypt::decrypt($request->booth_no));
+      $sr_no = intval(substr(MyFuncs::removeSpacialChr($request->srno_part), 0, 5));
+
+      $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+      $name_h = MyFuncs::removeSpacialChr($request->name_local_language);
+      $fname_e = substr(MyFuncs::removeSpacialChr($request->f_h_name_english), 0, 50);
+      $fname_h = MyFuncs::removeSpacialChr($request->f_h_name_local_language);
+      $hno_e = substr(MyFuncs::removeSpacialChr($request->house_no_english), 0, 20);
+      $h_no_h = MyFuncs::removeSpacialChr($request->house_no_local_language);
+      $age = intval(substr(MyFuncs::removeSpacialChr($request->age), 0, 3));
+      $epic_no = substr(MyFuncs::removeSpacialChr($request->voter_id_no), 0, 20);
+      
+      $aadhar_no = "";
+      if (!empty($request->Aadhaar_no)){
+        $aadhar_no = substr(MyFuncs::removeSpacialChr($request->Aadhaar_no), 0, 12);  
+      }
+      
+      $mobile = "";
+      if (!empty($request->mobile_no)){
+        $mobile = substr(MyFuncs::removeSpacialChr($request->mobile_no), 0, 10);  
+      }
+      
+      $relation_id = intval(Crypt::decrypt($request->relation));
+      $gender_id = intval(Crypt::decrypt($request->gender));
+      $birth_date = $request->date_of_birth;
+      
+      $rs_fetch = DB::select(DB::raw("SELECT `id`, `tag` from `import_type` where `status` = 1 limit 1;"));
+      $data_list_id = $rs_fetch[0]->id;
+      $data_tag = $rs_fetch[0]->tag;
+
+      if($sr_no == 0){
+        $response=['status'=>0,'msg'=>'Sr. No. cannot be zero'];
+        return response()->json($response);  
+      }
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
+      if(count($rs_fetch)>0){
+        $response=['status'=>0,'msg'=>'Sr. No. already Exists'];
+        return response()->json($response);  
+      }
+      
+      $rs_fetch = DB::select(DB::raw("SELECT `assembly_id` from `assembly_parts` where `id` = $ac_part_id limit 1;"));
+      $ac_id = $rs_fetch[0]->assembly_id;
+      
+
+      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag');"));
+
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
+      $new_id = $sr_no;
+
+
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voter_list_master` where `block_id` = $bl_id and `status` = 1 limit 1;"));
+      $voter_list_id = $rs_fetch[0]->id;
+
+      if ($request->hasFile('image')){
+        if($_FILES['image']['size'] > 20*1024) {
+          $response=['status'=>0,'msg'=>'Image Size cannot be more then 20 KB'];
+          return response()->json($response); 
+        }
+        $image = $request->image;
+        $vpath = '/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
+        $filename = $new_id.'.jpg';
+        $dirpath = Storage_path() . '/app/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
+        @mkdir($dirpath, 0755, true);
+        $image->storeAs($vpath, $filename);
+      }else{
+        $response=['status'=>0,'msg'=>'Please Choose Image'];
+        return response()->json($response);
+      }
+       
+      
+    //--start-image-save
+      // $dirpath = Storage_path() . '/app/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
+      // $vpath = '/vimage/'.$data_list_id.'/'.'/'.$ac_id.'/'.$ac_part_id;
+      // @mkdir($dirpath, 0755, true);
+      // $file =$request->image;
+      // $imagedata = file_get_contents($file);
+      // $encode = base64_encode($imagedata);
+      // $image=base64_decode($encode); 
+      // $name =$new_id;
+      // $image= \Storage::disk('local')->put($vpath.'/'.$name.'.jpg',$image);
+    //--end-image-save 
+
+
+      $user_id = MyFuncs::getUserId();
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id)"));
+
+      $response=['status'=>1,'msg'=>'Submit Successfully'];
+      return response()->json($response);
+    } catch (Exception $e) {
+      $e_method = "store";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
@@ -253,172 +485,19 @@ class VoterDetailsController extends Controller
 //   }
  
 // //New Voter Add Detailed Entry
-//   public function store(Request $request)
-//   {    
-//     $rules=[            
-//       'district' => 'required', 
-//       'block' => 'required', 
-//       'village' => 'required', 
-//       'ward_no' => 'required', 
-//       'ac_part_id' => 'required', 
-//       'srno_part' => 'required', 
-//       'name_english' => 'required', 
-//       'name_local_language' => 'required', 
-//       'relation' => 'required', 
-//       'f_h_name_english' => 'required', 
-//       'f_h_name_local_language' => 'required', 
-//       'house_no_english' => 'required', 
-//       'house_no_local_language' => 'required', 
-//       'gender' => 'required', 
-//       'age' => 'required', 
-//       'voter_id_no' => 'required',  
-//       'image' => 'required|max:500', 
-//     ];
-
-//     $validator = Validator::make($request->all(),$rules);
-//     if ($validator->fails()) {
-//       $errors = $validator->errors()->all();
-//       $response=array();
-//       $response["status"]=0;
-//       $response["msg"]=$errors[0];
-//       return response()->json($response);// response as json
-//     }
-
-//     $d_id = $request->district;
-//     $bl_id = $request->block;
-//     $vil_id = $request->village;
-//     $ward_id = $request->ward_no;
-//     $ac_part_id = $request->ac_part_id;
-//     $sr_no = $request->srno_part;
-    
-//     $booth_id = 0;
-//     if(!empty($request->booth_no)){
-//       $booth_id = $request->booth_no;
-//     }
-    
-//     $name_e = MyFuncs::removeSpacialChr($request->name_english);
-//     $name_h = MyFuncs::removeSpacialChr($request->name_local_language);
-//     $fname_e = MyFuncs::removeSpacialChr($request->f_h_name_english);
-//     $fname_h = MyFuncs::removeSpacialChr($request->f_h_name_local_language);
-//     $hno_e = MyFuncs::removeSpacialChr($request->house_no_english);
-//     $h_no_h = MyFuncs::removeSpacialChr($request->house_no_local_language);
-//     $age = MyFuncs::removeSpacialChr($request->age);
-//     $epic_no = MyFuncs::removeSpacialChr($request->voter_id_no);
-    
-//     $aadhar_no = "";
-//     if (!empty($request->Aadhaar_no)){
-//       $aadhar_no = MyFuncs::removeSpacialChr($request->Aadhaar_no);  
-//     }
-    
-//     $mobile = "";
-//     if (!empty($request->mobile_no)){
-//       $mobile = MyFuncs::removeSpacialChr($request->mobile_no);  
-//     }
-    
-//     $relation_id = $request->relation;
-//     $gender_id = $request->gender;
-//     $birth_date = $request->date_of_birth;
-    
-//     $rs_fetch = DB::select(DB::raw("select `id`, `tag` from `import_type` where `status` = 1 limit 1;"));
-//     $data_list_id = $rs_fetch[0]->id;
-//     $data_tag = $rs_fetch[0]->tag;
-
-//     if($sr_no == 0){
-//       $response=['status'=>0,'msg'=>'Sr. No. cannot be zero'];
-//       return response()->json($response);  
-//     }
-//     $rs_fetch = DB::select(DB::raw("select `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
-//     if(count($rs_fetch)>0){
-//       $response=['status'=>0,'msg'=>'Sr. No. already Exists'];
-//       return response()->json($response);  
-//     }
-    
-//     $rs_fetch = DB::select(DB::raw("select `assembly_id` from `assembly_parts` where `id` = $ac_part_id limit 1;"));
-//     $ac_id = $rs_fetch[0]->assembly_id;
-    
-
-//     $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag');"));
-
-//     $rs_fetch = DB::select(DB::raw("select `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
-//     $new_id = $sr_no;
+  
 
 
-//     $rs_fetch = DB::select(DB::raw("select `id` from `voter_list_master` where `block_id` = $bl_id and `status` = 1 limit 1;"));
-//     $voter_list_id = $rs_fetch[0]->id;
-     
-    
-//   //--start-image-save
-//     $dirpath = Storage_path() . '/app/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
-//     $vpath = '/vimage/'.$data_list_id.'/'.'/'.$ac_id.'/'.$ac_part_id;
-//     @mkdir($dirpath, 0755, true);
-//     $file =$request->image;
-//     $imagedata = file_get_contents($file);
-//     $encode = base64_encode($imagedata);
-//     $image=base64_decode($encode); 
-//     $name =$new_id;
-//     $image= \Storage::disk('local')->put($vpath.'/'.$name.'.jpg',$image);
-//   //--end-image-save 
 
-
-//     $admin = Auth::guard('admin')->user();
-//     $userid = $admin->id;
-//     $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($userid, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id)"));
-
-//     $response=['status'=>1,'msg'=>'Submit Successfully'];
-//     return response()->json($response);
-//   }
-
-
-//   public function index()
-//   { 
-//     $admin = Auth::guard('admin')->user(); 
-//     $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($admin->id, 0)"));
-//     $genders= DB::select(DB::raw("select * from `genders` order by `id`;"));  
-//     $Relations= DB::select(DB::raw("select * from `relation` order by `relation_e`;"));  
-    
-//     return view('admin.voterDetails.index',compact('Districts','genders','Relations'));   
-//   }
 
 //   //Pending----------
-//   public function VillageWiseVoterList(Request $request)
-//   {
-//     $village_id = $request->village_id;
 
-//     $voterlists= DB::select(DB::raw("select `id`, `name_e`, `name_l`, `father_name_e` from `voters` where `status` = 1 and `source` = 'n' and `village_id` = $village_id;"));
 
-//     return view('admin.voterDetails.voter_list_table',compact('voterlists'));
-//   }
+  
 
-//   public function VillageWiseAcParts(Request $request)
-//   {
-//     try{  
-//       $id = $request->id;
-//       $assemblyParts = DB::select(DB::raw("  select `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $id order by `ac`.`code`, `ap`.`part_no`;"));
-//       return view('admin.voterDetails.select_box_ac_parts',compact('assemblyParts'));
-//     } catch (Exception $e) {}
-//   }
+  
 
-//   public function calculateAge(Request $request)
-//   { 
-
-//     $date1=date_create($request->id);
-//     $date2=date_create(date('Y-m-d'));
-//     $diff=date_diff($date1,$date2);
-//     return view('admin.voterDetails.age_value',compact('diff')); 
-//   }
-
-//   public function NameConvert(Request $request,$condition_type)
-//   { 
-//     if ($condition_type==3) {
-//       $name_english= DB::select(DB::raw("select uf_house_convert_e_2_h ('$request->name_english') as 'name_l'"));   
-//     }
-//     else{  
-//       $name_english= DB::select(DB::raw("select uf_name_convert_e_2_h ('$request->name_english') as 'name_l'")); 
-//     }
-
-//     $name_l = preg_replace('/[\x00]/', '', $name_english[0]->name_l); 
-//     return view('admin.voterDetails.name_hindi_value',compact('name_l','condition_type'));   
-//   }   
+     
 // //-----------------------End----------------
 
  
