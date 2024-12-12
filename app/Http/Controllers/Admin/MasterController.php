@@ -1695,7 +1695,7 @@ class MasterController extends Controller
       if ($request->part_id!='null'){
         $part_id = intval(Crypt::decrypt($request->part_id));  
       }
-      $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `wv`.`ward_no`, `po`.`booth_no`, `v`.`name_e`, `v`.`father_name_e`, `v`.`voter_card_no` from `voters` `v` Left join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Left Join `polling_booths` `po` on `po`.`id` = `v`.`Booth_Id`  Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id Order By `v`.`sr_no`;"));  
+      $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `wv`.`ward_no`, `po`.`booth_no`, `v`.`name_e`, `v`.`father_name_e`, `v`.`voter_card_no`, `v`.`village_id` from `voters` `v` Left join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Left Join `polling_booths` `po` on `po`.`id` = `v`.`Booth_Id`  Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id Order By `v`.`sr_no`;"));  
       return view('admin.master.wardbandiwithbooth.voter_list',compact('rs_voterLists', 'refreshdata'));
     } catch (\Exception $e) {
       $e_method = "AssemblywisevoterMapped";

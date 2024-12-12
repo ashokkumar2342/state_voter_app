@@ -25,8 +25,10 @@
                             <td>{{ $rs_val->voter_card_no }}</td>
                             <td>{{ $rs_val->ward_no }}</td>
                             <td>{{ $rs_val->booth_no }}</td>
-                            <td>                                
-                                <button type="button" @if($refreshdata == 1)select-triger="assembly_part_select_box" @endif onclick="callAjax(this,'{{ route('admin.Master.removeVoter_wardbandi', Crypt::encrypt($rs_val->id)) }}')" success-popup="true" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i> Delete</a>
+                            <td>    
+                                @if($rs_val->village_id > 0)                            
+                                    <button type="button" @if($refreshdata == 1)select-triger="assembly_part_select_box" @endif onclick="callAjax(this,'{{ route('admin.Master.removeVoter_wardbandi', Crypt::encrypt($rs_val->id)) }}')" success-popup="true" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i> Unmapped/Remove</a>
+                                @endif
                             </td>
                         </tr> 
                     @endforeach
