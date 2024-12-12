@@ -46,7 +46,7 @@ class VoterListGenerate extends Command
         ini_set('memory_limit','999M');
         ini_set("pcre.backtrack_limit", "100000000");
 
-        $queue_id = 0
+        $queue_id = 0;
         while($queue_id == 0){
             $rs_fetch = DB::select(DB::raw("call `up_fetch_id_for_voterListGenerate`();"));
             $queue_id = $rs_fetch[0]->queue_id;
@@ -414,7 +414,7 @@ class VoterListGenerate extends Command
                 $newId=DB::select(DB::raw("UPDATE `voter_list_processeds` set `status` = 1, `finish_time` = now() where `id` = $VoterListProcessed->id limit 1;"));
             }
 
-            $queue_id = 0
+            $queue_id = 0;
             while($queue_id == 0){
                 $rs_fetch = DB::select(DB::raw("call `up_fetch_id_for_voterListGenerate`();"));
                 $queue_id = $rs_fetch[0]->queue_id;
