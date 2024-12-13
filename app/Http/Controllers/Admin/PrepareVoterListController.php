@@ -83,7 +83,7 @@ class PrepareVoterListController extends Controller
         $rs_update= DB::select(DB::raw("call `up_process_voterlist` ($ward_id, 1, 2, $full_supplement, $sorting_order)"));
       
       }else{//Process For MC Ward Booth
-        $rs_update= DB::select(DB::raw("call `up_process_voterlist_booth` ($ward_id, $booth_id, 0, $full_supplement, $sorting_order)")); 
+        $rs_update= DB::select(DB::raw("call `up_process_voterlist_booth` ($ward_id, $booth_id, 1, $full_supplement, $sorting_order)")); 
       }
       if ($rs_update[0]->save_status == 1){
         MyFuncs::startVoterListGenerateQueue();

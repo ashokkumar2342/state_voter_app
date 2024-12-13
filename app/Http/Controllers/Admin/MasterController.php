@@ -1964,7 +1964,7 @@ class MasterController extends Controller
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
       }
-      $part_id = intval(Crypt::decrypt($request->assemblyPart_id));
+      $part_id = intval(Crypt::decrypt($assemblyPart_id));
       $rs_update = DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = 0 where `id` = $part_id limit 1;"));      
       $response=['status'=>1,'msg'=>'Remove Successfully'];
       return response()->json($response);

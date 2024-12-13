@@ -130,30 +130,48 @@
 				<table width = "100%">
 					<tr>
 						<td style="border: 1px solid black;height: 120px;word-spacing: 4px" width="100%">
-		 			@if ($main_page_type==1) 
-						1. (क) ग्राम पंचायत का नाम व वार्ड संख्या : <b>{{ $mainpagedetail->village }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ $mainpagedetail->ward }}</b>
-						<br>
-						<br>
-						(ख) खंड का नाम  : <b>{{ $mainpagedetail->block }}</b>
-						<br>
-						<br>
-						(ग) पंचायत समिति का नाम व वार्ड संख्या : <b>{{ $mainpagedetail->block }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;  {{ $mainpagedetail->ps_ward }}</b> 
-						<br> 
-						<br> 
-						(घ) जिला परिषद व वार्ड संख्या: <b>{{ $mainpagedetail->district }}&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;{{ $mainpagedetail->zp_ward }}</b>   
-						 
-		 			@elseif($main_page_type==2)
-		 				{{ $mainpagedetail->election_type }} का नाम व वार्ड संख्या : <b>{{ $mainpagedetail->village }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ $mainpagedetail->ward }}</b>
-						<br>
-						<br>
-		 			@else
-		 				{{ $mainpagedetail->election_type }} का नाम व वार्ड संख्या : <b>{{ $mainpagedetail->village }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ $mainpagedetail->ward }}</b>
-		 			@endif
-		 			@if ($mainpagedetail->booth_id>0)
-		 				<br>
-		 				<br>
-		 				मतदान केन्द्र संख्या व नाम: <b>{{ $mainpagedetail->booth_no }} - {{ $mainpagedetail->booth_name}}</b>
-		 			@endif
+				 			@if ($main_page_type==1) 
+								1. (क) ग्राम पंचायत का नाम व वार्ड संख्या : <b>{{ $mainpagedetail->village }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ $mainpagedetail->ward }}</b>
+								<br>
+								<br>
+								(ख) खंड का नाम  : <b>{{ $mainpagedetail->block }}</b>
+								<br>
+								<br>
+								(ग) पंचायत समिति का नाम व वार्ड संख्या : <b>{{ $mainpagedetail->block }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;  {{ $mainpagedetail->ps_ward }}</b> 
+								<br> 
+								<br> 
+								(घ) जिला परिषद व वार्ड संख्या: <b>{{ $mainpagedetail->district }}&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;{{ $mainpagedetail->zp_ward }}</b>   
+
+								@if ($mainpagedetail->booth_id>0)
+					 				<br>
+					 				<br>
+					 				मतदान केन्द्र संख्या व नाम: <b>{{ $mainpagedetail->booth_no }} - {{ $mainpagedetail->booth_name}}</b>
+					 			@endif
+								 
+				 			@elseif($main_page_type==2)
+				 				1. (क) {{ $mainpagedetail->election_type }} का नाम : <b>{{ $mainpagedetail->village }}</b>
+								<br>
+								<br>
+								(ख) {{ $mainpagedetail->election_type }} का वार्ड संख्या : <b>{{ $mainpagedetail->ward }}</b>
+								<br>
+								<br>
+								(ग) गली/मोहल्ला/बस्ती का नाम : <b>{{ $polling_booth_area }}</b> 
+								<br> 
+								<br> 
+								(घ) {{ $mainpagedetail->election_type }} का मतदान केन्द्र संख्या व नाम : <b>{{ $mainpagedetail->booth_no }} - {{ $mainpagedetail->booth_name}}</b>
+				 			@else
+				 				1. (क) {{ $mainpagedetail->election_type }} का नाम : <b>{{ $mainpagedetail->village }}</b>
+								<br>
+								<br>
+								(ख) {{ $mainpagedetail->election_type }} का वार्ड संख्या : <b>{{ $mainpagedetail->ward }}</b>
+								<br>
+								<br>
+								(ग) गली/मोहल्ला/बस्ती का नाम : <b>{{ $polling_booth_area }}</b> 
+								<br> 
+								<br> 
+								(घ) {{ $mainpagedetail->election_type }} का मतदान केन्द्र संख्या व नाम : <b>{{ $mainpagedetail->booth_no }} - {{ $mainpagedetail->booth_name}}</b>
+				 			@endif
+		 			
 		 				</td> 
 					</tr>	
 				</table>

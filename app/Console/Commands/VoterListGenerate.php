@@ -77,6 +77,10 @@ class VoterListGenerate extends Command
             $villagename = reset($villagename);
 
             $pollingboothdetail = DB::select(DB::raw("SELECT * from `polling_booths` where `id` = $booth_id limit 1;"));
+            $polling_booth_area = "";
+            if(count($pollingboothdetail) >0 ){
+                $polling_booth_area = $pollingboothdetail[0]->booth_area_l;
+            }
             $pollingboothdetail = reset($pollingboothdetail);
 
             foreach ($rs_VoterListProcessed as $key => $VoterListProcessed) {
@@ -224,7 +228,7 @@ class VoterListGenerate extends Command
                             if ($totalnewrows*3<$votercount){$totalnewrows++;}
                             $totalRows = $totalnewrows;
 
-                            $main_page=$this->prepareMainPage($mainpagedetails, $voterssrnodetails, $totalpage, $pagetype, 0, $rsDataListRemarks, $showsrnotext, $voterssrnotext);
+                            $main_page=$this->prepareMainPage($mainpagedetails, $voterssrnodetails, $totalpage, $pagetype, 0, $rsDataListRemarks, $showsrnotext, $voterssrnotext, $polling_booth_area);
 
                             if($list_no<=1){
                                 $mpdf_photo->WriteHTML($main_page);
@@ -317,7 +321,7 @@ class VoterListGenerate extends Command
                             if ($totalpage*9<$totalRows){$totalpage++;}
                             $totalpage++;
 
-                            $main_page=$this->prepareMainPage($mainpagedetails, $voterssrnodetails, $totalpage, $pagetype, 1, $rsDataListRemarks, $showsrnotext, $voterssrnotext);
+                            $main_page=$this->prepareMainPage($mainpagedetails, $voterssrnodetails, $totalpage, $pagetype, 1, $rsDataListRemarks, $showsrnotext, $voterssrnotext, $polling_booth_area);
                             $mpdf_photo->WriteHTML($main_page);
                             $mpdf_mainpage->WriteHTML($main_page);
                             $mpdf_wp->WriteHTML($main_page);
@@ -449,9 +453,9 @@ class VoterListGenerate extends Command
     }
 
     
-    public function prepareMainPage($mainpagedetails, $voterssrnodetails, $totalpage, $main_page_type, $is_suppliment, $rsDataListRemarks, $showsrnotext, $voterssrnotext)
+    public function prepareMainPage($mainpagedetails, $voterssrnodetails, $totalpage, $main_page_type, $is_suppliment, $rsDataListRemarks, $showsrnotext, $voterssrnotext, $polling_booth_area)
     {
-        return $main_page = view('admin.master.PrepareVoterList.voter_list_section.main_page',compact('mainpagedetails','voterssrnodetails', 'totalpage', 'main_page_type', 'is_suppliment', 'rsDataListRemarks', 'showsrnotext', 'voterssrnotext'));    
+        return $main_page = view('admin.master.PrepareVoterList.voter_list_section.main_page',compact('mainpagedetails','voterssrnodetails', 'totalpage', 'main_page_type', 'is_suppliment', 'rsDataListRemarks', 'showsrnotext', 'voterssrnotext', 'polling_booth_area'));    
     }
     
        
