@@ -20,6 +20,10 @@ class VoterDetailsController extends Controller
   {
     try{
       $d_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $d_id = 0;
+      }
       $assemblys = DB::select(DB::raw("SELECT * from `assemblys` where `district_id` = $d_id order by `code`;"));
       return view('admin.master.assembly.assembly_value_select_box',compact('assemblys'));
     } catch (\Exception $e) {
@@ -291,8 +295,25 @@ class VoterDetailsController extends Controller
       }
 
       $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      
       $bl_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($bl_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $vil_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($vil_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $ward_id = intval(Crypt::decrypt($request->ward_no));
       $ac_part_id = intval(Crypt::decrypt($request->ac_part_id));
       $booth_id = intval(Crypt::decrypt($request->booth_no));
@@ -363,20 +384,6 @@ class VoterDetailsController extends Controller
         $response=['status'=>0,'msg'=>'Please Choose Image'];
         return response()->json($response);
       }
-       
-      
-    //--start-image-save
-      // $dirpath = Storage_path() . '/app/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
-      // $vpath = '/vimage/'.$data_list_id.'/'.'/'.$ac_id.'/'.$ac_part_id;
-      // @mkdir($dirpath, 0755, true);
-      // $file =$request->image;
-      // $imagedata = file_get_contents($file);
-      // $encode = base64_encode($imagedata);
-      // $image=base64_decode($encode); 
-      // $name =$new_id;
-      // $image= \Storage::disk('local')->put($vpath.'/'.$name.'.jpg',$image);
-    //--end-image-save 
-
 
       $user_id = MyFuncs::getUserId();
       $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id)"));

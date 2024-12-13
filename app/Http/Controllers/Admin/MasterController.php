@@ -1436,6 +1436,16 @@ class MasterController extends Controller
       if ($request->part_id!='null'){
         $part_id = intval(Crypt::decrypt($request->part_id));  
       }
+
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
       $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`voter_card_no`, `v`.`name_e`, `v`.`name_l`, `v`.`father_name_l`, `vil`.`name_l` as `vil_name`, `wv`.`ward_no`, `v`.`village_id` from `voters` `v`Left Join `villages` `vil` on `vil`.`id` = `v`.`village_id` Left Join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id;"));
       return view('admin.master.wardbandi.voter_list',compact('rs_voterLists', 'refreshdata'));
     } catch (Exception $e) {}
@@ -1492,6 +1502,20 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $b_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
@@ -1703,6 +1727,15 @@ class MasterController extends Controller
       }else{
         $part_id = intval(Crypt::decrypt($request->part_id));
       }
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
       $rs_voterLists = DB::select(DB::raw("SELECT `v`.`id`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`, `wv`.`ward_no`, `po`.`booth_no`, `v`.`name_e`, `v`.`father_name_e`, `v`.`voter_card_no`, `v`.`village_id` from `voters` `v` Left join `ward_villages` `wv` on `wv`.`id` = `v`.`ward_id` Left Join `polling_booths` `po` on `po`.`id` = `v`.`Booth_Id`  Where `v`.`assembly_part_id` = $part_id and `v`.`data_list_id` = $data_list_id Order By `v`.`sr_no`;"));  
       return view('admin.master.wardbandiwithbooth.voter_list',compact('rs_voterLists', 'refreshdata'));
     } catch (\Exception $e) {
@@ -1785,12 +1818,27 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $b_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
       }
+
       $user_id = MyFuncs::getUserId();
       $data_list = intval(Crypt::decrypt($request->data_list));
       $ac_part_id = intval(Crypt::decrypt($request->assembly_part));
@@ -1940,6 +1988,20 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $b_id = intval(Crypt::decrypt($request->block_mcs));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
@@ -1965,6 +2027,16 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $part_id = intval(Crypt::decrypt($assemblyPart_id));
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rs_update = DB::select(DB::raw("UPDATE `assembly_parts` set `village_id` = 0 where `id` = $part_id limit 1;"));      
       $response=['status'=>1,'msg'=>'Remove Successfully'];
       return response()->json($response);
@@ -2043,6 +2115,17 @@ class MasterController extends Controller
         return view('admin.common.error');
       }
       $part_id = intval(Crypt::decrypt($request->part_no));
+
+      $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+      $d_id = 0;
+      if(count($rs_fetch) > 0){
+        $d_id = $rs_fetch[0]->district_id;
+      }
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
       $rs_villages = DB::select(DB::raw("SELECT `vil`.`name_e` from `assembly_parts` `ap` inner join `villages` `vil` on `vil`.`id` = `ap`.`village_id` where `ap`.`id` = $part_id limit 1;"));
       return view('admin.master.mappingAssemblyPartPanchayat.table',compact('rs_villages'));
     } catch (\Exception $e) {
@@ -2081,8 +2164,21 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
-      $village_id = intval(Crypt::decrypt($request->village));
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
 
+      $b_id = intval(Crypt::decrypt($request->block_mcs));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $village_id = intval(Crypt::decrypt($request->village));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
@@ -2185,6 +2281,21 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $b_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $village_id = intval(Crypt::decrypt($request->village));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
@@ -2192,13 +2303,18 @@ class MasterController extends Controller
         return response()->json($response);
       }
       $booth_id = intval(Crypt::decrypt($request->booth));
-      if (!empty($request->ward)) {
-        $ward = implode(',',$request->ward);  
-      }else {
-       $ward = 0;  
-      }   
-      $rs_save = DB::select(DB::raw("call `up_process_booth_ward_voters` ('$booth_id','$ward', $village_id)"));
-      $rs_save = DB::select(DB::raw("call `up_map_booth_ward` ('$booth_id','$ward')"));
+
+      $ward_id = 0;
+
+      if (!empty($request->ward)){
+        foreach ($request->ward as $key => $value) {
+          $val_ward_id = intval(Crypt::decrypt($value));
+          $ward_id = $ward_id.",".$val_ward_id;
+        }
+      }
+
+      $rs_save = DB::select(DB::raw("call `up_process_booth_ward_voters` ('$booth_id','$ward_id', $village_id)"));
+      $rs_save = DB::select(DB::raw("call `up_map_booth_ward` ('$booth_id','$ward_id')"));
       $response=['status'=>1,'msg'=>'Submit Successfully'];
       return response()->json($response); 
     } catch (Exception $e) {
@@ -2290,6 +2406,36 @@ class MasterController extends Controller
 
       $ward_id = intval(Crypt::decrypt($request->ward));
       $booth_id = intval(Crypt::decrypt($request->booth));
+
+      $d_id = 0;
+      $b_id = 0;
+      $village_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `districts_id`, `blocks_id`, `village_id` from `ward_villages` where `id` = $ward_id limit 1;"));
+      if (count($rs_fetch)> 0) {
+        $d_id = $rs_fetch[0]->districts_id;
+        $b_id = $rs_fetch[0]->blocks_id;
+        $village_id = $rs_fetch[0]->village_id;
+      }
+      
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      
 
       if ($request->from_sr_no == null) {
         $from_sr_no = 0;
@@ -2406,6 +2552,20 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $b_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }      
 
       $vil_id = intval(Crypt::decrypt($request->village));
       $permission_flag = MyFuncs::check_village_access($vil_id);
@@ -2526,6 +2686,28 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
       $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
       if($from_sn == 0 && $to_sn == 0){
@@ -2546,22 +2728,6 @@ class MasterController extends Controller
         return response()->json($response);  
       }
       $user_id = MyFuncs::getUserId();
-      $block_id = intval(Crypt::decrypt($request->block));
-      $permission_flag = MyFuncs::check_block_access($block_id);
-
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-
-      $village_id = intval(Crypt::decrypt($request->village));
-
-      $permission_flag = MyFuncs::check_village_access($village_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-
       $from_ward = intval(Crypt::decrypt($request->from_ward));
       $to_ward = intval(Crypt::decrypt($request->to_ward));
       
@@ -2581,8 +2747,36 @@ class MasterController extends Controller
       $rec_id = intval(Crypt::decrypt($id));
       $ward_id = intval(Crypt::decrypt($ward_id));
 
+      $d_id = 0;
+      $b_id = 0;
+      $village_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `districts_id`, `blocks_id`, `village_id` from `ward_villages` where `id` = $ward_id limit 1;"));
+      if (count($rs_fetch)> 0) {
+        $d_id = $rs_fetch[0]->districts_id;
+        $b_id = $rs_fetch[0]->blocks_id;
+        $village_id = $rs_fetch[0]->village_id;
+      }
+      
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $from_ip = MyFuncs::getIp();
-      $rs_restore = DB::select(DB::raw("call `up_restore_ward_booth_change` ($user_id, '$id', $ward_id, '$from_ip');"));
+      $rs_restore = DB::select(DB::raw("call `up_restore_ward_booth_change` ($user_id, $rec_id, $ward_id, '$from_ip');"));
       $rs_restore = reset($rs_restore);
 
       $response=['status'=>$rs_restore->rstatus,'msg'=>$rs_restore->rremarks];
@@ -2613,20 +2807,42 @@ class MasterController extends Controller
   {
     try {
       if (empty($request->report_type)) {
-        $response=['status'=>0,'msg'=>'Plz Select Report Type'];
-        return response()->json($response);   
+        return 'Plz Select Report Type';  
       }
       if (empty($request->ward)) {
-        $response=['status'=>0,'msg'=>'Plz Select Ward'];
-        return response()->json($response);   
+        return 'Plz Select Ward';   
       }
       if (empty($request->booth)) {
-        $response=['status'=>0,'msg'=>'Plz Select Polling Booth'];
-        return response()->json($response);   
+        return 'Plz Select Polling Booth';   
       }
       $report_selected = intval(Crypt::decrypt($request->report_type));
       $ward_id = intval(Crypt::decrypt($request->ward));
       $booth_id = intval(Crypt::decrypt($request->booth));
+
+      $d_id = 0;
+      $b_id = 0;
+      $village_id = 0;
+      $rs_fetch = DB::select(DB::raw("SELECT `districts_id`, `blocks_id`, `village_id` from `ward_villages` where `id` = $ward_id limit 1;"));
+      if (count($rs_fetch)> 0) {
+        $d_id = $rs_fetch[0]->districts_id;
+        $b_id = $rs_fetch[0]->blocks_id;
+        $village_id = $rs_fetch[0]->village_id;
+      }
+      
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
 
       $wardno_rs = DB::select(DB::raw("SELECT `wv`.`ward_no` from `ward_villages` `wv` where `wv`.`id` = $ward_id;"));
       $wardno = $wardno_rs[0]->ward_no;
@@ -2742,6 +2958,27 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
       $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
       if($from_sn == 0 && $to_sn == 0){
@@ -2756,21 +2993,6 @@ class MasterController extends Controller
       }      
       
       $user_id = MyFuncs::getUserId();
-      $block_id = intval(Crypt::decrypt($request->block));
-      
-      $permission_flag = MyFuncs::check_block_access($block_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-
-      $village_id = intval(Crypt::decrypt($request->village));
-
-      $permission_flag = MyFuncs::check_village_access($village_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
       $from_ward = intval(Crypt::decrypt($request->from_ward));
       $from_booth = intval(Crypt::decrypt($request->from_booth));
 
@@ -2833,12 +3055,25 @@ class MasterController extends Controller
         $block_id = 0;
       }else{
         $block_id = intval(Crypt::decrypt($request->block_id));
+        $permission_flag = MyFuncs::check_block_access($block_id);
+        if($permission_flag == 0){
+          $block_id = 0;
+        }
       }
 
       if($request->part_id == "null" || empty($request->part_id)){
         $part_id = 0;
       }else{
         $part_id = intval(Crypt::decrypt($request->part_id));
+        $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+        $d_id = 0;
+        if(count($rs_fetch) > 0){
+          $d_id = $rs_fetch[0]->district_id;
+        }
+        $permission_flag = MyFuncs::check_district_access($d_id);
+        if($permission_flag == 0){
+          $part_id = 0;
+        }
       }
 
       if($request->data_list_id == "null" || empty($request->data_list_id)){
@@ -2847,10 +3082,6 @@ class MasterController extends Controller
         $data_list_id = intval(Crypt::decrypt($request->data_list_id));
       }
 
-      $permission_flag = MyFuncs::check_block_access($block_id);
-      if($permission_flag == 0){
-        $block_id = 0;
-      }
       
       $results= DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
       if(count($results) == 0){
@@ -2905,6 +3136,27 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
       $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
       if($from_sn == 0 && $to_sn == 0){
@@ -2919,21 +3171,6 @@ class MasterController extends Controller
       }
       
       $user_id = MyFuncs::getUserId();
-      $block_id = intval(Crypt::decrypt($request->block));
-      
-      $permission_flag = MyFuncs::check_block_access($block_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-
-      $village_id = intval(Crypt::decrypt($request->village));
-
-      $permission_flag = MyFuncs::check_village_access($village_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
       $data_list = intval(Crypt::decrypt($request->data_list));
       $assembly_part = intval(Crypt::decrypt($request->assembly_part));
       $to_ward = intval(Crypt::decrypt($request->to_ward));
@@ -2997,23 +3234,31 @@ class MasterController extends Controller
         $block_id = 0;
       }else{
         $block_id = intval(Crypt::decrypt($request->block_id));
+        $permission_flag = MyFuncs::check_block_access($block_id);
+        if($permission_flag == 0){
+          $block_id = 0;
+        }
       }
 
       if($request->part_id == "null" || empty($request->part_id)){
         $part_id = 0;
       }else{
         $part_id = intval(Crypt::decrypt($request->part_id));
+        $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+        $d_id = 0;
+        if(count($rs_fetch) > 0){
+          $d_id = $rs_fetch[0]->district_id;
+        }
+        $permission_flag = MyFuncs::check_district_access($d_id);
+        if($permission_flag == 0){
+          $part_id = 0;
+        }
       }
 
       if($request->data_list_id == "null" || empty($request->data_list_id)){
         $data_list_id = 0;
       }else{
         $data_list_id = intval(Crypt::decrypt($request->data_list_id));
-      }
-      
-      $permission_flag = MyFuncs::check_block_access($block_id);
-      if($permission_flag == 0){
-        $block_id = 0;
       }
 
       $results = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
@@ -3064,6 +3309,27 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $from_sn = intval(substr(MyFuncs::removeSpacialChr($request->from_sr_no), 0, 5));
       $to_sn = intval(substr(MyFuncs::removeSpacialChr($request->to_sr_no), 0, 5));
       if($from_sn == 0 && $to_sn == 0){
@@ -3078,21 +3344,6 @@ class MasterController extends Controller
       }
       
       $user_id = MyFuncs::getUserId();
-      $block_id = intval(Crypt::decrypt($request->block));
-      
-      $permission_flag = MyFuncs::check_block_access($block_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-
-      $village_id = intval(Crypt::decrypt($request->village));
-
-      $permission_flag = MyFuncs::check_village_access($village_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
       $data_list = intval(Crypt::decrypt($request->data_list));
       $assembly_part = intval(Crypt::decrypt($request->assembly_part));
 
@@ -3135,20 +3386,40 @@ class MasterController extends Controller
       }
 
       if (empty($request->report_type)) {
-        $response=['status'=>0,'msg'=>'Plz Select Report Type'];
-        return response()->json($response);   
+        return 'Plz Select Report Type'; 
       }
       if (empty($request->ward)) {
-        $response=['status'=>0,'msg'=>'Plz Select Ward'];
-        return response()->json($response);   
+        return 'Plz Select Ward'; 
       }
       
       $report_selected = intval(Crypt::decrypt($request->report_type));
       $ward_id = intval(Crypt::decrypt($request->ward));
+      $d_id = 0;
+      $block_id = 0;
+      $village_id = 0;
+      $wardno = "";
+      $rs_fetch = DB::select(DB::raw("SELECT `districts_id`, `blocks_id`, `village_id`, `ward_no` from `ward_villages` where `id` = $ward_id limit 1;"));
+      if (count($rs_fetch)> 0) {
+        $d_id = $rs_fetch[0]->districts_id;
+        $block_id = $rs_fetch[0]->blocks_id;
+        $village_id = $rs_fetch[0]->village_id;
+        $wardno = $rs_fetch[0]->ward_no;
+      }
+      
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
 
-      $wardno_rs = DB::select(DB::raw("SELECT `wv`.`ward_no`, `blocks_id` from `ward_villages` `wv` where `wv`.`id` = $ward_id;"));
-      $wardno = $wardno_rs[0]->ward_no;
-      $block_id = $wardno_rs[0]->blocks_id;
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
 
       $report_heading = '';
       if ($report_selected == 1) {
@@ -3258,7 +3529,20 @@ class MasterController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
-      $b_id = intval(Crypt::decrypt($request->block));
+      $d_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $time_e = substr(MyFuncs::removeSpacialChr($request->polling_day_time_english), 0, 500);
       $time_l = MyFuncs::removeSpacialChr($request->polling_day_time_local);
 
@@ -3268,7 +3552,7 @@ class MasterController extends Controller
           return response()->json($response); 
         }
         $image = $request->signature;
-        $filename = $b_id.'.jpg';
+        $filename = $block_id.'.jpg';
         $vpath = '/blocksign';
         $sign_path = $vpath.'/'.$filename; 
         $image->storeAs($vpath,$filename);
@@ -3276,7 +3560,7 @@ class MasterController extends Controller
         $response=['status'=>0,'msg'=>'Please Choose Signature Image'];
         return response()->json($response);
       }
-      $rs_save = DB::select(DB::raw("call `up_save_pollingDayTime` ($b_id, '$time_e', '$time_l', '$sign_path')"));
+      $rs_save = DB::select(DB::raw("call `up_save_pollingDayTime` ($block_id, '$time_e', '$time_l', '$sign_path')"));
       $response=['status'=>1,'msg'=>'Record Saved Successfully'];
       return response()->json($response);
     } catch (\Exception $e) {
@@ -3432,6 +3716,10 @@ class MasterController extends Controller
   {
     try{
       $village_id = intval(Crypt::decrypt($request->id));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $village_id = 0;
+      }
       $refreshdata = MyFuncs::Refresh_data_voterEntry();
       $WardVillages = DB::select(DB::raw("call `up_fetch_ward_village_access` ($village_id, 0);"));
       $assemblyParts = DB::select(DB::raw("SELECT `ap`.`id`, `ac`.`code`, `ap`.`part_no` from `assembly_parts` `ap` inner join `assemblys` `ac` on `ac`.`id` = `ap`.`assembly_id`   where `ap`.`village_id` = $village_id order by `ac`.`code`, `ap`.`part_no`;"));
@@ -3446,11 +3734,32 @@ class MasterController extends Controller
   public function claimObjAcPartEpicAddVoterWardTable(Request $request)
   {
     try{
-      $block_id = intval(Crypt::decrypt($request->block_id));
-      $part_id = intval(Crypt::decrypt($request->part_id));
-      $data_list_id = 1;
+      if(empty($request->block_id)){
+        $block_id = 0;
+      }else{
+        $block_id = intval(Crypt::decrypt($request->block_id));
+        $permission_flag = MyFuncs::check_block_access($block_id);
+        if($permission_flag == 0){
+          $block_id = 0;
+        }
+      }
+
+      if(empty($request->part_id)){
+        $part_id = 0;
+      }else{
+        $part_id = intval(Crypt::decrypt($request->part_id));
+        $rs_fetch = DB::select(DB::raw("SELECT `district_id` from `assemblys` where `id` = (select `assembly_id` from `assembly_parts` where `id` = $part_id limit 1);"));
+        $d_id = 0;
+        if(count($rs_fetch) > 0){
+          $d_id = $rs_fetch[0]->district_id;
+        }
+        $permission_flag = MyFuncs::check_district_access($d_id);
+        if($permission_flag == 0){
+          $part_id = 0;
+        }
+      }
       
-      $results= DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
+      $results = DB::select(DB::raw("SELECT * from `voter_list_master` where `block_id` = $block_id and `status` = 1;"));  
       if(count($results) == 0){
         $voter_list_id  = 0;
       }else{
