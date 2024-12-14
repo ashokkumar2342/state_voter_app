@@ -172,6 +172,9 @@ class ReportController extends Controller
             }elseif($report_id == 4){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
+            }elseif($report_id == 5){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_dist',compact('rs_district'));
             }elseif($report_id == 21){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
@@ -435,6 +438,33 @@ class ReportController extends Controller
                 );
 
                 $query = "SELECT `dist`.`name_e`, `bl`.`name_e` as `bl_name`, `v`.`name_e` as `vil_name`, concat(`pb`.`booth_no`,`pb`.`booth_no_c`) as `boothno`, `pb`.`name_e`, `pb`.`name_l` from `polling_booths` `pb` inner join `blocks_mcs` `bl` on `bl`.`id` = `pb`.`blocks_id` inner join `districts` `dist` on `dist`.`id` = `bl`.`districts_id` left join `villages` `v` on `v`.`id` = `pb`.`village_id` $condition Order By `dist`.`name_e`, `bl`.`name_e`, `v`.`name_e`, `pb`.`booth_no`,`pb`.`booth_no_c`;";
+                $rs_result = DB::select(DB::raw("$query"));
+            }elseif ($report_type == 5){
+                if($request->district == null || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 7;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('EPIC No.', 10, 'voter_card_no', 0, '', 'left'),
+                    array('District', 10, 'd_name', 0, '', 'left'),
+                    array('Assembly', 15, 'ac_name', 0, '', 'left'),
+                    array('Part No.', 10, 'part_no', 0, '', 'left'),
+                    array('Sr. No. in Part', 5, 'sr_no', 0, '', 'left'),
+                    array('Name',25, 'vt_name', 0, '', 'left'),
+                    array('F/H Name',25, 'father_name_e', 0, '', 'left'),
+                );
+
+                $query = "SELECT `vt`.`voter_card_no`, `dst`.`name_e` as `d_name`, concat(`ac`.`code`, ' - ', `ac`.`name_e`) as `ac_name`, `ap`.`part_no`, `vt`.`sr_no`, `vt`.`name_e` as `vt_name`, `vt`.`father_name_e` from `voters` `vt` inner join `duplicate_epic_district` `dup` on `dup`.`epic_no` = `vt`.`voter_card_no` and `dup`.`district_id` = $d_id inner join `districts` `dst` on `dst`.`id` = `vt`.`district_id` inner join `assemblys` `ac` on `ac`.`id` = `vt`.`assembly_id` inner join `assembly_parts` `ap` on `ap`.`id` = `vt`.`assembly_part_id` order by `vt`.`voter_card_no`;";
                 $rs_result = DB::select(DB::raw("$query"));
             }elseif($report_type == 21){
                 if($request->district == null || empty($request->district)){

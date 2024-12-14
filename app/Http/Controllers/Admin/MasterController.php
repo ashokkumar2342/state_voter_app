@@ -1632,6 +1632,10 @@ class MasterController extends Controller
         $voterReports = DB::select(DB::raw("SELECT `a`.`code`, `ap`.`part_no`, `v`.`sr_no`, `v`.`name_l`, `v`.`father_name_l`from `voters` `v`Left Join `assemblys` `a` on `a`.`id` = `v`.`assembly_id`Left Join `assembly_parts` `ap` on `ap`.`id` = `v`.`assembly_part_id`Where `v`.`ward_id` = $ward_id order By `v`.`sr_no`;"));
       } 
       
+      ini_set('max_execution_time', '7200');
+      ini_set('memory_limit','999M');
+      ini_set("pcre.backtrack_limit", "100000000");
+
       $path=Storage_path('fonts/');
       $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
       $fontDirs = $defaultConfig['fontDir']; 
