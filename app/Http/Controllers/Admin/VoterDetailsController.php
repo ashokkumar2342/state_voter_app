@@ -164,6 +164,10 @@ class VoterDetailsController extends Controller
   public function index()
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(121);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $rs_district = SelectBox::get_district_access_list_v1();
       $genders= DB::select(DB::raw("SELECT * from `genders` order by `id`;"));  
       $Relations= DB::select(DB::raw("SELECT * from `relation` order by `relation_e`;"));  
@@ -177,6 +181,10 @@ class VoterDetailsController extends Controller
   public function VillageWiseVoterList(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(121);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->village_id));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
@@ -192,7 +200,11 @@ class VoterDetailsController extends Controller
 
   public function VillageWiseAcParts(Request $request)
   {
-    try{  
+    try{
+      $permission_flag = MyFuncs::isPermission_route(121);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
       $village_id = intval(Crypt::decrypt($request->id));
       $permission_flag = MyFuncs::check_village_access($village_id);
       if($permission_flag == 0){
@@ -241,6 +253,11 @@ class VoterDetailsController extends Controller
   public function store(Request $request)
   {
     try {
+      $permission_flag = MyFuncs::isPermission_route(121);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
       $rules=[            
         'district' => 'required', 
         'block' => 'required', 
@@ -353,6 +370,12 @@ class VoterDetailsController extends Controller
       $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
       if(count($rs_fetch)>0){
         $response=['status'=>0,'msg'=>'Sr. No. already Exists'];
+        return response()->json($response);  
+      }
+
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `name_e` = '$name_e' and `father_name_e` = '$fname_e' and `age` = '$age' and `data_list_id` = $data_list_id limit 1;"));
+      if(count($rs_fetch)>0){
+        $response=['status'=>0,'msg'=>'Name & F/H & DOB Already Exists'];
         return response()->json($response);  
       }
       

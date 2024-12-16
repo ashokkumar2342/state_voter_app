@@ -122,8 +122,8 @@
                         </div>
                         <div class="col-lg-3 form-group">
                             <label for="exampleInputEmail1">Date of Birth</label>
-
-                            <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" onchange="callAjax(this,'{{ route('admin.voter.calculateAge') }}','age_value_div')">
+                            <span class="fa fa-asterisk"></span>
+                            <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" required onchange="callAjax(this,'{{ route('admin.voter.calculateAge') }}','age_value_div')">
                         </div>
                         <div class="col-lg-3 form-group" id="age_value_div">
                             <label for="exampleInputEmail1">Age</label>
@@ -144,8 +144,8 @@
                             <input type="text" name="mobile_no" id="mobile_no" class="form-control" maxlength="10" minlength="10" onkeypress='return event.charCode >= 48 && event.charCode <= 57' >
                         </div>
                         <div class="col-lg-4 form-group">
-                            <span class="fa fa-asterisk"></span>
                             <label>Image (Only:JPG/JPEG/PNG) (Size:20KB)</label>
+                            <span class="fa fa-asterisk"></span>
                             <input type="file" name="image" id="image" class="form-control" required accept="image/jpg, image/jpeg, image/png"> 
                         </div>
                     </div>
