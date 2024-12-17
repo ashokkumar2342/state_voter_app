@@ -76,7 +76,7 @@
                         <div class="col-lg-6 form-group">
                             <label for="exampleInputEmail1">Name (English)</label>
                             <span class="fa fa-asterisk"></span>
-                            <input type="text" name="name_english" id="name_english" class="form-control" maxlength="50" required onkeyup="check_dublicate_rec();">
+                            <input type="text" name="name_english" id="name_english" class="form-control" maxlength="50" required onkeyup="check_duplicate_rec();">
                         </div>
                         <div class="col-lg-6 form-group">
                             <label for="exampleInputEmail1">Name (Hindi)</label>
@@ -96,7 +96,7 @@
                         <div class="col-lg-4 form-group">
                             <label for="exampleInputEmail1">F/H Name (English)</label>
                             <span class="fa fa-asterisk"></span>
-                            <input type="text" name="f_h_name_english" id="f_h_name_english" class="form-control" maxlength="50" required onkeyup="check_dublicate_rec();">
+                            <input type="text" name="f_h_name_english" id="f_h_name_english" class="form-control" maxlength="50" required onkeyup="check_duplicate_rec();">
                         </div>
                         <div class="col-lg-4 form-group">
                             <label for="exampleInputEmail1">F/H Name (Hindi)</label>
@@ -126,7 +126,7 @@
                         <div class="col-lg-4 form-group">
                             <label for="exampleInputEmail1">Date of Birth</label>
                             <span class="fa fa-asterisk"></span>
-                            <input type="text" name="date_of_birth" id="date_of_birth" class="form-control" placeholder="DD-MM-YYYY" maxlength="10" minlength="10" required onkeypress='return (event.charCode >= 48 && event.charCode <= 57) || (event.charCode == 45) || (event.charCode == 47)' onkeyup="Age_Count(this.value);check_dublicate_rec();"> 
+                            <input type="text" name="date_of_birth" id="date_of_birth" class="form-control" placeholder="DD-MM-YYYY" maxlength="10" minlength="10" required onkeypress='return (event.charCode >= 48 && event.charCode <= 57) || (event.charCode == 45) || (event.charCode == 47)' onkeyup="Age_Count(this.value);check_duplicate_rec();"> 
 
                             {{-- <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" required onchange="callAjax(this,'{{ route('admin.voter.calculateAge') }}','age_value_div')"> --}}
                         </div>
@@ -149,6 +149,9 @@
                             <input type="file" name="image" id="image" class="form-control" required accept="image/jpg, image/jpeg, image/png"> 
                         </div>
                     </div>
+                        <div id="checkDuplicateRecord">
+
+                        </div>
                     <div class="card-footer text-center">
                         <button type="submit" class="btn btn-primary btn-block">Submit</button>
                     </div>
@@ -270,12 +273,14 @@
     }
 </script>
 <script>
-    function check_dublicate_rec() {
-        if ($("#name_english").val().length > 0 && $("#f_h_name_english").val().length > 0 && $("#date_of_birth").val().length > 10) {
-            alert('check_dublicate_rec');
+    function check_duplicate_rec() {
+        var name_e = $("#name_english").val();
+        var f_name_e = $("#f_h_name_english").val();
+        var dob = $("#date_of_birth").val();
+        if ((name_e.length > 0) && (f_name_e.length > 0) && (dob.length == 10)) {
+            callAjax(this,'{{ route('admin.voter.check.duplicate.record') }}'+'?name_english='+name_e+'&f_h_name_english='+f_name_e+'&date_of_birth='+dob,'checkDuplicateRecord');
         }
         
-        {{-- callAjax(this,'{{ route('admin.Master.employeeDictionaryApplyUpdate') }}'+'?dic_id='+id); --}}
     }
 </script>
 

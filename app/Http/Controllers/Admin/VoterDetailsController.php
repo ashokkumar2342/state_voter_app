@@ -233,10 +233,25 @@ class VoterDetailsController extends Controller
       $e_method = "checkdictionaryFName";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
-      // $name_e = MyFuncs::removeSpacialChr($request->relation_name);
-      // $rs_result= DB::select(DB::raw("SELECT * from `dictionary` where `name_e` = '$name_e';"));
-      
-      // return view('admin.master.employee.dictionary_f',compact('rs_result', 'name_e'));
+  }
+
+  public function checkDuplicateRecord(Request $request)
+  { 
+    try {
+      $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+      $f_h_name_english = substr(MyFuncs::removeSpacialChr($request->f_h_name_english), 0, 50);
+      $date_of_birth = substr(MyFuncs::removeSpacialChr($request->date_of_birth), 0, 10);
+      $dob = date('Y-m-d', strtotime($date_of_birth));
+      // return "SELECT `id` from `voters` where `name_e` = '$name_english' and `father_name_e` = '$f_h_name_english' and `dob` = '$dob' limit 1;";
+      $rs_result = DB::select(DB::raw("SELECT `id` from `voters` where `name_e` = '$name_english' and `father_name_e` = '$f_h_name_english' and `dob` = '$dob' limit 1;"));
+      if (count($rs_result) == 0) {
+        return '';
+      }
+      return view('admin.voterDetails.checkDuplicateRecord',compact('rs_result')); 
+    } catch (Exception $e) {
+      $e_method = "checkDuplicateRecord";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
   }
 
   // public function NameConvert(Request $request, $condition_type)
