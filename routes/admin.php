@@ -395,9 +395,10 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
            Route::get('VillageWiseVoterList', 'VoterDetailsController@VillageWiseVoterList')->name('admin.voter.VillageWiseVoterList');	//OK---------
 
+           Route::get('checkdictionaryFName/{type}', 'VoterDetailsController@checkdictionaryFName')->name('admin.voter.echeckdictionaryFName');
 
-           Route::get('calculateAge', 'VoterDetailsController@calculateAge')->name('admin.voter.calculateAge');	//OK---------
-           Route::get('NameConvert/{condition_type}', 'VoterDetailsController@NameConvert')->name('admin.voter.NameConvert');	//OK-----
+           // Route::get('calculateAge', 'VoterDetailsController@calculateAge')->name('admin.voter.calculateAge');	//OK---------
+           // Route::get('NameConvert/{condition_type}', 'VoterDetailsController@NameConvert')->name('admin.voter.NameConvert');	//OK-----
            Route::post('store', 'VoterDetailsController@store')->name('admin.voter.details.store');		//OK-----
 
 //            Route::get('voterEdit/{id}', 'VoterDetailsController@voterListEdit')->name('admin.voter.voteredit');

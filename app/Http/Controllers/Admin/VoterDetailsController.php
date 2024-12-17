@@ -218,24 +218,45 @@ class VoterDetailsController extends Controller
     }
   }
 
-  public function NameConvert(Request $request, $condition_type)
-  {
+  public function checkdictionaryFName(Request $request, $condition_type)
+  { 
     try {
       $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
-      if ($condition_type==3) {
-        $name_english = DB::select(DB::raw("SELECT uf_house_convert_e_2_h ('$name_english') as 'name_l'"));   
+      if ($condition_type == 3) {
+        $rs_result = DB::select(DB::raw("SELECT uf_house_convert_e_2_h ('$name_english') as 'name_l'"));   
       }
       else{  
-        $name_english = DB::select(DB::raw("SELECT uf_name_convert_e_2_h ('$name_english') as 'name_l'")); 
+        $rs_result = DB::select(DB::raw("SELECT uf_name_convert_e_2_h ('$name_english') as 'name_l'")); 
       }
-
-      $name_l = preg_replace('/[\x00]/', '', $name_english[0]->name_l);
-      return view('admin.voterDetails.name_hindi_value',compact('name_l','condition_type')); 
+      return view('admin.voterDetails.dictionary_popup',compact('name_english', 'rs_result', 'condition_type')); 
     } catch (\Exception $e) {
-      $e_method = "NameConvert";
+      $e_method = "checkdictionaryFName";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
-    }   
+    }
+      // $name_e = MyFuncs::removeSpacialChr($request->relation_name);
+      // $rs_result= DB::select(DB::raw("SELECT * from `dictionary` where `name_e` = '$name_e';"));
+      
+      // return view('admin.master.employee.dictionary_f',compact('rs_result', 'name_e'));
   }
+
+  // public function NameConvert(Request $request, $condition_type)
+  // {
+  //   try {
+  //     $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+  //     if ($condition_type==3) {
+  //       $name_english = DB::select(DB::raw("SELECT uf_house_convert_e_2_h ('$name_english') as 'name_l'"));   
+  //     }
+  //     else{  
+  //       $name_english = DB::select(DB::raw("SELECT uf_name_convert_e_2_h ('$name_english') as 'name_l'")); 
+  //     }
+
+  //     $name_l = preg_replace('/[\x00]/', '', $name_english[0]->name_l);
+  //     return view('admin.voterDetails.name_hindi_value',compact('name_l','condition_type')); 
+  //   } catch (\Exception $e) {
+  //     $e_method = "NameConvert";
+  //     return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+  //   }   
+  // }
 
   public function calculateAge(Request $request)
   {
