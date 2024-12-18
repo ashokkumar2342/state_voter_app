@@ -191,6 +191,9 @@ class ReportController extends Controller
             }elseif($report_id == 25){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
+            }elseif($report_id == 26){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_2',compact('rs_district'));
             }elseif($report_id == 2001){
                 return view('admin.report.no_control_form');
             }        
@@ -806,6 +809,51 @@ class ReportController extends Controller
                 );
                 $rs_result = DB::select(DB::raw("call `up_prepare_asmb_part_srn_list_wardwise_for_mc_report`($vil_id);"));
                 $query = 'SELECT `acno`, `partno`, `fromsrno`, `tosrno`, `wardno`, `booth_no` from `voters_srno_detail_mc` where `village_id` = '.$vil_id. ' order by `acno`, `partno`, `fromsrno`';
+                $rs_result = DB::select(DB::raw("$query"));
+            }elseif ($report_type == 26){
+                if($request->district == null || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                if($request->block == null || empty($request->block)){
+                    $b_id = 0;
+                }else{
+                    $b_id = intval(Crypt::decrypt($request->block));    
+                }
+
+                $permission_flag = MyFuncs::check_block_access($b_id);
+                if($permission_flag == 0){
+                    $b_id = 0;
+                }
+
+                if($request->village == null || empty($request->village)){
+                    $vil_id = 0;
+                }else{
+                    $vil_id = intval(Crypt::decrypt($request->village));    
+                }
+
+                $permission_flag = MyFuncs::check_village_access($vil_id);
+                if($permission_flag == 0){
+                    $vil_id = 0;
+                }
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 1;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('Booth No.',100, 'booth_no', 0, '', 'left'),
+                );
+                if($vil_id > 0){
+                    $query = "SELECT `pb`.`booth_no` from `polling_booths` `pb` inner join (select distinct `ward_id`, `booth_id` from `voters` where `village_id` = $vil_id) `vtd` on `vtd`.`booth_id` = `pb`.`id` group by `pb`.`booth_no`, `pb`.`id` having count(*) > 1 order by `pb`.`booth_no`;";
+                }else{
+                    $query = "SELECT `pb`.`booth_no` from `polling_booths` `pb` inner join (select distinct `ward_id`, `booth_id` from `voters` where `id` = 0) `vtd` on `vtd`.`booth_id` = `pb`.`id` group by `pb`.`booth_no`, `pb`.`id` having count(*) > 1 order by `pb`.`booth_no`;";
+                }
                 $rs_result = DB::select(DB::raw("$query"));
             }elseif ($report_type == 2000){
                 $tcols = 2;

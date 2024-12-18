@@ -125,8 +125,7 @@
                         </div>
                         <div class="col-lg-4 form-group">
                             <label for="exampleInputEmail1">Date of Birth</label>
-                            <span class="fa fa-asterisk"></span>
-                            <input type="text" name="date_of_birth" id="date_of_birth" class="form-control" placeholder="DD-MM-YYYY" maxlength="10" minlength="10" required onkeypress='return (event.charCode >= 48 && event.charCode <= 57) || (event.charCode == 45) || (event.charCode == 47)' onkeyup="Age_Count(this.value);check_duplicate_rec();"> 
+                            <input type="text" name="date_of_birth" id="date_of_birth" class="form-control" placeholder="DD-MM-YYYY" maxlength="10" minlength="10" onkeypress='return (event.charCode >= 48 && event.charCode <= 57) || (event.charCode == 45) || (event.charCode == 47)' onkeyup="Age_Count(this.value);check_duplicate_rec();"> 
 
                             {{-- <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" required onchange="callAjax(this,'{{ route('admin.voter.calculateAge') }}','age_value_div')"> --}}
                         </div>
@@ -277,8 +276,9 @@
         var name_e = $("#name_english").val();
         var f_name_e = $("#f_h_name_english").val();
         var dob = $("#date_of_birth").val();
+        var d_id = $("#district_select_box").val();
         if ((name_e.length > 0) && (f_name_e.length > 0) && (dob.length == 10)) {
-            callAjax(this,'{{ route('admin.voter.check.duplicate.record') }}'+'?name_english='+name_e+'&f_h_name_english='+f_name_e+'&date_of_birth='+dob,'checkDuplicateRecord');
+            callAjax(this,'{{ route('admin.voter.check.duplicate.record') }}'+'?name_english='+name_e+'&f_h_name_english='+f_name_e+'&date_of_birth='+dob+'&district_id='+d_id,'checkDuplicateRecord');
         }
         
     }

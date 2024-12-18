@@ -41,7 +41,7 @@
                             <tr>
                                 <td>{{$value->name_l}}</td>  
                                 <td>
-                                    <button type="button" class="btn btn-success btn-sm" success-popup="true" onclick="EmpNameFill('{{$name_english}}', '{{$condition_type}}')">Apply</button>
+                                    <button type="button" class="btn btn-success btn-sm" success-popup="true" onclick="EmpNameFill('{{$value->name_l}}', '{{$condition_type}}')">Apply</button>
                                 </td>  
                             </tr> 
                             @endforeach

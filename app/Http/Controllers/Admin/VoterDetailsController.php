@@ -223,10 +223,10 @@ class VoterDetailsController extends Controller
     try {
       $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
       if ($condition_type == 3) {
-        $rs_result = DB::select(DB::raw("SELECT uf_house_convert_e_2_h ('$name_english') as 'name_l'"));   
+        $rs_result = DB::select(DB::raw("SELECT `uf_house_convert_e_2_h` ('$name_english') as 'name_l'"));   
       }
       else{  
-        $rs_result = DB::select(DB::raw("SELECT uf_name_convert_e_2_h ('$name_english') as 'name_l'")); 
+        $rs_result = DB::select(DB::raw("SELECT `uf_name_convert_e_2_h` ('$name_english') as 'name_l'")); 
       }
       return view('admin.voterDetails.dictionary_popup',compact('name_english', 'rs_result', 'condition_type')); 
     } catch (\Exception $e) {
@@ -238,12 +238,15 @@ class VoterDetailsController extends Controller
   public function checkDuplicateRecord(Request $request)
   { 
     try {
+      $d_id = intval(Crypt::decrypt($request->district_id));
       $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
       $f_h_name_english = substr(MyFuncs::removeSpacialChr($request->f_h_name_english), 0, 50);
       $date_of_birth = substr(MyFuncs::removeSpacialChr($request->date_of_birth), 0, 10);
-      $dob = date('Y-m-d', strtotime($date_of_birth));
+      $date_of_birth = str_replace("-", "/", $date_of_birth);
+      $date_of_birth = str_replace(".", "/", $date_of_birth);
+      // $dob = date('Y-m-d', strtotime($date_of_birth));
       // return "SELECT `id` from `voters` where `name_e` = '$name_english' and `father_name_e` = '$f_h_name_english' and `dob` = '$dob' limit 1;";
-      $rs_result = DB::select(DB::raw("SELECT `id` from `voters` where `name_e` = '$name_english' and `father_name_e` = '$f_h_name_english' and `dob` = '$dob' limit 1;"));
+      $rs_result = DB::select(DB::raw("SELECT `dst`.`name_e` as `d_name`, concat(`ac`.`code`, ' - ', `ac`.`name_e`) as `ac_name`, `ap`.`part_no`, `vt`.`sr_no`, `vt`.`voter_card_no`, `vt`.`data_list_id`, `vt`.`assembly_id`, `vt`.`assembly_part_id`, `vt`.`house_no_e` from `voters` `vt` inner join `districts` `dst` on `dst`.`id` = `vt`.`district_id` inner join `assemblys` `ac` on `ac`.`id` = `vt`.`assembly_id` inner join `assembly_parts` `ap` on `ap`.`id` = `vt`.`assembly_part_id` where `vt`.`district_id` = $d_id and `vt`.`name_e` = '$name_english' and `vt`.`father_name_e` = '$f_h_name_english' and `vt`.`dob` = '$date_of_birth';"));
       if (count($rs_result) == 0) {
         return '';
       }
@@ -393,7 +396,14 @@ class VoterDetailsController extends Controller
       
       $relation_id = intval(Crypt::decrypt($request->relation));
       $gender_id = intval(Crypt::decrypt($request->gender));
-      $birth_date = $request->date_of_birth;
+      $birth_date = substr(MyFuncs::removeSpacialChr($request->date_of_birth), 0, 10);
+      $birth_date = str_replace("-", "/", $birth_date);
+      $birth_date = str_replace(".", "/", $birth_date);
+
+      if($age < 18){
+        $response=['status'=>0,'msg'=>'Age Cannot Be Less Then 18'];
+        return response()->json($response);
+      }
       
       $rs_fetch = DB::select(DB::raw("SELECT `id`, `tag` from `import_type` where `status` = 1 limit 1;"));
       $data_list_id = $rs_fetch[0]->id;
@@ -409,17 +419,17 @@ class VoterDetailsController extends Controller
         return response()->json($response);  
       }
 
-      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `name_e` = '$name_e' and `father_name_e` = '$fname_e' and `age` = '$age' and `data_list_id` = $data_list_id limit 1;"));
-      if(count($rs_fetch)>0){
-        $response=['status'=>0,'msg'=>'Name & F/H & DOB Already Exists'];
-        return response()->json($response);  
-      }
+      // $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `name_e` = '$name_e' and `father_name_e` = '$fname_e' and `age` = '$age' and `data_list_id` = $data_list_id limit 1;"));
+      // if(count($rs_fetch)>0){
+      //   $response=['status'=>0,'msg'=>'Name & F/H & DOB Already Exists'];
+      //   return response()->json($response);  
+      // }
       
       $rs_fetch = DB::select(DB::raw("SELECT `assembly_id` from `assembly_parts` where `id` = $ac_part_id limit 1;"));
       $ac_id = $rs_fetch[0]->assembly_id;
       
 
-      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag');"));
+      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag', '$birth_date');"));
 
       $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
       $new_id = $sr_no;
@@ -445,7 +455,7 @@ class VoterDetailsController extends Controller
       }
 
       $user_id = MyFuncs::getUserId();
-      $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id)"));
+      $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id);"));
 
       $response=['status'=>1,'msg'=>'Submit Successfully'];
       return response()->json($response);
