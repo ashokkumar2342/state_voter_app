@@ -724,10 +724,14 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
                Route::get('change-booth-form', 'MasterController@claimObjAcPartSrnoChangeBoothForm')->name('admin.claim.obj.ac.part.srno.changeBoothForm');
                Route::get('change-booth-table', 'MasterController@claimObjAcPartSrnoChangeBoothTable')->name('admin.claim.obj.ac.part.srno.changeBoothTable');
                Route::post('change-booth-form-Store', 'MasterController@claimObjAcPartSrnoChangeBoothFormStore')->name('admin.claim.obj.ac.part.srno.changeBoothFormStore');
-               
-               
-               
- 	});
+           });
+
+ 			// Clear Booth-Part Voters (43)
+ 			Route::group(['prefix' => 'clear-voters'], function() {
+ 				Route::get('cvwb-index', 'ClearVotersController@index')->name('admin.clear.voters.index');
+ 				Route::get('cvwb-table', 'ClearVotersController@table')->name('admin.clear.voters.table');
+ 				Route::get('cvwb-clear/{booth_id}', 'ClearVotersController@clear')->name('admin.clear.voters.clear');
+ 			});
 
 //  	Route::group(['prefix' => 'vidhansabha'], function() {
 //  		Route::get('index', 'PrepareVidhansabhaListController@index')->name('admin.prepare.vidhansabha.List.index');

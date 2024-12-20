@@ -2518,7 +2518,7 @@ class MasterController extends Controller
       }
 
 
-      $booths = DB::select(DB::raw("SELECT `id`, concat(`booth_no`, `booth_no_c`,' - ', `name_e`) as `booth_name`, 0 as `status` From `polling_booths` Where `village_id` = $vil_id and `id` not in (select `boothid` from `booth_ward_voter_mapping` where  `is_complete_booth` = 1) Union Select `id`, concat(`booth_no`, ' - ', `name_e`) as `booth_name`, 1 as `status` From `polling_booths` Where `village_id` = $vil_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` =$ward_id and `is_complete_booth` = 1) Order by `booth_name`;"));   
+      $booths = DB::select(DB::raw("SELECT `id`, concat(`booth_no`, `booth_no_c`,' - ', `name_e`) as `booth_name`, 0 as `status`, (select count(*) from `voters` where `status` <> 2 and `booth_id` = `pb`.`id` and `ward_id` <> $ward_id) as `voters_in_ward` From `polling_booths` `pb` Where `village_id` = $vil_id and `id` not in (select `boothid` from `booth_ward_voter_mapping` where  `is_complete_booth` = 1) Union Select `id`, concat(`booth_no`, ' - ', `name_e`) as `booth_name`, 1 as `status`, (select count(*) from `voters` where `status` <> 2 and `booth_id` = `pb`.`id` and `ward_id` = $ward_id) From `polling_booths` `pb` Where `village_id` = $vil_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` =$ward_id and `is_complete_booth` = 1) Order by `booth_name`;"));   
       return view('admin.master.MappingWardWithMultipleBooth.select_box',compact('booths'));
     } catch (\Exception $e) {
       $e_method = "MappingWardWithMultipleBoothWardWiseBooth";
@@ -2585,8 +2585,21 @@ class MasterController extends Controller
       if (!empty($request->booth)){
         foreach ($request->booth as $key => $value) {
           $val_booth_id = intval(Crypt::decrypt($value));
-          $booth_id=$booth_id.",".$val_booth_id;
+          $booth_id = $booth_id.",".$val_booth_id;
         }
+      }
+
+      $booth_ids_check = "(".$booth_id.")";
+      $rs_check = DB::select(DB::raw("SELECT `bwvm`.`id` from `booth_ward_voter_mapping` `bwvm` where `wardid` = $ward_id and `boothid` not in $booth_ids_check and (select count(*) from `voters` where `status` <> 2 and `booth_id` = `bwvm`.`boothid` and `ward_id` = $ward_id) > 0;"));
+      if(count($rs_check) > 0){
+        $response=['status'=>0,'msg'=>'Not Able To Update/Unmapped as Voters Exists in Wards and in Existing Booths']; 
+        return response()->json($response);        
+      }
+
+      $rs_check = DB::select(DB::raw("SELECT `bwvm`.`id` from `booth_ward_voter_mapping` `bwvm` where `boothid` in $booth_ids_check and (select count(*) from `voters` where `status` <> 2 and `booth_id` = `bwvm`.`boothid` and `ward_id` <> $ward_id) > 0;"));
+      if(count($rs_check) > 0){
+        $response=['status'=>0,'msg'=>'Not Able To Update/Mapped as Voters Exists in Other Wards and in Selected Booths']; 
+        return response()->json($response);        
       }
 
       $saveBooth = DB::select(DB::raw("call `up_map_ward_booths`('$ward_id','$booth_id');"));

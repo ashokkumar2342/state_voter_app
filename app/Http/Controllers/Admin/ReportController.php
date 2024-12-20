@@ -194,6 +194,9 @@ class ReportController extends Controller
             }elseif($report_id == 26){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_2',compact('rs_district'));
+            }elseif($report_id == 27){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_1',compact('rs_district'));
             }elseif($report_id == 2001){
                 return view('admin.report.no_control_form');
             }        
@@ -855,6 +858,37 @@ class ReportController extends Controller
                     $query = "SELECT `pb`.`booth_no` from `polling_booths` `pb` inner join (select distinct `ward_id`, `booth_id` from `voters` where `id` = 0) `vtd` on `vtd`.`booth_id` = `pb`.`id` group by `pb`.`booth_no`, `pb`.`id` having count(*) > 1 order by `pb`.`booth_no`;";
                 }
                 $rs_result = DB::select(DB::raw("$query"));
+            }elseif ($report_type == 27){
+                if($request->district == 'null' || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }
+                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                if($request->assembly == 'null' || empty($request->assembly)){
+                    $ac_id = 0;
+                }else{
+                    $ac_id = intval(Crypt::decrypt($request->assembly));    
+                }
+                
+
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 4;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('Part No.',25, 'part_no', 0, '', 'left'),
+                    array('Total',25, 'total_voters', 0, '', 'left'),
+                    array('Mapped',25, 'mapped_voters', 0, '', 'left'),
+                    array('Left',25, 'left_voters', 0, '', 'left'),
+                );
+
+                $rs_result=DB::select(DB::raw("SELECT `ap`.`part_no`, `ap_vt`.`total_voters`, `ap_vt`.`mapped_voters`, `ap_vt`.`left_voters` from `assembly_parts` `ap` inner join (select `vt`.`assembly_part_id`, count(*) as `total_voters`, sum(case `vt`.`village_id` when 0 then 0 else 1 end) as `mapped_voters`, sum(case `vt`.`village_id` when 0 then 1 else 0 end) as `left_voters` from `voters` `vt` where `vt`.`district_id` = $d_id and `vt`.`assembly_id` = $ac_id group by `vt`.`assembly_part_id`) `ap_vt` on `ap_vt`.`assembly_part_id` = `ap`.`id` where `ap`.`village_id` > 0 order by `ap`.`part_no`;"));
             }elseif ($report_type == 2000){
                 $tcols = 2;
                 $qcols = array(
