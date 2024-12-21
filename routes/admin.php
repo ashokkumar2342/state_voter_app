@@ -731,6 +731,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
  				Route::get('cvwb-index', 'ClearVotersController@index')->name('admin.clear.voters.index');
  				Route::get('cvwb-table', 'ClearVotersController@table')->name('admin.clear.voters.table');
  				Route::get('cvwb-clear/{booth_id}', 'ClearVotersController@clear')->name('admin.clear.voters.clear');
+ 				Route::get('cvwb-shift/{booth_ward_id}', 'ClearVotersController@shift')->name('admin.clear.voters.shift');
+ 				Route::post('cvwb-shift-store', 'ClearVotersController@shiftStore')->name('admin.clear.voters.shift.store');
  			});
 
 //  	Route::group(['prefix' => 'vidhansabha'], function() {
