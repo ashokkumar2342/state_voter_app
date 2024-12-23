@@ -299,12 +299,9 @@ class VoterDetailsController extends Controller
       }
       $rules=[            
         'district' => 'required', 
-        'block' => 'required', 
-        'village' => 'required', 
-        'ward_no' => 'required', 
-        'ac_part_id' => 'required', 
+        'assembly' => 'required', 
+        'part_no' => 'required', 
         'srno_part' => 'required', 
-        'booth_no' => 'required', 
         'name_english' => 'required', 
         'name_local_language' => 'required', 
         'relation' => 'required', 
@@ -319,12 +316,9 @@ class VoterDetailsController extends Controller
       ];
       $customMessages = [
         'district.required'=> 'Please Select District',
-        'block.required'=> 'Please Select Block / MC\'s',
-        'village.required'=> 'Please Select Panchayat / MC\'s',
-        'ward_no.required'=> 'Please Select Ward No.',
-        'ac_part_id.required'=> 'Please Select Assembly Part',
+        'assembly.required'=> 'Please Select Assembly',
+        'part_no.required'=> 'Please Select Assembly Part',
         'srno_part.required'=> 'Please Enter Sr No. in Part.',
-        'booth_no.required'=> 'Please Select Booth No.',
         'name_english.required'=> 'Please Enter Name English',
         'name_local_language.required'=> 'Please Enter Name Hindi',
         'relation.required'=> 'Please Select Relation',
@@ -357,22 +351,7 @@ class VoterDetailsController extends Controller
         return response()->json($response);
       }
       
-      $bl_id = intval(Crypt::decrypt($request->block));
-      $permission_flag = MyFuncs::check_block_access($bl_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-      $vil_id = intval(Crypt::decrypt($request->village));
-      $permission_flag = MyFuncs::check_village_access($vil_id);
-      if($permission_flag == 0){
-        $response=['status'=>0,'msg'=>'Something Went Wrong'];
-        return response()->json($response);
-      }
-
-      $ward_id = intval(Crypt::decrypt($request->ward_no));
-      $ac_part_id = intval(Crypt::decrypt($request->ac_part_id));
-      $booth_id = intval(Crypt::decrypt($request->booth_no));
+      $ac_part_id = intval(Crypt::decrypt($request->part_no));
       $sr_no = intval(substr(MyFuncs::removeSpacialChr($request->srno_part), 0, 5));
 
       $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
@@ -419,25 +398,11 @@ class VoterDetailsController extends Controller
         return response()->json($response);  
       }
 
-      // $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `name_e` = '$name_e' and `father_name_e` = '$fname_e' and `age` = '$age' and `data_list_id` = $data_list_id limit 1;"));
-      // if(count($rs_fetch)>0){
-      //   $response=['status'=>0,'msg'=>'Name & F/H & DOB Already Exists'];
-      //   return response()->json($response);  
-      // }
       
       $rs_fetch = DB::select(DB::raw("SELECT `assembly_id` from `assembly_parts` where `id` = $ac_part_id limit 1;"));
       $ac_id = $rs_fetch[0]->assembly_id;
       
-
-      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag', '$birth_date');"));
-
-      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
       $new_id = $sr_no;
-
-
-      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voter_list_master` where `block_id` = $bl_id and `status` = 1 limit 1;"));
-      $voter_list_id = $rs_fetch[0]->id;
-
       if ($request->hasFile('image')){
         if($_FILES['image']['size'] > 20*1024) {
           $response=['status'=>0,'msg'=>'Image Size cannot be more then 20 KB'];
@@ -454,9 +419,9 @@ class VoterDetailsController extends Controller
         return response()->json($response);
       }
 
-      $user_id = MyFuncs::getUserId();
-      $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id);"));
+      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag', '$birth_date');"));
 
+      
       $response=['status'=>1,'msg'=>'Submit Successfully'];
       return response()->json($response);
     } catch (Exception $e) {
@@ -464,6 +429,179 @@ class VoterDetailsController extends Controller
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
+
+  // public function store(Request $request)
+  // {
+  //   try {
+  //     $permission_flag = MyFuncs::isPermission_route(121);
+  //     if(!$permission_flag){
+  //       $response=['status'=>0,'msg'=>'Something Went Wrong'];
+  //       return response()->json($response);
+  //     }
+  //     $rules=[            
+  //       'district' => 'required', 
+  //       'block' => 'required', 
+  //       'village' => 'required', 
+  //       'ward_no' => 'required', 
+  //       'ac_part_id' => 'required', 
+  //       'srno_part' => 'required', 
+  //       'booth_no' => 'required', 
+  //       'name_english' => 'required', 
+  //       'name_local_language' => 'required', 
+  //       'relation' => 'required', 
+  //       'f_h_name_english' => 'required', 
+  //       'f_h_name_local_language' => 'required', 
+  //       'house_no_english' => 'required', 
+  //       'house_no_local_language' => 'required', 
+  //       'gender' => 'required', 
+  //       'age' => 'required', 
+  //       'voter_id_no' => 'required',
+  //       'image' => 'required|image|mimes:jpeg,jpg,png|max:20',
+  //     ];
+  //     $customMessages = [
+  //       'district.required'=> 'Please Select District',
+  //       'block.required'=> 'Please Select Block / MC\'s',
+  //       'village.required'=> 'Please Select Panchayat / MC\'s',
+  //       'ward_no.required'=> 'Please Select Ward No.',
+  //       'ac_part_id.required'=> 'Please Select Assembly Part',
+  //       'srno_part.required'=> 'Please Enter Sr No. in Part.',
+  //       'booth_no.required'=> 'Please Select Booth No.',
+  //       'name_english.required'=> 'Please Enter Name English',
+  //       'name_local_language.required'=> 'Please Enter Name Hindi',
+  //       'relation.required'=> 'Please Select Relation',
+  //       'f_h_name_english.required'=> 'Please Enter F/H English',
+  //       'f_h_name_local_language.required'=> 'Please Enter F/H Hindi',
+  //       'house_no_english.required'=> 'Please Enter House No. English',
+  //       'house_no_local_language.required'=> 'Please Enter House No. Hindi',
+  //       'gender.required'=> 'Please Select Gender',
+  //       'age.required'=> 'Please Enter Age',
+  //       'voter_id_no.required'=> 'Please Enter Voter/Epic No.',
+
+  //       'image.required'=> 'Please Choose Image',
+  //       'image.image'=> 'Image Should Be Image',
+  //       'image.mimes'=> 'Image Should Be In JPG/JPEG/PNG Format',
+  //       'image.max'=> 'Image Size Should Be Maximun of 20 KB',
+  //     ];
+  //     $validator = Validator::make($request->all(),$rules, $customMessages);
+  //     if ($validator->fails()) {
+  //       $errors = $validator->errors()->all();
+  //       $response=array();
+  //       $response["status"]=0;
+  //       $response["msg"]=$errors[0];
+  //       return response()->json($response);// response as json
+  //     }
+
+  //     $d_id = intval(Crypt::decrypt($request->district));
+  //     $permission_flag = MyFuncs::check_district_access($d_id);
+  //     if($permission_flag == 0){
+  //       $response=['status'=>0,'msg'=>'Something Went Wrong'];
+  //       return response()->json($response);
+  //     }
+      
+  //     $bl_id = intval(Crypt::decrypt($request->block));
+  //     $permission_flag = MyFuncs::check_block_access($bl_id);
+  //     if($permission_flag == 0){
+  //       $response=['status'=>0,'msg'=>'Something Went Wrong'];
+  //       return response()->json($response);
+  //     }
+  //     $vil_id = intval(Crypt::decrypt($request->village));
+  //     $permission_flag = MyFuncs::check_village_access($vil_id);
+  //     if($permission_flag == 0){
+  //       $response=['status'=>0,'msg'=>'Something Went Wrong'];
+  //       return response()->json($response);
+  //     }
+
+  //     $ward_id = intval(Crypt::decrypt($request->ward_no));
+  //     $ac_part_id = intval(Crypt::decrypt($request->ac_part_id));
+  //     $booth_id = intval(Crypt::decrypt($request->booth_no));
+  //     $sr_no = intval(substr(MyFuncs::removeSpacialChr($request->srno_part), 0, 5));
+
+  //     $name_e = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+  //     $name_h = MyFuncs::removeSpacialChr($request->name_local_language);
+  //     $fname_e = substr(MyFuncs::removeSpacialChr($request->f_h_name_english), 0, 50);
+  //     $fname_h = MyFuncs::removeSpacialChr($request->f_h_name_local_language);
+  //     $hno_e = substr(MyFuncs::removeSpacialChr($request->house_no_english), 0, 20);
+  //     $h_no_h = MyFuncs::removeSpacialChr($request->house_no_local_language);
+  //     $age = intval(substr(MyFuncs::removeSpacialChr($request->age), 0, 3));
+  //     $epic_no = substr(MyFuncs::removeSpacialChr($request->voter_id_no), 0, 20);
+      
+  //     $aadhar_no = "";
+  //     if (!empty($request->Aadhaar_no)){
+  //       $aadhar_no = substr(MyFuncs::removeSpacialChr($request->Aadhaar_no), 0, 12);  
+  //     }
+      
+  //     $mobile = "";
+  //     if (!empty($request->mobile_no)){
+  //       $mobile = substr(MyFuncs::removeSpacialChr($request->mobile_no), 0, 10);  
+  //     }
+      
+  //     $relation_id = intval(Crypt::decrypt($request->relation));
+  //     $gender_id = intval(Crypt::decrypt($request->gender));
+  //     $birth_date = substr(MyFuncs::removeSpacialChr($request->date_of_birth), 0, 10);
+  //     $birth_date = str_replace("-", "/", $birth_date);
+  //     $birth_date = str_replace(".", "/", $birth_date);
+
+  //     if($age < 18){
+  //       $response=['status'=>0,'msg'=>'Age Cannot Be Less Then 18'];
+  //       return response()->json($response);
+  //     }
+      
+  //     $rs_fetch = DB::select(DB::raw("SELECT `id`, `tag` from `import_type` where `status` = 1 limit 1;"));
+  //     $data_list_id = $rs_fetch[0]->id;
+  //     $data_tag = $rs_fetch[0]->tag;
+
+  //     if($sr_no == 0){
+  //       $response=['status'=>0,'msg'=>'Sr. No. cannot be zero'];
+  //       return response()->json($response);  
+  //     }
+  //     $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
+  //     if(count($rs_fetch)>0){
+  //       $response=['status'=>0,'msg'=>'Sr. No. already Exists'];
+  //       return response()->json($response);  
+  //     }
+
+      
+  //     $rs_fetch = DB::select(DB::raw("SELECT `assembly_id` from `assembly_parts` where `id` = $ac_part_id limit 1;"));
+  //     $ac_id = $rs_fetch[0]->assembly_id;
+      
+  //     $new_id = $sr_no;
+  //     if ($request->hasFile('image')){
+  //       if($_FILES['image']['size'] > 20*1024) {
+  //         $response=['status'=>0,'msg'=>'Image Size cannot be more then 20 KB'];
+  //         return response()->json($response); 
+  //       }
+  //       $image = $request->image;
+  //       $vpath = '/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
+  //       $filename = $new_id.'.jpg';
+  //       $dirpath = Storage_path() . '/app/vimage/'.$data_list_id.'/'.$ac_id.'/'.$ac_part_id;
+  //       @mkdir($dirpath, 0755, true);
+  //       $image->storeAs($vpath, $filename);
+  //     }else{
+  //       $response=['status'=>0,'msg'=>'Please Choose Image'];
+  //       return response()->json($response);
+  //     }
+
+  //     $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag', '$birth_date');"));
+
+  //     $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
+  //     $new_id = $sr_no;
+
+
+  //     $rs_fetch = DB::select(DB::raw("SELECT `id` from `voter_list_master` where `block_id` = $bl_id and `status` = 1 limit 1;"));
+  //     $voter_list_id = $rs_fetch[0]->id;
+
+      
+
+  //     $user_id = MyFuncs::getUserId();
+  //     $rs_update = DB::select(DB::raw("call `up_change_voters_wards_by_ac_srno` ($user_id, $bl_id, $vil_id, $ac_part_id, $data_list_id, $sr_no, $sr_no, $ward_id, $booth_id);"));
+
+  //     $response=['status'=>1,'msg'=>'Submit Successfully'];
+  //     return response()->json($response);
+  //   } catch (Exception $e) {
+  //     $e_method = "store";
+  //     return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+  //   }
+  // }
 
   public function exception_handler()
   {

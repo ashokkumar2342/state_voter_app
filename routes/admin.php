@@ -387,7 +387,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 //            Route::get('districtWiseVillage', 'VoterDetailsController@districtWiseVillage')->name('admin.voter.districtWiseVillage');
 
-//            Route::get('AssemblyWisePartNo', 'VoterDetailsController@AssemblyWisePartNo')->name('admin.voter.AssemblyWisePartNo');	//OK------------
+           // Route::get('AssemblyWisePartNo', 'VoterDetailsController@AssemblyWisePartNo')->name('admin.voter.AssemblyWisePartNo');	//OK------------
            
            Route::get('VillageWiseWard', 'VoterDetailsController@VillageWiseWard')->name('admin.voter.VillageWiseWard');		//OK---------
            Route::get('VillageWiseWardAll', 'MasterController@VillageWiseWardAll')->name('admin.voter.VillageWiseWardAll');		//OK---------

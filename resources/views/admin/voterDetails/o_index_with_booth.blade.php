@@ -20,38 +20,25 @@
                         <div class="col-lg-4 form-group">
                             <label for="exampleInputEmail1">District</label>
                             <span class="fa fa-asterisk"></span>
-                            <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('admin.voter.districtWiseAssembly') }}','assembly_select_box');">
-                                <option selected disabled>Select District</option>
-                                @foreach ($rs_district as $rs_val)
-                                    <option value="{{ Crypt::encrypt($rs_val->opt_id) }}">{{ $rs_val->opt_text }}</option>  
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">Assembly</label>
-                            <span class="fa fa-asterisk"></span>
-                            <select name="assembly" class="form-control select2" id="assembly_select_box" onchange="callAjax(this,'{{ route('admin.Master.AssemblyWiseAllPartNo') }}','part_no_select_box');">
-                                <option selected disabled>Select Assembly</option>
-                                 
-                            </select>
-                        </div>
-                        <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">Part No.</label>
-                            <span class="fa fa-asterisk"></span>
-                            <select name="part_no" class="form-control select2" id="part_no_select_box">
-                                <option selected disabled>Select Part No.</option> 
-                            </select>
-                        </div>
-
-
-                        {{-- <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">District</label>
-                            <span class="fa fa-asterisk"></span>
                             <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('admin.Master.DistrictWiseBlock') }}','block_select_box');">
                                 <option selected disabled>Select District</option>
                                 @foreach ($rs_district as $rs_val)
                                     <option value="{{ Crypt::encrypt($rs_val->opt_id) }}">{{ $rs_val->opt_text }}</option>  
                                 @endforeach
+                            </select>
+                        </div>
+                        <div class="col-lg-4 form-group">
+                            <label for="exampleInputEmail1">Block / MC's</label>
+                            <span class="fa fa-asterisk"></span>
+                            <select name="block" class="form-control select2" id="block_select_box" onchange="callAjax(this,'{{ route('admin.Master.BlockWiseVillage') }}'+'?id='+this.value+'&district_id='+$('#district_select_box').val(),'village_select_box')">
+                                <option selected disabled>Select Block / MC's</option> 
+                            </select>
+                        </div> 
+                        <div class="col-lg-4 form-group">
+                            <label for="exampleInputEmail1">Panchayat MC's</label>
+                            <span class="fa fa-asterisk"></span>
+                            <select name="village" class="form-control select2" id="village_select_box" onchange="callAjax(this,'{{ route('admin.voter.VillageWiseWard') }}','ward_no_select_box');callAjax(this,'{{ route('admin.voter.VillageWiseAcParts') }}'+'?village_id='+this.value,'assembly_select_box')">
+                                <option selected disabled>Select Panchayat MC's</option> 
                             </select>
                         </div>
                         <div class="col-lg-4 form-group">
@@ -61,7 +48,21 @@
                                 <option selected disabled>Select Assembly-Part</option>
                                  
                             </select>
-                        </div> --}}
+                        </div>
+                        <div class="col-lg-4 form-group">
+                            <label for="exampleInputEmail1">Ward No.</label>
+                            <span class="fa fa-asterisk"></span>
+                            <select name="ward_no" class="form-control select2" id="ward_no_select_box" onchange="callAjax(this,'{{ route('admin.Master.WardWiseBooth') }}'+'?ward_id='+this.value+'&village_id='+$('#village_select_box').val(),'booth_select_box')">
+                                <option selected disabled>Select Ward No.</option> 
+                            </select>
+                        </div>
+                        <div class="col-lg-4 form-group">
+                            <label for="exampleInputEmail1">Booth No.</label>
+                            <span class="fa fa-asterisk"></span>                            
+                            <select name="booth_no" class="form-control select2" id="booth_select_box">
+                                <option selected disabled>Select Booth No.</option> 
+                            </select>
+                        </div> 
                         <div class="col-lg-6 form-group">
                             <label for="exampleInputEmail1">Sr. No. in Part</label> 
                             <span class="fa fa-asterisk"></span>
