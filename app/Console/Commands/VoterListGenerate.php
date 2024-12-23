@@ -43,7 +43,7 @@ class VoterListGenerate extends Command
     public function handle()
     { 
         ini_set('max_execution_time', '28800');
-        ini_set('memory_limit','999M');
+        ini_set('memory_limit','9999M');
         ini_set("pcre.backtrack_limit", "100000000");
 
         $queue_id = 0;
