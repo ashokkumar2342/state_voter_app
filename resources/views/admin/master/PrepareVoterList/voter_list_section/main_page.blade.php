@@ -24,14 +24,24 @@
 		<table id="detailtable" style="border: 1px solid black;" width="100%">
 		<tbody>
 		<tr>	
-		<td style="height: 40px;">
-			<table width="100%">
-				<tr>
-					<td style="border: 1px solid black;" >{{ $mainpagedetail->year }} में प्रकाशित {{ $mainpagedetail->election_type }} मतदाता सूची सम्बन्धित विधानसभा क्षेत्र का नाम : {{ $mainpagedetail->assembly }}
-					</td>
-				</tr>
-			</table>
-		</td>
+			<td style="height: 40px;">
+				<table width="100%">
+					<tr>
+						<td style="border: 1px solid black;" >{{ $mainpagedetail->year }} में प्रकाशित {{ $mainpagedetail->election_type }} मतदाता सूची सम्बन्धित विधानसभा क्षेत्र का नाम : {{ $mainpagedetail->assembly }}
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		
+		<tr>	
+			<td style="height: 40px;">
+				<table width="100%">
+					<tr>
+						<td style="border: 1px solid black;" >जिला का नाम : {{ $mainpagedetail->district }}</td>
+					</tr>
+				</table>
+			</td>
 		</tr>
 		
 		<tr>
@@ -45,10 +55,10 @@
 		  					$colspan='40%';	
 		 				}	
 						@endphp
-						<td style="height: 150px;word-spacing:4px;padding-left: 20px;border: 1px solid black; font-size: 14px; font-weight: bold;" width="{{ $colspan }}">जिला का नाम : {{ $mainpagedetail->district }}</td> 
+						{{-- <td style="height: 150px;word-spacing:4px;padding-left: 20px;border: 1px solid black; font-size: 14px; font-weight: bold;" width="{{ $colspan }}">जिला का नाम : {{ $mainpagedetail->district }}</td> --}} 
         				@if ($main_page_type!=2)
         					@if ($showsrnotext == 0) 
-								<td style="height: 150px;word-spacing:4px;padding-left: 2px;border: 1px solid black;" width="60%">
+								<td style="height: 150px;word-spacing:4px;padding-left: 2px;border: 1px solid black;" width="100%">
 									<table width="100%">
 									<thead>
 										@php
@@ -103,7 +113,7 @@
 									</thead>
 									</table>
 								</td>
-							@else
+							@elseif($showsrnotext == 1)
 								<td style="height: 150px;word-spacing:4px;padding-left: 2px;border: 1px solid black;" width="60%">
 									<table width="100%">
 									<thead>
@@ -125,6 +135,7 @@
 				</table>
 			</td>
 		</tr>
+
 		<tr>
 			<td width = "100%">
 				<table width = "100%">

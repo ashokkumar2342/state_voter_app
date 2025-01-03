@@ -213,8 +213,10 @@ class VoterListGenerate extends Command
                                     $srno_rows = $srno_rows + 1;    
                                 }
                             }
-                            if($srno_rows > 15){
+                            if($srno_rows > 15 && $srno_rows <= 100){
                                 $showsrnotext = 1;    
+                            }else{
+                                $showsrnotext = 2;
                             }
                             echo "Show text :: ".$showsrnotext." \n";
 
@@ -335,20 +337,42 @@ class VoterListGenerate extends Command
                                 $mpdf_photo->WriteHTML($main_page);
                             }
 
-                            if ($voterdeletedcount>0){
-                                $SuchiType = 'घटक - 2 : विलोपन सूचि';
+                            if($voterdeletedcount>0 || $votermodifiedcount>0){
                                 $PrintedRows = $totalnewrows;
                                 $cpageno = (int)($PrintedRows/9);
                                 $cpageno++;
+                                if(fmod($PrintedRows, 9) == 0 && $PrintedRows > 0){
+                                    $main_page=view('admin.master.PrepareVoterList.voter_list_section.page_end',compact('mainpagedetails', 'rsDataListRemarks', 'totalpage', 'cpageno'));
+                                    $mpdf_photo->WriteHTML($main_page); 
+                                    $cpageno++;
+                                }
+                            }
+
+                            if ($voterdeletedcount>0){
+                                $SuchiType = 'घटक - 2 : विलोपन सूचि';
+                                // $PrintedRows = $totalnewrows;
+                                // $cpageno = (int)($PrintedRows/9);
+                                // $cpageno++;
                                 $main_page=$this->prepareDeletedVoterSuppliment($voterDeletedReports, $mainpagedetails, $totalpage, $printphoto, $SuchiType, $PrintedRows, $cpageno, $rsDataListRemarks);
                                 $mpdf_photo->WriteHTML($main_page);
                             }
 
-                            if ($votermodifiedcount>0){
-                                $SuchiType = 'घटक - 3 : संसोधन सूचि';
+                            if($votermodifiedcount>0){
                                 $PrintedRows = $totalnewrows + $totaldeletedrows;
                                 $cpageno = (int)($PrintedRows/9);
                                 $cpageno++;
+                                if(fmod($PrintedRows, 9) == 0 && $PrintedRows > 0){
+                                    $main_page=view('admin.master.PrepareVoterList.voter_list_section.page_end',compact('mainpagedetails', 'rsDataListRemarks', 'totalpage', 'cpageno'));
+                                    $mpdf_photo->WriteHTML($main_page);
+                                    $cpageno++;       
+                                }
+                            }
+
+                            if ($votermodifiedcount>0){
+                                $SuchiType = 'घटक - 3 : संसोधन सूचि';
+                                // $PrintedRows = $totalnewrows + $totaldeletedrows;
+                                // $cpageno = (int)($PrintedRows/9);
+                                // $cpageno++;
                                 $main_page=$this->prepareVoterDetail($votermodifiedReports, $mainpagedetails, $totalpage, $printphoto, $voter_per_page, $SuchiType, $PrintedRows, $cpageno, $rsDataListRemarks);
                                 
                                 $mpdf_photo->WriteHTML($main_page);
@@ -364,20 +388,42 @@ class VoterListGenerate extends Command
                                 $mpdf_wp->WriteHTML($main_page);
                             }
 
-                            if ($voterdeletedcount>0){
-                                $SuchiType = 'घटक - 2 : विलोपन सूचि';
+                            if($voterdeletedcount>0 || $votermodifiedcount>0){
                                 $PrintedRows = $totalnewrows;
                                 $cpageno = (int)($PrintedRows/9);
                                 $cpageno++;
+                                if(fmod($PrintedRows, 9) == 0 && $PrintedRows > 0){
+                                    $main_page=view('admin.master.PrepareVoterList.voter_list_section.page_end',compact('mainpagedetails', 'rsDataListRemarks', 'totalpage', 'cpageno'));
+                                    $mpdf_photo->WriteHTML($main_page); 
+                                    $cpageno++;
+                                }
+                            }
+
+                            if ($voterdeletedcount>0){
+                                $SuchiType = 'घटक - 2 : विलोपन सूचि';
+                                // $PrintedRows = $totalnewrows;
+                                // $cpageno = (int)($PrintedRows/9);
+                                // $cpageno++;
                                 $main_page=$this->prepareDeletedVoterSuppliment($voterDeletedReports, $mainpagedetails, $totalpage, $printphoto, $SuchiType, $PrintedRows, $cpageno, $rsDataListRemarks);
                                 $mpdf_wp->WriteHTML($main_page);
                             }
 
-                            if ($votermodifiedcount>0){
-                                $SuchiType = 'घटक - 3 : संसोधन सूचि';
+                            if($votermodifiedcount>0){
                                 $PrintedRows = $totalnewrows + $totaldeletedrows;
                                 $cpageno = (int)($PrintedRows/9);
                                 $cpageno++;
+                                if(fmod($PrintedRows, 9) == 0 && $PrintedRows > 0){
+                                    $main_page=view('admin.master.PrepareVoterList.voter_list_section.page_end',compact('mainpagedetails', 'rsDataListRemarks', 'totalpage', 'cpageno'));
+                                    $mpdf_photo->WriteHTML($main_page);
+                                    $cpageno++;       
+                                }
+                            }
+
+                            if ($votermodifiedcount>0){
+                                $SuchiType = 'घटक - 3 : संसोधन सूचि';
+                                // $PrintedRows = $totalnewrows + $totaldeletedrows;
+                                // $cpageno = (int)($PrintedRows/9);
+                                // $cpageno++;
                                 $main_page=$this->prepareVoterDetail($votermodifiedReports, $mainpagedetails, $totalpage, $printphoto, $voter_per_page, $SuchiType, $PrintedRows, $cpageno, $rsDataListRemarks);
                                 
                                 $mpdf_wp->WriteHTML($main_page);

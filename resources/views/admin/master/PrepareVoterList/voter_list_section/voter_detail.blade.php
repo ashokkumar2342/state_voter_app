@@ -1,32 +1,34 @@
 		@php
-		$time=0;
-		// $cpageno =1;
-		$newpagestart = 0;
-		if ($PrintedRows==0){
-			$newpagestart = 1;
-		}
-		$totalCount=count($voterReports);
-		$headerheight = 20;
-		$i=0;
-		if($SuchiType==''){
-			$printsuchi = 0;
-		}else{
-			$printsuchi = 1;	
-		}
-		
+			$time=0;
+			// $cpageno =1;
+			$newpagestart = 0;
+			if ($PrintedRows==0){
+				$newpagestart = 1;
+			}
+			$totalCount=count($voterReports);
+			$headerheight = 20;
+			$i=0;
+			if($SuchiType==''){
+				$printsuchi = 0;
+			}else{
+				$printsuchi = 1;	
+			}
+			
 
-		if($voter_per_page == 30){
-			$counter = fmod($PrintedRows,10)*3;
-		}else{
-			$counter = fmod($PrintedRows,9)*3;	
-		}
-		
+			if($voter_per_page == 30){
+				$counter = fmod($PrintedRows,10)*3;
+			}else{
+				$counter = fmod($PrintedRows,9)*3;	
+			}
+			
+			
 
 		@endphp
+		
 		@foreach ($voterReports as $voterReport)
-		@php
-		 	if ($newpagestart==1){
-		 @endphp
+			@php
+		 		if ($newpagestart==1){
+		 	@endphp
 
 		 		<table width = "100%" style="padding: 2px;font-size: 12px;font-weight: bold;">
 		 			<tr>
@@ -52,12 +54,13 @@
 		 				</td>
 		 			</tr>
 		 		</table>
-		 @php
+		 	
+		 	@php
 		 		$headerheight = 35;
 		 		}
 		 		$newpagestart=0;
 		 	}
-		 @endphp
+			@endphp
 		 	@if ($printsuchi==1)	
 		 		<table width = "100%" style="padding: 2px;font-size: 12px;font-weight: bold;margin-top:10px;">
  		 			<tr>
@@ -70,32 +73,16 @@
  		 			$printsuchi = 0;
  		 		@endphp
  		 	@endif
-		 @php
-		 	$i=$i+1;
-		 @endphp 
-		@if ($time==0)
-		<table style="padding:-2px">
-			<tbody>
-				<tr>
-					@endif  
-					{{-- @php
-						$bgimage=0;
-						if($voterReport->status==2){
-							$dirpath = '/app/background/3.jpg';	
-							$image  =\Storage_path($dirpath);
-							$bgimage=1;
-						}elseif($voterReport->status==3){
-							$dirpath = '/app/background/m.jpg';
-							$image  =\Storage_path($dirpath);	
-							$bgimage=1;
-						}
-						
-					@endphp
-					@if ($bgimage==1)
-						<td style="background-image: url('{{ $image }}'); width:200px;height: 50px;background-repeat: no-repeat;background-position: center;"> 	
-					@else
-						<td> 
-					@endif --}}
+			
+			@php
+				$i=$i+1;
+			@endphp 
+			
+			@if ($time==0)
+			<table style="padding:-2px">
+				<tbody>
+					<tr>
+			@endif  
 					<td>
 						<table style="border:1px solid black;font-size:11px;padding:-5px;width: 220px;height: 70px;min-height: 70px; min-width: 220px;">
 						<tbody>
@@ -154,27 +141,29 @@
 						</tbody>
 					</table> 
 				</td> 
-				@if($time==2 || $totalCount==$i)
+			@if($time==2 || $totalCount==$i)
 					</tr>
 				</tbody>
 
 			</table>
 
-		@endif
-		@php
-		$time ++;
-		@endphp
-		@if ($time==3)
-		@php
-		$time=0;
-		@endphp
-		@endif 
+			@endif
+			
+			@php
+				$time ++;
+			@endphp
+			
+			@if ($time==3)
+				@php
+					$time=0;
+				@endphp
+			@endif 
 
 
-		@php
-			$counter++;
-			if($counter==$voter_per_page){$counter=0;$cpageno++;$newpagestart = 1;
-		@endphp	
+			@php
+				$counter++;
+				if($counter==$voter_per_page){$counter=0;$cpageno++;$newpagestart = 1;
+			@endphp	
 
 			<table width="100%" style="margin-top:5px;">
 				<tr>
@@ -196,35 +185,12 @@
 
 			@endphp
 
-		@php
-			}
+			@php
+				}
 
-		@endphp
+			@endphp
 
 		@endforeach
 
-		{{-- @php
-			if($newpagestart == 0){$cpageno++;$remaining = 30-$counter;$lrem=(int)((30-$counter-fmod($remaining, 3))/3)*100-$headerheight;
-		@endphp	
-			<table width="100%" style="margin-top:{{$lrem}}px;" >
-				<tr>
-					<td>
-						&nbsp;
-					</td>
-				        
-				</tr>
-			</table>
-			<table width="100%" style="margin-top:5px;">
-				<tr>
-					<td width="48%" style="text-align: left;font-size: 11px;word-spacing: 4px"><b>*</b> {{ $mainpagedetails[0]->year }} को अंतिम प्रकाशित विधानसभा मतदाता सूचि का क्रo/भाग  नo आयु {{ $mainpagedetails[0]->date }} के अनुसार संशोधित </td> 
-					<td width="52%" align="right" style="text-align: right;font-size: 12px;word-spacing: 4px"> कुल {{$totalpage}} पृष्ठों का पृष्ठ {{$cpageno}}</td>
-				        
-				</tr>
-			</table>
-			
-
-		@php
-			}
-
-		@endphp --}}
+		
 </div>
