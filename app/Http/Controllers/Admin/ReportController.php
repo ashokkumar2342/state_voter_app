@@ -197,6 +197,9 @@ class ReportController extends Controller
             }elseif($report_id == 27){
                 $rs_district = SelectBox::get_district_access_list_v1();
                 return view('admin.report.master_data.form_1',compact('rs_district'));
+            }elseif($report_id == 28){
+                $rs_district = SelectBox::get_district_access_list_v1();
+                return view('admin.report.master_data.form_dist',compact('rs_district'));
             }elseif($report_id == 2001){
                 return view('admin.report.no_control_form');
             }        
@@ -889,6 +892,38 @@ class ReportController extends Controller
                 );
 
                 $rs_result=DB::select(DB::raw("SELECT `ap`.`part_no`, `ap_vt`.`total_voters`, `ap_vt`.`mapped_voters`, `ap_vt`.`left_voters` from `assembly_parts` `ap` inner join (select `vt`.`assembly_part_id`, count(*) as `total_voters`, sum(case `vt`.`village_id` when 0 then 0 else 1 end) as `mapped_voters`, sum(case `vt`.`village_id` when 0 then 1 else 0 end) as `left_voters` from `voters` `vt` where `vt`.`district_id` = $d_id and `vt`.`assembly_id` = $ac_id group by `vt`.`assembly_part_id`) `ap_vt` on `ap_vt`.`assembly_part_id` = `ap`.`id` where `ap`.`village_id` > 0 order by `ap`.`part_no`;"));
+            }elseif ($report_type == 28){
+                if($request->district == null || empty($request->district)){
+                    $d_id = 0;
+                }else{
+                    $d_id = intval(Crypt::decrypt($request->district));
+                }                
+
+                $permission_flag = MyFuncs::check_district_access($d_id);
+                if($permission_flag == 0){
+                    $d_id = 0;
+                }
+
+                $result_type = 2;
+                $show_total_row = 0;
+                $tcols = 12;
+                $qcols = array(         //Column Caption, Column Width, Field Name, is Numeric, Last Row Values (Total), text-alignment (left, right, center, justify) 
+                    array('EPIC No.', 10, 'voter_card_no', 0, '', 'left'),
+                    array('District', 10, 'd_name', 0, '', 'left'),
+                    array('Assembly', 15, 'ac_name', 0, '', 'left'),
+                    array('Part No.', 10, 'part_no', 0, '', 'left'),
+                    array('Sr. No. in Part', 5, 'sr_no', 0, '', 'left'),
+                    array('Name',25, 'vt_name', 0, '', 'left'),
+                    array('F/H Name',25, 'father_name_e', 0, '', 'left'),
+                    array('MC/Panchayat',25, 'mc_name', 0, '', 'left'),
+                    array('Ward No.',25, 'ward_no', 0, '', 'left'),
+                    array('Booth No.',25, 'booth_no', 0, '', 'left'),
+                    array('EPIC ID',25, 'epic_id', 0, '', 'left'),
+                    array('Approve Date',25, 'a_date', 0, '', 'left'),
+                );
+
+                $query = "SELECT `vt`.`voter_card_no`, `dst`.`name_e` as `d_name`, concat(`ac`.`code`, ' - ', `ac`.`name_e`) as `ac_name`, `ap`.`part_no`, `vt`.`sr_no`, `vt`.`name_e` as `vt_name`, `vt`.`father_name_e`, `vil`.`name_e` as `mc_name`, `wv`.`ward_no`, `pb`.`booth_no`, `vod`.`epic_id`, date_format(`vod`.`approval_date`, '%d-%m-%Y') as `a_date` from `voters` `vt` inner join `ulb_duplicate_epic_district` `dup` on `dup`.`epic_no` = `vt`.`voter_card_no` and `dup`.`district_id` = $d_id inner join `districts` `dst` on `dst`.`id` = `vt`.`district_id` inner join `assemblys` `ac` on `ac`.`id` = `vt`.`assembly_id` inner join `assembly_parts` `ap` on `ap`.`id` = `vt`.`assembly_part_id` inner join `villages` `vil` on `vil`.`id` = `vt`.`village_id` inner join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` inner join `polling_booths` `pb` on `pb`.`id` = `vt`.`booth_id` inner join `voter_other_detail` `vod` on `vod`.`epic_no` = `vt`.`voter_card_no` and `vod`.`ac_no` = `ac`.`code` and `vod`.`part_no` = `ap`.`part_no` and `vod`.`sr_no` = `vt`.`sr_no` order by `vt`.`voter_card_no`, `vod`.`epic_id`;";
+                $rs_result = DB::select(DB::raw("$query"));
             }elseif ($report_type == 2000){
                 $tcols = 2;
                 $qcols = array(
