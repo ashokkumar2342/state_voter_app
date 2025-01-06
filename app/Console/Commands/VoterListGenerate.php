@@ -215,7 +215,7 @@ class VoterListGenerate extends Command
                             }
                             if($srno_rows > 15 && $srno_rows <= 100){
                                 $showsrnotext = 1;    
-                            }else{
+                            }elseif($srno_rows > 100){
                                 $showsrnotext = 2;
                             }
                             echo "Show text :: ".$showsrnotext." \n";

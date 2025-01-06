@@ -113,13 +113,29 @@
 									</thead>
 									</table>
 								</td>
-							@elseif($showsrnotext == 1)
-								<td style="height: 150px;word-spacing:4px;padding-left: 2px;border: 1px solid black;" width="60%">
+							@elseif($showsrnotext >= 1)
+								@php
+									if($showsrnotext == 1){
+										$fontsize = "";	
+										$line_size = 90;
+									}else{
+										$fontsize = "font-size: 8px;";
+										$line_size = 160;
+									}
+									
+								@endphp
+								<td style="height: 150px;word-spacing:4px;padding-left: 2px;border: 1px solid black;" width="100%">
 									<table width="100%">
 									<thead>
 										@foreach ($voterssrnotext as $val_srnotext)
+											@php
+												$text = "भाग संख्या  : ".$val_srnotext->partno." ::-> ".$val_srnotext->srno_detail_list;
+												$len_text = strlen($text);
+												$lines = intdiv($len_text, $line_size) + 1;
+												$counter = $counter + $lines;
+											@endphp
 											<tr>
-						     					<td width = "100%"><b>भाग संख्या  : {{ $val_srnotext->partno }} ::-> </b>{{ $val_srnotext->srno_detail_list }}</td>
+						     					<td width = "100%" style="{{$fontsize}}"><b>भाग संख्या  : {{ $val_srnotext->partno }} ::-> </b>{{ $val_srnotext->srno_detail_list }}</td>
 						     				</tr>
 											
 										@endforeach
