@@ -132,6 +132,10 @@ class VoterListGenerate extends Command
                          ],
                          'default_font' => 'freesans',
                      ]);
+
+
+                $mpdf_wp->SetWatermarkText('SEC Haryana');
+                $mpdf_wp->showWatermarkText = true;
                 
                 
                 if ($ward_id==0) {
@@ -459,6 +463,17 @@ class VoterListGenerate extends Command
                 $filepath = Storage_path() . $VoterListProcessed->folder_path . $VoterListProcessed->file_path_w;
                 $mpdf_wp->Output($filepath, 'F');
                 chmod($filepath, 0755);
+
+
+                $inputPdf = $filepath; //."/disable_text/text.pdf";  // Make sure this file exists
+                $outputPdf = $filepath; //."/disable_text/text.pdf";
+
+                // Run the Artisan command
+                $exitCode = \Artisan::call('pdf:convert', [
+                    'inputPdf' => $inputPdf,
+                    'outputPdf' => $outputPdf,
+                    'unique_id' => $queue_id,
+                ]);
 
 
                 $newId=DB::select(DB::raw("UPDATE `voter_list_processeds` set `status` = 1, `finish_time` = now() where `id` = $VoterListProcessed->id limit 1;"));
