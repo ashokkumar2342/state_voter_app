@@ -8,6 +8,7 @@
                 <th>Sr. No. In Part</th>
                 <th>Epic No.</th>
                 <th>House No.</th>
+                <th>MC Name - Ward No. - Booth No.</th>
                 <th>Image</th>
             </tr>
         </thead>
@@ -20,11 +21,12 @@
                 <td>{{$rs_value->sr_no}}</td>
                 <td>{{$rs_value->voter_card_no}}</td>
                 <td>{{$rs_value->house_no_e}}</td>
+                <td>{{$rs_value->v_name}} - {{$rs_value->ward_no}} - {{$rs_value->booth_no}}</td>
                 <td>
                     @php
                         $image_path = 'vimage/'.$rs_value->data_list_id.'/'.$rs_value->assembly_id.'/'.$rs_value->assembly_part_id.'/'.$rs_value->sr_no.'.jpg';
                     @endphp
-                    <img src="{{ route('admin.Master.pollingDayTimesignature',Crypt::encrypt($image_path)) }}" class="img-circle elevation-2" alt="User Image" style="height: 110px;width: 150;">                    
+                    <img src="{{ route('admin.Master.pollingDayTimesignature',Crypt::encrypt($image_path)) }}" class="img-circle elevation-2" alt="Image" style="height: 110px;width: 150;">                    
                 </td>
             </tr> 
             @endforeach

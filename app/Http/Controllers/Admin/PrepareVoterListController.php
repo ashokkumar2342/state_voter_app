@@ -71,10 +71,11 @@ class PrepareVoterListController extends Controller
         return response()->json($response);
       }
       $ward_id = intval(Crypt::decrypt($request->ward));
-      $booth_id = intval(Crypt::decrypt($request->booth));
 
       $full_supplement = intval(Crypt::decrypt($request->list_prepare_option));
       $sorting_order = intval(Crypt::decrypt($request->list_sorting_option));
+
+      $booth_id = intval(Crypt::decrypt($request->booth));
 
       if ($ward_id == 0) { //Process for Panchayat
         $rs_update = DB::select(DB::raw("call `up_process_village_voterlist` ($village_id, $full_supplement, $sorting_order);"));
@@ -85,6 +86,7 @@ class PrepareVoterListController extends Controller
       }else{//Process For MC Ward Booth
         $rs_update= DB::select(DB::raw("call `up_process_voterlist_booth` ($ward_id, $booth_id, 1, $full_supplement, $sorting_order)")); 
       }
+      
       if ($rs_update[0]->save_status == 1){
         MyFuncs::startVoterListGenerateQueue();
 
@@ -107,6 +109,21 @@ class PrepareVoterListController extends Controller
       }
       $rs_district = SelectBox::get_district_access_list_v1();
       return view('admin.master.PrepareVoterList.UnlockVoterList.unlock_booth',compact('rs_district'));  
+    } catch (\Exception $e) {
+      $e_method = "UnlockVoterListBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function UnlockVoterListMultipleBooth()
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(94);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.PrepareVoterList.UnlockVoterList.unlock_multiple_booth',compact('rs_district'));  
     } catch (\Exception $e) {
       $e_method = "UnlockVoterListBooth";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
@@ -165,7 +182,7 @@ class PrepareVoterListController extends Controller
 
       $ward_id = intval(Crypt::decrypt($request->ward));
       $booth_id = intval(Crypt::decrypt($request->booth));
-      
+
       if ($ward_id == 0) {  //Unlock for Panchayat
         $rs_update = DB::select(DB::raw("call `up_unlock_village_voterlist` ($village_id);"));
         
@@ -179,6 +196,148 @@ class PrepareVoterListController extends Controller
       return response()->json($response); 
     } catch (\Exception $e) {
       $e_method = "unlockVoterListUnlock";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+
+  public function unlockVoterListward(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(94);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[            
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required',            
+        'ward' => 'required',
+      ];
+
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select MC\'s',
+        'village.required'=> 'Please Select MC\'s',
+        'ward.required'=> 'Please Select Ward',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $district_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($district_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+      $ward_id = intval(Crypt::decrypt($request->ward));
+
+      $rs_booths = DB::select(DB::raw("SELECT `id` from `polling_booths` Where `village_id` = $village_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` = $ward_id);"));
+      foreach ($rs_booths as $key => $val_rec) {
+        $booth_id = $val_rec->id;
+        $rs_update= DB::select(DB::raw("call `up_unlock_voterlist_booth` ($ward_id, $booth_id);"));
+      }
+       
+      
+      $response=['status'=>1,'msg'=>'Unlock Successfully'];
+      return response()->json($response); 
+    } catch (\Exception $e) {
+      $e_method = "unlockVoterListward";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+
+  public function PrepareWardVoterListGenerate(Request $request)
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(84);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $rules=[            
+        'district' => 'required', 
+        'block' => 'required', 
+        'village' => 'required',            
+        'ward' => 'required',            
+        'list_prepare_option' => 'required',
+        'list_sorting_option' => 'required',           
+      ];
+
+      $customMessages = [
+        'district.required'=> 'Please Select District',
+        'block.required'=> 'Please Select MC\'s',
+        'village.required'=> 'Please Select MC\'s',
+        'ward.required'=> 'Please Select Ward',
+        'list_prepare_option.required'=> 'Please Select List Prepare Option',
+        'list_sorting_option.required'=> 'Please Select List Sorting Option',
+      ];
+      $validator = Validator::make($request->all(),$rules, $customMessages);
+      if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        $response=array();
+        $response["status"]=0;
+        $response["msg"]=$errors[0];
+        return response()->json($response);// response as json
+      }
+      $district_id = intval(Crypt::decrypt($request->district));
+      $permission_flag = MyFuncs::check_district_access($district_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $block_id = intval(Crypt::decrypt($request->block));
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $village_id = intval(Crypt::decrypt($request->village));
+      $permission_flag = MyFuncs::check_village_access($village_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $ward_id = intval(Crypt::decrypt($request->ward));
+
+      $full_supplement = intval(Crypt::decrypt($request->list_prepare_option));
+      $sorting_order = intval(Crypt::decrypt($request->list_sorting_option));
+
+      $rs_booths = DB::select(DB::raw("SELECT `id` from `polling_booths` Where `village_id` = $village_id and `id` in (select `boothid` from `booth_ward_voter_mapping` where `wardId` = $ward_id);"));
+      foreach ($rs_booths as $key => $val_rec) {
+        $booth_id = $val_rec->id;
+        $rs_update= DB::select(DB::raw("call `up_process_voterlist_booth` ($ward_id, $booth_id, 1, $full_supplement, $sorting_order)")); 
+      
+        if ($rs_update[0]->save_status == 1){
+          MyFuncs::startVoterListGenerateQueue();
+        }
+      }
+            
+
+      $response=['status'=>1,'msg'=>'Submit Successfully'];
+      return response()->json($response);
+    } catch (\Exception $e) {
+      $e_method = "PrepareWardVoterListGenerate";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }

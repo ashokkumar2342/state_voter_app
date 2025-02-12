@@ -79,6 +79,24 @@ class VoterDetailsController extends Controller
     }
   }
 
+  public function PrepareVoterListMultipleBooth()
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(84);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      $rslistPrepareOption = DB::select(DB::raw("SELECT * from `list_prepare_option`;"));
+      $rslistSortingOption = DB::select(DB::raw("SELECT * from `list_sorting_option`;"));
+      
+      return view('admin.master.PrepareVoterList.booth.multiple_index',compact('rs_district', 'rslistPrepareOption', 'rslistSortingOption'));  
+    } catch (\Exception $e) {
+      $e_method = "PrepareVoterListMultipleBooth";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function VoterListDownload()
   {
     try{
@@ -168,11 +186,32 @@ class VoterDetailsController extends Controller
       if(!$permission_flag){
         return view('admin.common.error');
       }
-      $rs_district = SelectBox::get_district_access_list_v1();
+      $rs_district = SelectBox::get_district_access_list_v1(); 
+      return view('admin.voterDetails.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "index";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }   
+  }
+
+  public function form(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(121);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $ac_part_id = intval(Crypt::decrypt($request->part_no));
+      $sr_no = intval(substr(MyFuncs::removeSpacialChr($request->srno_part), 0, 4));
+
+      $rs_fetch = DB::select(DB::raw("SELECT `id`, `tag` from `import_type` where `status` = 1 limit 1;"));
+      $data_list_id = $rs_fetch[0]->id;
+      $rs_record = DB::select(DB::raw("SELECT `id`, `data_list_id`, `assembly_id`, `assembly_part_id`, `sr_no`, `voter_card_no`, `name_e`, `name_l`, `relation`, `father_name_e`, `father_name_l`, `house_no_e`, `house_no_l`, `gender_id`, `dob`, `age`, `mobile_no` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
+
       $genders= DB::select(DB::raw("SELECT * from `genders` order by `id`;"));  
       $Relations= DB::select(DB::raw("SELECT * from `relation` order by `relation_e`;"));  
-      return view('admin.voterDetails.index',compact('rs_district', 'genders', 'Relations'));
-    } catch (\Exception $e) {
+      return view('admin.voterDetails.form',compact('genders', 'Relations', 'rs_record'));
+    } catch (Exception $e) {
       $e_method = "index";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }   
@@ -235,18 +274,81 @@ class VoterDetailsController extends Controller
     }
   }
 
+  public function getTranslateData(Request $request)
+  {
+    try {
+      $name_e = strtoupper(MyFuncs::removeSpacialChr($request['name_e']));
+
+      if($name_e!='') {
+        $rs_fetch = DB::select(DB::raw("SELECT `uf_name_convert_e_2_h` ('$name_e') as 'name_l' limit 1;"));
+        if (count($rs_fetch) > 0){
+          $name_h = $rs_fetch[0]->name_l; 
+        }else{
+          $rs_fetch = DB::select(DB::raw("SELECT `uf_name_convert_e_2_h` ('$name_e') as 'name_l' limit 1;"));
+          if (count($rs_fetch) > 0){
+            $name_h = $rs_fetch[0]->name_l; 
+          }
+        } 
+      }else {
+        $name_h = ''; 
+      }
+      $str = $name_h;
+      echo json_encode(array('st'=>1,'msg'=>$str));
+    } catch (\Exception $e) {
+      $e_method = "getTranslateData";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function getTraDataHouse(Request $request)
+  {
+    try {
+      $name_e = strtoupper(MyFuncs::removeSpacialChr($request['name_e']));
+
+      if($name_e!='') {
+        $rs_fetch = DB::select(DB::raw("SELECT `uf_house_convert_e_2_h` ('$name_e') as 'name_l' limit 1;"));
+        if (count($rs_fetch) > 0){
+          $name_h = $rs_fetch[0]->name_l; 
+        }else{
+          $rs_fetch = DB::select(DB::raw("SELECT `uf_house_convert_e_2_h` ('$name_e') as 'name_l' limit 1;"));
+          if (count($rs_fetch) > 0){
+            $name_h = $rs_fetch[0]->name_l; 
+          }
+        } 
+      }else {
+        $name_h = ''; 
+      }
+      $str = $name_h;
+      echo json_encode(array('st'=>1,'msg'=>$str));
+    } catch (\Exception $e) {
+      $e_method = "getTraDataHouse";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function checkDuplicateRecord(Request $request)
   { 
     try {
-      $d_id = intval(Crypt::decrypt($request->district_id));
-      $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
-      $f_h_name_english = substr(MyFuncs::removeSpacialChr($request->f_h_name_english), 0, 50);
-      $date_of_birth = substr(MyFuncs::removeSpacialChr($request->date_of_birth), 0, 10);
-      $date_of_birth = str_replace("-", "/", $date_of_birth);
-      $date_of_birth = str_replace(".", "/", $date_of_birth);
-      // $dob = date('Y-m-d', strtotime($date_of_birth));
-      // return "SELECT `id` from `voters` where `name_e` = '$name_english' and `father_name_e` = '$f_h_name_english' and `dob` = '$dob' limit 1;";
-      $rs_result = DB::select(DB::raw("SELECT `dst`.`name_e` as `d_name`, concat(`ac`.`code`, ' - ', `ac`.`name_e`) as `ac_name`, `ap`.`part_no`, `vt`.`sr_no`, `vt`.`voter_card_no`, `vt`.`data_list_id`, `vt`.`assembly_id`, `vt`.`assembly_part_id`, `vt`.`house_no_e` from `voters` `vt` inner join `districts` `dst` on `dst`.`id` = `vt`.`district_id` inner join `assemblys` `ac` on `ac`.`id` = `vt`.`assembly_id` inner join `assembly_parts` `ap` on `ap`.`id` = `vt`.`assembly_part_id` where `vt`.`district_id` = $d_id and `vt`.`name_e` = '$name_english' and `vt`.`father_name_e` = '$f_h_name_english' and `vt`.`dob` = '$date_of_birth';"));
+      $check_type = intval($request->check_type);
+      $rec_id = intval(Crypt::decrypt($request->rec_id));
+      $condition = "";
+      if ($check_type == 1) {
+        $voter_id_no = substr(MyFuncs::removeSpacialChr($request->voter_id_no), 0, 20);
+        $condition = " where `vt`.`voter_card_no` = '$voter_id_no' and `vt`.`id` <> $rec_id ";
+        
+      }else{
+        $d_id = intval(Crypt::decrypt($request->district_id));
+        $name_english = substr(MyFuncs::removeSpacialChr($request->name_english), 0, 50);
+        $f_h_name_english = substr(MyFuncs::removeSpacialChr($request->f_h_name_english), 0, 50);
+        $date_of_birth = substr(MyFuncs::removeSpacialChr($request->date_of_birth), 0, 10);
+        $date_of_birth = str_replace("-", "/", $date_of_birth);
+        $date_of_birth = str_replace(".", "/", $date_of_birth);
+        
+        $condition = " where `vt`.`district_id` = $d_id and `vt`.`name_e` = '$name_english' and `vt`.`father_name_e` = '$f_h_name_english' and `vt`.`dob` = '$date_of_birth' and `vt`.`id` <> $rec_id ";
+      }
+      
+      $rs_result = DB::select(DB::raw("SELECT `dst`.`name_e` as `d_name`, concat(`ac`.`code`, ' - ', `ac`.`name_e`) as `ac_name`, `ap`.`part_no`, `vt`.`sr_no`, `vt`.`voter_card_no`, `vt`.`data_list_id`, `vt`.`assembly_id`, `vt`.`assembly_part_id`, `vt`.`house_no_e`, `vl`.`name_e` as `v_name`, `wv`.`ward_no`, `pb`.`booth_no` from `voters` `vt` inner join `districts` `dst` on `dst`.`id` = `vt`.`district_id` inner join `assemblys` `ac` on `ac`.`id` = `vt`.`assembly_id` inner join `assembly_parts` `ap` on `ap`.`id` = `vt`.`assembly_part_id` left join `villages` `vl` on `vl`.`id` = `vt`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vt`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vt`.`booth_id` $condition;"));
+
       if (count($rs_result) == 0) {
         return '';
       }
@@ -298,6 +400,7 @@ class VoterDetailsController extends Controller
         return response()->json($response);
       }
       $rules=[            
+        'rec_id' => 'required', 
         'district' => 'required', 
         'assembly' => 'required', 
         'part_no' => 'required', 
@@ -312,9 +415,10 @@ class VoterDetailsController extends Controller
         'gender' => 'required', 
         'age' => 'required', 
         'voter_id_no' => 'required',
-        'image' => 'required|image|mimes:jpeg,jpg,png|max:20',
+        'image' => 'nullable|image|mimes:jpeg,jpg,png|max:20',
       ];
       $customMessages = [
+        'rec_id.required'=> 'Something Went Wrong',
         'district.required'=> 'Please Select District',
         'assembly.required'=> 'Please Select Assembly',
         'part_no.required'=> 'Please Select Assembly Part',
@@ -330,7 +434,6 @@ class VoterDetailsController extends Controller
         'age.required'=> 'Please Enter Age',
         'voter_id_no.required'=> 'Please Enter Voter/Epic No.',
 
-        'image.required'=> 'Please Choose Image',
         'image.image'=> 'Image Should Be Image',
         'image.mimes'=> 'Image Should Be In JPG/JPEG/PNG Format',
         'image.max'=> 'Image Size Should Be Maximun of 20 KB',
@@ -351,6 +454,7 @@ class VoterDetailsController extends Controller
         return response()->json($response);
       }
       
+      $rec_id = intval(Crypt::decrypt($request->rec_id));
       $ac_part_id = intval(Crypt::decrypt($request->part_no));
       $sr_no = intval(substr(MyFuncs::removeSpacialChr($request->srno_part), 0, 5));
 
@@ -364,14 +468,8 @@ class VoterDetailsController extends Controller
       $epic_no = substr(MyFuncs::removeSpacialChr($request->voter_id_no), 0, 20);
       
       $aadhar_no = "";
-      if (!empty($request->Aadhaar_no)){
-        $aadhar_no = substr(MyFuncs::removeSpacialChr($request->Aadhaar_no), 0, 12);  
-      }
       
       $mobile = "";
-      if (!empty($request->mobile_no)){
-        $mobile = substr(MyFuncs::removeSpacialChr($request->mobile_no), 0, 10);  
-      }
       
       $relation_id = intval(Crypt::decrypt($request->relation));
       $gender_id = intval(Crypt::decrypt($request->gender));
@@ -383,6 +481,11 @@ class VoterDetailsController extends Controller
         $response=['status'=>0,'msg'=>'Age Cannot Be Less Then 18'];
         return response()->json($response);
       }
+
+      if($sr_no > 9999){
+        $response=['status'=>0,'msg'=>'Sr. No. Cannot Be of 5 Digit'];
+        return response()->json($response);
+      }
       
       $rs_fetch = DB::select(DB::raw("SELECT `id`, `tag` from `import_type` where `status` = 1 limit 1;"));
       $data_list_id = $rs_fetch[0]->id;
@@ -392,7 +495,8 @@ class VoterDetailsController extends Controller
         $response=['status'=>0,'msg'=>'Sr. No. cannot be zero'];
         return response()->json($response);  
       }
-      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id limit 1;"));
+      
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `voters` where `assembly_part_id` = $ac_part_id and `sr_no` = $sr_no and `data_list_id` = $data_list_id and `id` <> $rec_id limit 1;"));
       if(count($rs_fetch)>0){
         $response=['status'=>0,'msg'=>'Sr. No. already Exists'];
         return response()->json($response);  
@@ -415,11 +519,15 @@ class VoterDetailsController extends Controller
         @mkdir($dirpath, 0755, true);
         $image->storeAs($vpath, $filename);
       }else{
-        $response=['status'=>0,'msg'=>'Please Choose Image'];
-        return response()->json($response);
+        if($rec_id == 0){
+          $response=['status'=>0,'msg'=>'Please Choose Image'];
+          return response()->json($response);  
+        }
       }
 
-      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h','','$name_e','$name_h','$fname_e','$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag', '$birth_date');"));
+      $user_id = MyFuncs::getUserId();
+      $from_ip = MyFuncs::getIp();
+      $rs_save = DB::select(DB::raw("call `up_save_voter_detail`($rec_id, $d_id, $ac_id, $ac_part_id, $sr_no, '$epic_no', '$hno_e', '$h_no_h', '','$name_e', '$name_h', '$fname_e', '$fname_h', $relation_id, $gender_id, $age, '$mobile', 'n', 0, 0, 0, 0, 0, 0, $data_list_id, '$data_tag', '$birth_date', $user_id, '$from_ip');"));
 
       
       $response=['status'=>1,'msg'=>'Submit Successfully'];

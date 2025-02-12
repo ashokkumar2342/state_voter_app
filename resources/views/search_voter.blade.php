@@ -5,19 +5,12 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Voter List Management | Log in</title>
-  <!-- Tell the browser to be responsive to screen width -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Font Awesome --> 
   <link rel="stylesheet" href="{{ asset('admin_asset/plugins/fontawesome-free/css/all.min.css')}}">
-  <!-- Ionicons -->
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <!-- icheck bootstrap -->
-  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}"> 
-  <!-- Theme style -->
-  <link rel="stylesheet" href="{{ asset('admin_asset/dist/css/AdminLTE.min.css')}}"> 
-  <!-- Google Font: Source Sans Pro -->
-  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}">
+  <link rel="stylesheet" href="{{ asset('admin_asset/dist/css/AdminLTE.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{ asset('admin_asset/dist/css/toastr.min.css')}}">
+  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css')}}">
 </head>
 <style>
 .card
@@ -40,10 +33,6 @@
     padding: 20px;
     border-radius: 5px 5px 0 0;
 }
-
-
-
-
 .card_container
 {
     padding: 2px 16px 8px 16px;
@@ -57,7 +46,6 @@
     background-color: #D9E6ED;
     margin-bottom: 20px;
 }
-
 
 .btn
 {
@@ -90,50 +78,9 @@
 {
     padding-bottom: 10px;
 }
-
-
-
-/*.card__inner
-{
-    background-color: #468AC6;
-    color: #fff;
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    z-index: 1;
-    opacity: 0;
-    padding: 2rem 1.3rem 2rem 2rem;
-    transition: all 0.4s ease 0s;
-}
-
-.card:hover .card__inner
-{
-    opacity: 1;
-}
-
-.card__inner h2
-{
-    margin-top: 1rem;
-}
-
-.card__inner p
-{
-    height: 87%;
-    padding-right: 1rem;
-    font-weight: 200;
-    line-height: 2.5rem;
-    margin-top: 1.5rem;
-}*/
 .main-box {
     height: 95vh;
 }
-
-/*---------------------------------
-    Login Page CSS Start 
-    
-----------------------------*/
 
 .site-logo img {
 
@@ -177,7 +124,7 @@
     }
 
 </style>
-<body>
+<body id="body_id">
     <div class="container-fluid">
         <div class="header-top">
             <div class="row">
@@ -185,95 +132,111 @@
                     <img src="{{ asset('images/voter_managenet_banner.png') }}" alt="voter_managenet_banner"/>
                 </div>
             </div>
-            <br />
-              <div class="card card-info"> 
-            <div class="card-body">  
-                
-                <form {{-- action="{{ route('admin.search.voter.folter',2) }}" --}} method="post" class="add_form" data-table="voter_datatable" success-content-id="voter_table" no-reset="true">
-                    {{ csrf_field() }}
-                    <div class="row">  
-                        <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">District</label>
-                            
-                            <select name="district" class="form-control" id="district_select_box" {{-- onchange="callAjax(this,'{{ route('admin.search.dis.block') }}','block_select_box')" --}}>
-                                <option selected disabled>Select District</option>
-                                {{-- @foreach ($Districts as $District)
-                                <option value="{{ $District->id }}">{{ $District->code }}--{{ $District->name_e }}</option>  
-                                @endforeach --}}
-                            </select>
-                        </div>
-                        <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">Block MCS</label>
-                            
-                            <select name="block" class="form-control" id="block_select_box" {{-- onchange="callAjax(this,'{{ route('admin.search.block.village') }}'+'?id='+this.value+'&district_id='+$('#district_select_box').val(),'village_select_box')" --}}>
-                                <option selected disabled>Select Block MCS</option> 
-                            </select>
-                        </div> 
-                        <div class="col-lg-4 form-group">
-                            <label for="exampleInputEmail1">Village</label>
-                            
-                            <select name="village" class="form-control" id="village_select_box">
-                                <option selected disabled>Select Village</option> 
-                            </select>
-                        </div> 
-                        <div class="col-lg-3 form-group">
-                            <label for="exampleInputEmail1">V Name</label>
-                            <input type="text" name="v_name" class="form-control"> 
-                        </div>
-                        <div class="col-lg-3 form-group">
-                            <label for="exampleInputEmail1">F/H Name</label>
-                            <input type="text" name="father_name" class="form-control"> 
-                        </div>
-                        <div class="col-lg-3 form-group">
-                            <label for="exampleInputEmail1">Age</label>
-                            <select name="age" class="form-control">
-                                <option value="0">All</option>
-                                <option value="18 and 25">18 To 25</option>
-                                <option value="25 and 35">25 To 35</option>
-                                <option value="35 and 45">35 To 45</option>
-                                <option value="45 and 55">45 To 55</option>
-                                <option value="55 and 100">55 To 100</option> 
-                                <option value="100 and 150">Above 100</option> 
-                            </select> 
-                        </div>
-                        <div class="col-lg-3 form-group">
-                            <label for="exampleInputEmail1">Mobile No.</label>
-                            <input type="text" name="mobile_no" class="form-control"> 
-                        </div>
-                        <div class="col-lg-12 form-group">
-                            <input type="submit" id="btn_show" value="Search" class="form-control btn btn-success">
+            <br/>
+            <div class="card card-info"> 
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-sm-12">
+                            <div class="card card-primary card-outline card-tabs">
+                                <div class="card-header p-0 pt-1 border-bottom-0">
+                                    <ul class="nav nav-tabs" id="custom-tabs-three-tab" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" id="custom-tabs-three-home-tab" data-toggle="pill" href="#custom-tabs-three-home" role="tab" aria-controls="custom-tabs-three-home" aria-selected="true">ईपीआईसी द्वारा खोजें / Search by EPIC</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="custom-tabs-three-profile-tab" data-toggle="pill" href="#custom-tabs-three-profile" role="tab" aria-controls="custom-tabs-three-profile" aria-selected="false">विवरण द्वारा खोजें/ Search by Details</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content" id="custom-tabs-three-tabContent">
+                                        <div class="tab-pane fade active show" id="custom-tabs-three-home" role="tabpanel" aria-labelledby="custom-tabs-three-home-tab">
+                                            <form action="{{ route('admin.search.voter.filter',1) }}" method="post" class="add_form" success-content-id="voter_table" data-table="result_table" no-reset="true">
+                                            {{ csrf_field() }}
+                                                <div class="row">
+                                                    <div class="col-lg-6 form-group">
+                                                        <label for="exampleInputEmail1">ईपीआईसी संख्या/EPIC Number</label>
+                                                        <span class="fa fa-asterisk text-danger"></span>
+                                                        <input type="text" name="voter_card_no" class="form-control" required maxlength="20"> 
+                                                    </div>
+                                                    <div class="col-lg-6 form-group" style="margin-top: 28px;">
+                                                        <input type="submit" class="btn btn-primary form-control" value="SEARCH"> 
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="tab-pane fade" id="custom-tabs-three-profile" role="tabpanel" aria-labelledby="custom-tabs-three-profile-tab">
+                                            <form action="{{ route('admin.search.voter.filter',2) }}" method="post" class="add_form" success-content-id="voter_table" data-table="result_table" no-reset="true">
+                                            {{ csrf_field() }}
+                                                <div class="row">
+                                                    <div class="col-lg-6 form-group">
+                                                        <label for="exampleInputEmail1">District</label>
+                                                        <span class="fa fa-asterisk text-danger"></span>
+                                                        <select name="district" class="form-control" id="district_select_box" onchange="callAjax(this,'{{ route('front.DistrictWiseMC') }}','village_select_box')" required>
+                                                            <option selected disabled>Select District</option>
+                                                            @foreach ($rs_district as $District)
+                                                                <option value="{{ Crypt::encrypt($District->id) }}">{{ $District->code }}--{{ $District->name_e }}</option>  
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-lg-6 form-group">
+                                                        <label for="exampleInputEmail1">MC</label>
+                                                        <span class="fa fa-asterisk text-danger"></span>
+                                                        <select name="village" class="form-control" id="village_select_box" required>
+                                                            <option selected disabled>Select MC</option> 
+                                                        </select>
+                                                    </div> 
+                                                    <div class="col-lg-4 form-group">
+                                                        <label for="exampleInputEmail1">Name (Min. 2 Char)</label>
+                                                        <input type="text" name="v_name" class="form-control" minlength="2" maxlength="50" required> 
+                                                    </div>
+                                                    <div class="col-lg-4 form-group">
+                                                        <label for="exampleInputEmail1">Father's/Husband's (Min. 2 Char)</label>
+                                                        <input type="text" name="father_name" class="form-control" minlength="2" maxlength="50" required> 
+                                                    </div>
+                                                    <div class="col-lg-4 form-group">
+                                                        <label for="exampleInputEmail1">Age</label>
+                                                        <select name="age" class="form-control">
+                                                            <option value="0">All</option>
+                                                            <option value="18 and 25">18 To 25</option>
+                                                            <option value="25 and 35">25 To 35</option>
+                                                            <option value="35 and 45">35 To 45</option>
+                                                            <option value="45 and 55">45 To 55</option>
+                                                            <option value="55 and 100">55 To 100</option> 
+                                                            <option value="100 and 150">Above 100</option> 
+                                                        </select> 
+                                                    </div>
+                                                    <div class="col-lg-12 form-group" style="margin-top: 28px;">
+                                                        <input type="submit" class="btn btn-primary form-control" value="SEARCH"> 
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
-                <div id="voter_table">
-
-                </div> 
+                </div>
+            </div>
+            <div class="card card-info"> 
+                <div class="card-body">
+                    <div class="row" id="voter_table">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-<!-- /.login-box -->
-
-<!-- jQuery -->
+<script src="{{ asset('admin_asset/plugins/jQuery/jquery.min.js') }}"></script>
+<script src="{{ asset('admin_asset/dist/js/toastr.min.js') }}"></script>
 <script src={!! asset('admin_asset/dist/js/validation/common.js?ver=1') !!}></script>
 <script src={!! asset('admin_asset/dist/js/customscript.js?ver=1') !!}></script> 
 <script src="{{ asset('admin_asset/plugins/jquery/jquery.min.js') }}"></script>
-
-<!-- Bootstrap 4 -->
 <script src="{{ asset('admin_asset/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-<!-- AdminLTE App -->
 <script src="{{ asset('admin_asset/dist/js/adminlte.min.js') }}"></script>
-
+<script src="{{ asset('admin_asset/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('admin_asset/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+@include('admin.include.message')
 </body>
 </html>
-<script type="text/javascript">
-$('#refresh').click(function(){
-  $.ajax({
-     type:'GET',
-     url:'{{ route('admin.refresh.captcha') }}',
-     success:function(data){
-        $(".captcha span").html(data);
-     }
-  });
-});
-</script>
+

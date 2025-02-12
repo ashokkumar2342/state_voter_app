@@ -382,6 +382,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	});
     Route::group(['prefix' => 'VoterDetails'], function() {
            Route::get('index', 'VoterDetailsController@index')->name('admin.voter.details');	//OK---------
+           Route::get('form', 'VoterDetailsController@form')->name('admin.voter.details.form');	//OK---------
            
            Route::get('districtWiseAssembly', 'VoterDetailsController@districtWiseAssembly')->name('admin.voter.districtWiseAssembly');		//OK-------------
 
@@ -396,6 +397,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
            Route::get('VillageWiseVoterList', 'VoterDetailsController@VillageWiseVoterList')->name('admin.voter.VillageWiseVoterList');	//OK---------
 
            Route::get('checkdictionaryFName/{type}', 'VoterDetailsController@checkdictionaryFName')->name('admin.voter.echeckdictionaryFName');
+           Route::get('getTraData', 'VoterDetailsController@getTranslateData')->name('admin.voter.getTranslateData');
+           Route::get('getTraDataHouse', 'VoterDetailsController@getTraDataHouse')->name('admin.voter.getTraDataHouse');
            Route::get('check-duplicate-record', 'VoterDetailsController@checkDuplicateRecord')->name('admin.voter.check.duplicate.record');
 
            // Route::get('calculateAge', 'VoterDetailsController@calculateAge')->name('admin.voter.calculateAge');	//OK---------
@@ -428,11 +431,13 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 //            // Route::post('PrepareVoterListGenerate', 'VoterDetailsController@PrepareVoterListGenerate')->name('admin.voter.PrepareVoterListGenerate');
 
            Route::post('PrepareVoterListGenerate', 'PrepareVoterListController@PrepareVoterListGenerate')->name('admin.voter.GenerateVoterListAll'); 	//OK--------
+           Route::post('pvlg-ward', 'PrepareVoterListController@PrepareWardVoterListGenerate')->name('admin.voter.ward.GenerateVoterList'); 	//OK--------
 //            Route::get('PrepareVoterListMunicipal', 'VoterDetailsController@PrepareVoterListMunicipal')->name('admin.voter.PrepareVoterListMunicipal');		//OK Done-----------
 
 //            Route::post('PrepareVoterListMunicipalGenerate', 'VoterDetailsController@PrepareVoterListMunicipalGenerate')->name('admin.voter.PrepareVoterListMunicipalGenerate');
 
            Route::get('PrepareVoterListBoothWise', 'VoterDetailsController@PrepareVoterListBoothWise')->name('admin.voter.PrepareVoterListBoothWise');		//OK Done-----------
+           Route::get('PrepareVoterListMultipleBooth', 'VoterDetailsController@PrepareVoterListMultipleBooth')->name('admin.voter.PrepareVoterListMultipleBooth');		//OK Done-----------
             
            Route::get('VoterListDownload', 'VoterDetailsController@VoterListDownload')->name('admin.voter.VoterListDownload');
            Route::get('BlockWiseDownloadTable', 'VoterDetailsController@BlockWiseDownloadTable')->name('admin.voter.BlockWiseDownloadTable');
@@ -564,6 +569,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
                Route::post('unlock', 'PrepareVoterListController@unlockVoterListUnlock')->name('admin.UnlockVoterList.unlock');	//OK---------
 //                Route::get('mc', 'PrepareVoterListController@UnlockVoterListMc')->name('admin.UnlockVoterList.mc');	//OK Done---------
                Route::get('booth', 'PrepareVoterListController@UnlockVoterListBooth')->name('admin.UnlockVoterList.booth');	//OK Done-----------
+               Route::get('multiple-booth', 'PrepareVoterListController@UnlockVoterListMultipleBooth')->name('admin.UnlockVoterList.multiple.booth');	//OK Done-----------
+               Route::post('unlock-ward', 'PrepareVoterListController@unlockVoterListward')->name('admin.UnlockVoterList.ward.unlock');	//OK---------
 
  	});
 //  	Route::group(['prefix' => 'check-photo-quality'], function() {
