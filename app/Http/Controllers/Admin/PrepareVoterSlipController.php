@@ -89,9 +89,9 @@ class PrepareVoterSlipController extends Controller
 
       $slip_per_page = intval(Crypt::decrypt($request->slip_per_page));
 
-      $PrepareVoterSlipSave = DB::select(DB::raw("call `up_process_voter_slip` ($district_id, $block_id, $village_id, $ward_id, $booth_id);"));
+      $PrepareVoterSlipSave = DB::select(DB::raw("call `up_process_voter_slip` ($district_id, $block_id, $village_id, $ward_id, $booth_id, $slip_per_page);"));
 
-      \Artisan::queue('preparevoterslip:generate',['district_id'=>$district_id, 'block_id'=>$block_id, 'village_id'=>$village_id, 'ward_id'=>$ward_id, 'booth_id'=>$booth_id, 'slip_per_page'=>$slip_per_page]);
+      // \Artisan::queue('preparevoterslip:generate',['district_id'=>$district_id, 'block_id'=>$block_id, 'village_id'=>$village_id, 'ward_id'=>$ward_id, 'booth_id'=>$booth_id, 'slip_per_page'=>$slip_per_page]);
 
       // \Artisan::call('queue:work --tries=1 --timeout=2000');
 

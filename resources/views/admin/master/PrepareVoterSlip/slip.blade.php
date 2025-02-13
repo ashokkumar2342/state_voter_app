@@ -60,7 +60,7 @@ $image  =\Storage_path($dirpath.'/'.$name.'.jpg');
 			</tr>
 			<tr>
 				<td style="font-size:14px;word-spacing:4px">Poll Date, Day and Time : </td>
-				<td style="font-size:14px;word-spacing:4px"><b>{{ $polldatetime[0]->polling_day_time_l }}</b></td>
+				<td style="font-size:14px;word-spacing:4px"><b>{{ @$polldatetime[0]->polling_day_time_l }}</b></td>
 			</tr>
 			<tr>
 				<td col span ="2">Note: </td>
@@ -87,7 +87,7 @@ $image  =\Storage_path($dirpath.'/'.$name.'.jpg');
 				<td style="width: 20%">&nbsp;</td> 
 				<td style="width: 40%;text-align:center" align="center">
 				@php 
-				$image  =\Storage_path('/app'.$polldatetime[0]->signature);
+				$image  =\Storage_path('/app'.@$polldatetime[0]->signature);
 				@endphp
 					<img src="{{ $image }}" alt="" height="50px" align="center">
 				</td>
