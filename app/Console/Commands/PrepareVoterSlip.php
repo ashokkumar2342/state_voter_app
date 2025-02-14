@@ -159,7 +159,19 @@ class PrepareVoterSlip extends Command
             $mpdf_slip->Output($filepath, 'F');
             chmod($filepath, 0755);
 
+            $inputPdf = $filepath; //."/disable_text/text.pdf";  // Make sure this file exists
+            $outputPdf = $filepath; //."/disable_text/text.pdf";
+
+            // Run the Artisan command
+            $exitCode = \Artisan::call('pdf:convert', [
+                'inputPdf' => $inputPdf,
+                'outputPdf' => $outputPdf,
+                'unique_id' => $queue_id,
+            ]);
+
             $newId=DB::select(DB::raw("UPDATE `voter_slip_processed` set `status` = 1, `finish_time` = now() where `id` = $queue_id limit 1;"));
+
+            echo "Saving Complete"." \n";
 
             $queue_id = 0;
             while($queue_id == 0){

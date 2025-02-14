@@ -22,7 +22,7 @@ class PrepareVoterSlipController extends Controller
   public function index()
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(86);
+      $permission_flag = MyFuncs::isPermission_route(153);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -37,7 +37,7 @@ class PrepareVoterSlipController extends Controller
   public function PrepareVoterSlipGenerate(Request $request)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(86);
+      $permission_flag = MyFuncs::isPermission_route(153);
       if(!$permission_flag){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
