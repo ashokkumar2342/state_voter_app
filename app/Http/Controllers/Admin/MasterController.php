@@ -3604,7 +3604,7 @@ class MasterController extends Controller
   public function voterSlipNotes()
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(26);
+      $permission_flag = MyFuncs::isPermission_route(152);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -3619,7 +3619,7 @@ class MasterController extends Controller
   public function voterSlipNotesShow(Request $request)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(26);
+      $permission_flag = MyFuncs::isPermission_route(152);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -3639,7 +3639,7 @@ class MasterController extends Controller
   public function voterSlipNotesStore(Request $request, $id)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(26);
+      $permission_flag = MyFuncs::isPermission_route(152);
       if(!$permission_flag){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
@@ -3687,12 +3687,21 @@ class MasterController extends Controller
   public function voterSlipNotesEditForm($id)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(26);
+      $permission_flag = MyFuncs::isPermission_route(152);
       if(!$permission_flag){
         return view('admin.common.error_popup');
       }
       $id = intval(Crypt::decrypt($id));
       $rs_edit = DB::select(DB::raw("SELECT * from `voter_slip_notes` where `id` = $id limit 1;"));
+      if(count($rs_edit) == 0){
+        return view('admin.common.error_popup');  
+      }
+      $d_id = $rs_edit[0]->district_id;
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error_popup');
+      }
+
       return view('admin.master.voterSlipNotes.edit',compact('rs_edit'));
     } catch (\Exception $e) {
       $e_method = "voterSlipNotesEditForm";
@@ -3703,11 +3712,24 @@ class MasterController extends Controller
   public function voterSlipNotesDelete($id)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(26);
+      $permission_flag = MyFuncs::isPermission_route(152);
       if(!$permission_flag){
-        return view('admin.common.error');
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
       }
       $id = intval(Crypt::decrypt($id));
+      $rs_fetch = DB::select(DB::raw("SELECT * from `voter_slip_notes` where `id` = $id limit 1;"));
+      if(count($rs_fetch) == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      $d_id = $rs_fetch[0]->district_id;
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
       $voterSlipNotes = DB::select(DB::raw("DELETE from `voter_slip_notes` where `id` = $id limit 1;"));        
       $response=['status'=>1,'msg'=>'Record Deleted Successfully'];
       return response()->json($response);
