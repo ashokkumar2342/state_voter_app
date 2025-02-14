@@ -106,7 +106,7 @@ class PrepareVoterSlipController extends Controller
   public function PrepareVoterSlipDownload( )
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(110);
+      $permission_flag = MyFuncs::isPermission_route(154);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -121,7 +121,7 @@ class PrepareVoterSlipController extends Controller
   public function PrepareVoterSlipDownloadResult(Request $request)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(110);
+      $permission_flag = MyFuncs::isPermission_route(154);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -142,12 +142,21 @@ class PrepareVoterSlipController extends Controller
   public function PrepareVoterSlipResultDownload($id)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(110);
+      $permission_flag = MyFuncs::isPermission_route(154);
       if(!$permission_flag){
         return view('admin.common.error');
       }
       $rec_id = intval(Crypt::decrypt($id));
       $VoterSlipProcessed = DB::select(DB::raw("SELECT * from `voter_slip_processed` where `id` = $rec_id limit 1;")); 
+      if(count($VoterSlipProcessed) == 0){
+        return view('admin.common.error');  
+      }
+      $block_id = $VoterSlipProcessed[0]->block_id;
+      $permission_flag = MyFuncs::check_block_access($block_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
       $documentUrl = Storage_path().$VoterSlipProcessed[0]->folder_path.'/'.$VoterSlipProcessed[0]->file_path;  
       return response()->file($documentUrl);
     } catch (\Exception $e) {
