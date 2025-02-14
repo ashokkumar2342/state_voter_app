@@ -3480,7 +3480,7 @@ class MasterController extends Controller
   public function pollingDayTime()
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(11);
+      $permission_flag = MyFuncs::isPermission_route(151);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -3495,7 +3495,7 @@ class MasterController extends Controller
   public function pollingDayTimeList(Request $request)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(11);
+      $permission_flag = MyFuncs::isPermission_route(151);
       if(!$permission_flag){
         return view('admin.common.error');
       }
@@ -3515,7 +3515,7 @@ class MasterController extends Controller
   public function pollingDayTimeStore(Request $request,$id=null)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(11);
+      $permission_flag = MyFuncs::isPermission_route(151);
       if(!$permission_flag){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
