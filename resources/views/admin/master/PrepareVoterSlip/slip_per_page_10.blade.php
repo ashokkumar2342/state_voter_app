@@ -29,8 +29,11 @@
 				<tr style="height: 13px;">
 					<td style="width: 80px; height: 13px;font-size:16px;word-spacing:5px;">वार्ड न० :</td>
 					<td style="width: 74px; height: 13px;font-size:16px;word-spacing:5px"><b>{{$wardno}}</b></td>
-					<td style="width: 93px; height: 13px;font-size:16px;word-spacing:5px">Part No. :</td>
-					<td style="width: 249px; height: 13px;font-size:16px;word-spacing:5px"><b>{{$voterReport->part_no}}</b></td>
+					{{-- <td style="width: 93px; height: 13px;font-size:16px;word-spacing:5px">Part No. :</td>
+					<td style="width: 249px; height: 13px;font-size:16px;word-spacing:5px"><b>{{$voterReport->part_no}}</b></td> --}}
+
+					<td style="width: 93px; height: 13px;font-size:16px;word-spacing:5px">&nbsp;</td>
+					<td style="width: 249px; height: 13px;font-size:16px;word-spacing:5px"><b>&nbsp;</b></td>
 					<td style="width: 91px; height: 67px;" rowspan="4">
 					@php	
 					$dirpath = '/app/vimage/'.$voterReport->data_list_id.'/'.$voterReport->assembly_id.'/'.$voterReport->assembly_part_id;
@@ -67,11 +70,11 @@
 				<tr>
 					<td style="font-size:12px;word-spacing:5px">Poll Date, Day and Time : <b>{{ $polldatetime[0]->polling_day_time_l }}</b></td>
 				</tr>
-				@foreach ($slipNotes as $val_slip_note) 
+				{{-- @foreach ($slipNotes as $val_slip_note) 
 					<tr>
 						<td style="font-size:12px">Note: {{$val_slip_note->note_srno}} {{$val_slip_note->note_text}}</td>
 					</tr>
-				@endforeach
+				@endforeach --}}
 			</tbody>
 		</table>
 		<table style="width: 100%;">
