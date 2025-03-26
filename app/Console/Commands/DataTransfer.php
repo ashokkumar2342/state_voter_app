@@ -93,6 +93,9 @@ class DataTransfer extends Command
       echo " Ac No. :: ".$ac_code.", Part No. :: ".$part_no." \n";
       $this->import_complete_part_vote($ac_code, $part_no, $district_id);
 
+      //For Removing Not Active Data
+      // $this->Remove_Not_Active_Data();
+
       // $rs_assembly_part=DB::select(DB::raw("select * from `assembly_parts` where `assembly_id` = 94 and part_no >= '0200' and part_no <= '0201';"));
       // foreach ($rs_assembly_part as $key => $value) {
       //   $ac_code = "22";
@@ -130,6 +133,9 @@ class DataTransfer extends Command
       $assemblyPart = DB::select(DB::raw("SELECT * from `assembly_parts` where `assembly_id` = $ac_id and `part_no` = '$part_no' limit 1;"));
       $ac_part_id = $assemblyPart[0]->id;
 
+      // echo 'Deleting Previous Data';
+      // $rs_delete = DB::select(DB::raw("DELETE from `voters` where `id` > 7144324 and `id` <= 10667916 and `village_id` = 0 and `assembly_part_id` = $ac_part_id;"));
+
       // $rs_result = DB::select(DB::raw("select * from `voters` where `assembly_part_id` = $ac_part_id and `village_id` > 0 limit 1;"));
       // $data_exists = 1;
       // if(count($rs_result)==0){
@@ -143,8 +149,11 @@ class DataTransfer extends Command
       $totalImport=DB::select(DB::raw("SELECT ifnull(max(`sr_no`),0) as `maxid` from `voters` where `assembly_id` = $ac_id and `assembly_part_id` = $ac_part_id and `data_list_id` = $data_import_id;"));
       $maxid=$totalImport[0]->maxid;
       
+      //To Import All Data Without Checking Previous Data
+      // $maxid=0;
+      
       // $datas = DB::connection('sqlsrv')->select("SELECT SlNoInPart, C_House_no, C_House_No_V1, FM_Name_EN + ' ' + IsNULL(LastName_EN,'') as name_en, FM_Name_V1 + ' ' + isNULL(LastName_V1,'') as name_l, RLN_Type, RLN_FM_NM_EN + ' ' + IsNULL(RLN_L_NM_EN,'') as fname_en, RLN_FM_NM_V1 + ' ' + IsNULL(RLN_L_NM_V1,'') as FName_L, EPIC_No, STATUS_TYPE, GENDER, AGE, EMAIL_ID, MOBILE_NO, PHOTO from Query where ac_no = $ac_code and part_no = $part_no order by SlNoInPart");
-      $datas = DB::connection('sqlsrv2')->select("SELECT EPIC_NUMBER, Applicant_First_Name, isnull(Applicant_last_name, '') as Applicant_last_name, Applicant_First_Name_l1, isnull(Applicant_last_name_l1, '') as Applicant_last_name_l1, part_serial_number, age, gender, relation_type, Relation_name, isnull(relation_l_name, '') as relation_l_name, relation_name_l1, isnull(rln_l_nm_v1, '') as rln_l_nm_v1, isnull(house_number, '') as house_number, isnull(house_number_l1, '') as house_number_l1, photo, isnull(convert(varchar, dob, 103), '') as dob from eroll_data where Assembly_constituency_number = $ac_code and Part_number = $part_no and part_serial_number > $maxid order by part_serial_number");
+      $datas = DB::connection('sqlsrv2')->select("SELECT EPIC_NUMBER, Applicant_First_Name, isnull(Applicant_last_name, '') as Applicant_last_name, Applicant_First_Name_l1, isnull(Applicant_last_name_l1, '') as Applicant_last_name_l1, part_serial_number, age, gender, relation_type, Relation_name, isnull(relation_l_name, '') as relation_l_name, relation_name_l1, isnull(rln_l_nm_v1, '') as rln_l_nm_v1, isnull(house_number, '') as house_number, isnull(house_number_l1, '') as house_number_l1, photo, isnull(convert(varchar, dob, 103), '') as dob from eroll_data where Assembly_constituency_number = $ac_code and Part_number = $part_no and part_serial_number > $maxid and IS_ACTIVE <> 'N' order by part_serial_number");
 
       if(count($datas)>0){
         echo("Porting :: ".$ac_code."-".$part_no." Records (".count($datas).")\n");  
@@ -251,7 +260,9 @@ class DataTransfer extends Command
         $dob = $value->dob;
 
         if($data_exists == 0){
-          $newId = DB::select(DB::raw("call `up_save_voter_detail`($o_district_id, $ac_id, $ac_part_id, $part_sr_no, '$epic_no', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $age, '', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag', '$dob');"));          
+          $newId = DB::select(DB::raw("call `up_save_voter_detail`(0, $o_district_id, $ac_id, $ac_part_id, $part_sr_no, '$epic_no', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $age, '', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag', '$dob', 1, 'import');"));          
+          
+          // $newId = DB::select(DB::raw("call `up_save_voter_detail`($o_district_id, $ac_id, $ac_part_id, $part_sr_no, '$epic_no', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $age, '', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag', '$dob');"));          
         }else{
           // $newId = DB::select(DB::raw("call up_save_voter_detail_if_not_exists($o_district_id, $ac_id, $ac_part_id, $value->SlNoInPart, '$value->EPIC_No', '$house_e', '$house_l','','$name_e','$name_l','$f_name_e','$f_name_l', $relation, $gender_id, $value->AGE, '$value->MOBILE_NO', 'v', $o_suppliment, $o_status, $o_village_id, $o_ward_id, '$o_print_srno', $o_booth_id, $data_import_id, '$data_tag');"));  
         }
@@ -657,5 +668,56 @@ class DataTransfer extends Command
   //   }
     
   // }
+
+
+  // Code to Remove Not Active Voters Received for Panchayat By Election In March 2025 --- Code Date -- 25-03-2025
+  public function Remove_Not_Active_Data()
+  {
+
+    $rs_src_assembly = DB::connection('sqlsrv2')->select("SELECT distinct ASSEMBLY_CONSTITUENCY_NUMBER from eroll_data where IS_ACTIVE = 'N' order by ASSEMBLY_CONSTITUENCY_NUMBER");
+    foreach ($rs_src_assembly as $key => $val_src_assembly){
+      $ac_no = $val_src_assembly->ASSEMBLY_CONSTITUENCY_NUMBER;
+      
+      if($ac_no <= 9){
+        $ac_code = '0'.$ac_no;
+      }else{
+        $ac_code = $ac_no;
+      }
+      $rs_fetch = DB::select(DB::raw("SELECT `id` from `assemblys` where `code` = '$ac_code' limit 1;"));
+      $ac_id = 0;
+      if(count($rs_fetch)>0){
+        $ac_id = $rs_fetch[0]->id;
+      }
+
+      $rs_src_part_no = DB::connection('sqlsrv2')->select("SELECT distinct PART_NUMBER from eroll_data where IS_ACTIVE = 'N' and ASSEMBLY_CONSTITUENCY_NUMBER = $ac_no order by PART_NUMBER");
+      foreach ($rs_src_part_no as $key => $val_src_part_no){
+        $part_no = $val_src_part_no->PART_NUMBER;
+        if($part_no <= 9){
+          $part_code = '000'.$part_no;
+        }elseif($part_no <= 99){
+          $part_code = '00'.$part_no;
+        }elseif($part_no <= 999){
+          $part_code = '0'.$part_no;
+        }else{
+          $part_code = $part_no;
+        }
+
+        $rs_fetch = DB::select(DB::raw("SELECT `id` from `assembly_parts` where `assembly_id` = $ac_id and `part_no` = '$part_code' limit 1;"));
+        $part_id = 0;
+        if(count($rs_fetch)>0){
+          $part_id = $rs_fetch[0]->id;
+        }
+
+        $rs_src_sr_no_part = DB::connection('sqlsrv2')->select("SELECT distinct PART_SERIAL_NUMBER from eroll_data where IS_ACTIVE = 'N' and ASSEMBLY_CONSTITUENCY_NUMBER = $ac_no and PART_NUMBER = $part_no order by PART_SERIAL_NUMBER");
+        foreach ($rs_src_sr_no_part as $key => $val_src_sr_no_part){
+          $sr_no_in_part = $val_src_sr_no_part->PART_SERIAL_NUMBER;
+          $rs_delete = DB::select(DB::raw("DELETE from `voters` where `assembly_part_id` = $part_id and `sr_no` = $sr_no_in_part and `village_id` = 0;"));
+        }
+
+      }
+    }
+
+      
+  }
       
 }

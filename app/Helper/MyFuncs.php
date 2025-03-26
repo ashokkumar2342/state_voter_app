@@ -76,7 +76,7 @@ class MyFuncs {
     $web_url = "10.145.41.196";
 
     $http_host =  $_SERVER['HTTP_HOST'];
-    if(($http_host != $web_url) && ($http_host != 'localhost:80') && ($http_host != 'localhost:81') && ($http_host != 'localhost')){
+    if(($http_host != $web_url) && ($http_host != 'localhost:80') && ($http_host != 'localhost:81') && ($http_host != 'localhost') && ($http_host != '164.100.200.44')){
       return false;
       return Redirect::route('logout')->with(['error_msg' => 'Unauthorised Access to Application !!']);
     }
@@ -321,7 +321,7 @@ class MyFuncs {
       // return false;  
     }
     $http_host =  $_SERVER['HTTP_HOST'];
-    if(($http_host != '10.145.41.196') && ($http_host != 'localhost') && ($http_host != 'localhost:81')){
+    if(($http_host != '10.145.41.196') && ($http_host != 'localhost') && ($http_host != 'localhost:81') && ($http_host != '164.100.200.44')){
       return false;
       return Redirect::route('logout')->with(['error_msg' => 'Unauthorised Access to Application !!']);
     }

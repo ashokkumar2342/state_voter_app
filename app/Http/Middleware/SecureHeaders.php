@@ -19,7 +19,7 @@ class SecureHeaders
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         // $response->headers->set('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' code.ionicframework.com fonts.googleapis.com fonts.gstatic.com cdn.datatables.net cdn.jsdelivr.net cdnjs.cloudflare.com edmshry.nic.in 164.100.200.54");
-        $response->headers->set('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' 10.145.41.196");
+        $response->headers->set('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' 10.145.41.196 164.100.200.44");
         $response->headers->set('Access-Control-Allow-Methods', 'GET,POST');
         $response->headers->set('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,X-CSRF-Token');
         return $response;
