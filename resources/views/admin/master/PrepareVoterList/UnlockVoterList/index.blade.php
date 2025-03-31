@@ -24,8 +24,8 @@
                                         <span class="fa fa-asterisk"></span>
                                         <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('admin.Master.DistrictWiseBlock',1) }}','block_select_box')">
                                             <option selected disabled>Select District</option>
-                                            @foreach ($Districts as $District)
-                                            <option value="{{ $District->id }}">{{ $District->code }}--{{ $District->name_e }}</option>  
+                                            @foreach ($rs_district as $District)
+                                                <option value="{{ Crypt::encrypt($District->opt_id) }}">{{ $District->opt_text }}</option>  
                                             @endforeach
                                         </select>
                                     </div>
@@ -43,8 +43,8 @@
                                             <option selected disabled>Select Panchayat</option>
                                         </select>
                                     </div>
-                                    <input type="hidden" name="ward" value="0"> 
-                                    <input type="hidden" name="booth" value="0"> 
+                                    <input type="hidden" name="ward" value="{{ Crypt::encrypt(0) }}">
+                                    <input type="hidden" name="booth" value="{{ Crypt::encrypt(0) }}"> 
                                    <div class="col-lg-12 form-group">
                                        <input type="submit" class="btn btn-danger form-control" value="Unlock">
                                    </div> 

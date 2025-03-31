@@ -20,7 +20,7 @@ class PrepareVoterListController extends Controller
   public function PrepareVoterListGenerate(Request $request)
   {
     try{
-      $permission_flag = MyFuncs::isPermission_route(83);
+      $permission_flag = MyFuncs::isPermission_route(81, 83);
       if(!$permission_flag){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
@@ -100,6 +100,21 @@ class PrepareVoterListController extends Controller
     }
   }
 
+  public function UnlockVoterList()
+  {
+    try{
+      $permission_flag = MyFuncs::isPermission_route(91);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.PrepareVoterList.UnlockVoterList.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "UnlockVoterList";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function UnlockVoterListBooth()
   {
     try{
@@ -133,7 +148,7 @@ class PrepareVoterListController extends Controller
   public function unlockVoterListUnlock(Request $request)
   {
     try {
-      $permission_flag = MyFuncs::isPermission_route(93);
+      $permission_flag = MyFuncs::isPermission_route(91, 93);
       if(!$permission_flag){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
         return response()->json($response);
@@ -355,15 +370,7 @@ class PrepareVoterListController extends Controller
 
 
 
-  // public function UnlockVoterList($value='')
-  // {
-  //   try{
-  //       $admin = Auth::guard('admin')->user(); 
-  //       $Districts = DB::select(DB::raw("call `up_fetch_district_access` ($admin->id, 0)"));   
-  //       return view('admin.master.PrepareVoterList.UnlockVoterList.index',compact('Districts'));     
-  //   } catch (Exception $e) {}
-    
-  // }
+  
 
   // public function UnlockVoterListMc()
   // {

@@ -425,7 +425,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 //     //-------prepare-voter-list--------------prepare-voter-list-----///
            
-//            Route::get('PrepareVoterListPanchayat', 'VoterDetailsController@PrepareVoterListPanchayat')->name('admin.voter.PrepareVoterListPanchayat');		//OK Done--------
+           Route::get('PrepareVoterListPanchayat', 'VoterDetailsController@PrepareVoterListPanchayat')->name('admin.voter.PrepareVoterListPanchayat');		//OK Done--------
            Route::get('VillageWiseWardMultiple', 'VoterDetailsController@VillageWiseWardMultiple')->name('admin.voter.VillageWiseWardMultiple');	//OK------------
 
 //            // Route::post('PrepareVoterListGenerate', 'VoterDetailsController@PrepareVoterListGenerate')->name('admin.voter.PrepareVoterListGenerate');
@@ -565,7 +565,7 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
                 
         });
     Route::group(['prefix' => 'UnlockVoterList'], function() {
-//                Route::get('/', 'PrepareVoterListController@UnlockVoterList')->name('admin.UnlockVoterList.index');	//OK Done-----------------
+               Route::get('/', 'PrepareVoterListController@UnlockVoterList')->name('admin.UnlockVoterList.index');	//OK Done-----------------
                Route::post('unlock', 'PrepareVoterListController@unlockVoterListUnlock')->name('admin.UnlockVoterList.unlock');	//OK---------
 //                Route::get('mc', 'PrepareVoterListController@UnlockVoterListMc')->name('admin.UnlockVoterList.mc');	//OK Done---------
                Route::get('booth', 'PrepareVoterListController@UnlockVoterListBooth')->name('admin.UnlockVoterList.booth');	//OK Done-----------

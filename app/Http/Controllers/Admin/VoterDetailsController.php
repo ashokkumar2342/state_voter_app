@@ -61,6 +61,25 @@ class VoterDetailsController extends Controller
     } catch (Exception $e) {}
   }
 
+  // Panchayat Voter List
+  public function PrepareVoterListPanchayat()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(81);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $admin = Auth::guard('admin')->user(); 
+      $rs_district = SelectBox::get_district_access_list_v1();  
+      $rslistPrepareOption = DB::select(DB::raw("SELECT * from `list_prepare_option`"));
+      $rslistSortingOption = DB::select(DB::raw("SELECT * from `list_sorting_option`")); 
+      return view('admin.master.PrepareVoterList.index',compact('rs_district', 'rslistPrepareOption', 'rslistSortingOption'));
+    } catch (\Exception $e) {
+      $e_method = "PrepareVoterListPanchayat";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   public function PrepareVoterListBoothWise()
   {
     try{
@@ -729,16 +748,7 @@ class VoterDetailsController extends Controller
 
 //   //--------Prepare-----Voter--------List-------PrepareVoterList----------
 
-//   public function PrepareVoterListPanchayat()
-//   {
-//   	try{
-//     	$admin = Auth::guard('admin')->user(); 
-//     	$Districts = DB::select(DB::raw("call `up_fetch_district_access` ($admin->id, 0)"));  
-//       $rslistPrepareOption = DB::select(DB::raw("select * from `list_prepare_option`"));
-//       $rslistSortingOption = DB::select(DB::raw("select * from `list_sorting_option`")); 
-//     	return view('admin.master.PrepareVoterList.index',compact('Districts', 'rslistPrepareOption', 'rslistSortingOption'));     
-//     } catch (Exception $e) {}
-//   }
+
 
 
 //   public function PrepareVoterListMunicipal()
