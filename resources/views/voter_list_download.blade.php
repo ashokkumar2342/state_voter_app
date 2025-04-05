@@ -11,15 +11,17 @@
   <!-- Font Awesome --> 
   <link rel="stylesheet" href="{{ asset('admin_asset/plugins/fontawesome-free/css/all.min.css')}}">
   <!-- Ionicons -->
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  {{-- <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"> --}}
   <!-- icheck bootstrap -->
   <link rel="stylesheet" href="{{ asset('admin_asset/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}"> 
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('admin_asset/dist/css/AdminLTE.min.css')}}">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/summernote/summernote-bs4.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{ asset('admin_asset/dist/css/toastr.min.css')}}">
+  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/select2/css/select2.min.css')}}">
 
   <!-- Google Font: Source Sans Pro -->
-  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+  {{-- <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet"> --}}
 </head>
 <style>
 .card
@@ -95,39 +97,6 @@
 
 
 
-/*.card__inner
-{
-    background-color: #468AC6;
-    color: #fff;
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    z-index: 1;
-    opacity: 0;
-    padding: 2rem 1.3rem 2rem 2rem;
-    transition: all 0.4s ease 0s;
-}
-
-.card:hover .card__inner
-{
-    opacity: 1;
-}
-
-.card__inner h2
-{
-    margin-top: 1rem;
-}
-
-.card__inner p
-{
-    height: 87%;
-    padding-right: 1rem;
-    font-weight: 200;
-    line-height: 2.5rem;
-    margin-top: 1.5rem;
-}*/
 .main-box {
     height: 95vh;
 }
@@ -177,6 +146,10 @@
     .footer-copyright p a:hover {
         color: #fff;
     }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-left: 0;
+    height: auto;
+    margin-top: -8px;
 
 </style>
 <body id="body_id">
@@ -190,38 +163,38 @@
             <br />
               <div class="card card-info"> 
             <div class="card-body">
-            <form action="{{ route('front.tableShow') }}" class="add_form" method="post" success-content-id="table_show">
+            <form action="{{ route('front.tableShow') }}" class="add_form" method="post" success-content-id="table_show" no-reset="true" button-click="refresh" reset-input-text="captcha">
             {{csrf_field()}}  
                 <div class="row">
                 <div class="col-lg-3 form-group">
                     <label for="exampleInputEmail1">States</label>
-                    <span class="fa fa-asterisk"></span>
+                    <span class="fa fa-asterisk text-danger"></span>
                     <select name="states" id="state_id" class="form-control select2" onchange="callAjax(this,'{{ route('front.stateWiseDistrict') }}','district_select_box')">
                         <option selected disabled>Select States</option>
                         @foreach ($States as $State)
-                        <option value="{{ $State->id }}">{{ $State->code }}--{{ $State->name_e }}</option>  
+                        <option value="{{ Crypt::encrypt($State->id) }}">{{ $State->code }}--{{ $State->name_e }}</option>  
                         @endforeach
                     </select>
                 </div>
                 <div class="col-lg-3 form-group">
                     <label for="exampleInputEmail1">District</label>
-                    <span class="fa fa-asterisk"></span>
-                    <select name="district" class="form-control select2" id="district_select_box" select-triger="block_select_box" onchange="callAjax(this,'{{ route('front.DistrictWiseBlock') }}','block_select_box')">
-                        <option selected disabled>Select District</option>
+                    <span class="fa fa-asterisk text-danger"></span>
+                    <select name="district" class="form-control select2" id="district_select_box" onchange="callAjax(this,'{{ route('front.DistrictWiseBlock') }}','block_select_box')">
+                        <option selected disabled value="{{ Crypt::encrypt(0) }}">Select District</option>
                     </select>
                 </div>
                 <div class="col-lg-3 form-group">
                     <label for="exampleInputEmail1">Block / MC's</label>
-                    <span class="fa fa-asterisk"></span>
-                    <select name="block" class="form-control select2" id="block_select_box" select-triger="voter_list_master_id" onchange="callAjax(this,'{{ route('front.BlockWiseVoterListType') }}','voter_list_master_id')">
-                        <option selected disabled>Select Block MCS</option> 
+                    <span class="fa fa-asterisk text-danger"></span>
+                    <select name="block" class="form-control select2" id="block_select_box" onchange="callAjax(this,'{{ route('front.BlockWiseVoterListType') }}','voter_list_master_id')">
+                        <option selected disabled value="{{ Crypt::encrypt(0) }}">Select Block MCS</option> 
                     </select>
                 </div>
                 <div class="col-lg-3 form-group">
                     <label for="exampleInputEmail1">Voter List</label>
-                    <span class="fa fa-asterisk"></span>
+                    <span class="fa fa-asterisk text-danger"></span>
                     <select name="voter_list_master_id" class="form-control select2" id="voter_list_master_id" {{-- onchange="callAjax(this,'{{ route('admin.voter.BlockWiseDownloadTable1') }}'+'?block_id='+$('#block_select_box').val()+'&state_id='+$('#state_id').val()+'&district_id='+$('#district_select_box').val()+'&voter_list_master_id='+$('#voter_list_master_id').val(),'download_table')" --}}>
-                        <option selected disabled>Select Voter List</option>
+                        <option selected disabled value="{{ Crypt::encrypt(0) }}">Select Voter List</option>
                     </select>
                 </div>
                 <div class="col-lg-3" style="margin-top: 10px;background-color: #fff">
@@ -253,10 +226,10 @@
  
 <script src="{{ asset('admin_asset/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('admin_asset/dist/js/adminlte.js') }}"></script>
-
 <!-- Bootstrap 4 -->
 <script src="{{ asset('admin_asset/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
+<script src="{{ asset('admin_asset/plugins/summernote/summernote-bs4.min.js') }}"></script>
+<script src="{{ asset('admin_asset/plugins/select2/js/select2.full.min.js') }}"></script>
 <!-- AdminLTE App -->
 <script src="{{ asset('admin_asset/dist/js/adminlte.min.js') }}"></script>
 <script src={!! asset('admin_asset/dist/js/validation/common.js?ver=1') !!}></script>
@@ -275,4 +248,7 @@ $('#refresh').click(function(){
      }
   });
 });
+</script>
+<script>
+  $(".select2").select2();
 </script>

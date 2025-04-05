@@ -32,9 +32,9 @@ class SelectBox {
     }elseif($role_id == 2){
       $result_rs = DB::select(DB::raw("SELECT `dst`.`id` as `opt_id`, concat(`dst`.`code`, ' - ', `dst`.`name_e`) as `opt_text` from `user_district_assigns` `uda` inner join `districts` `dst` on `dst`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $user_id order by `dst`.`code`;"));
     }elseif($role_id == 3){
-      $result_rs = DB::select(DB::raw("SELECT `dst`.`id` as `opt_id`, concat(`dst`.`code`, ' - ', `dst`.`name_e`) as `opt_text` from `user_block_assigns` `uda` inner join `districts` `dst` on `dst`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $user_id order by `dst`.`code`;"));
+      $result_rs = DB::select(DB::raw("SELECT distinct `dst`.`id` as `opt_id`, concat(`dst`.`code`, ' - ', `dst`.`name_e`) as `opt_text` from `user_block_assigns` `uda` inner join `districts` `dst` on `dst`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $user_id order by `dst`.`code`;"));
     }elseif($role_id == 4){
-      $result_rs = DB::select(DB::raw("SELECT `dst`.`id` as `opt_id`, concat(`dst`.`code`, ' - ', `dst`.`name_e`) as `opt_text` from `user_village_assigns` `uda` inner join `districts` `dst` on `dst`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $user_id order by `dst`.`code`;"));
+      $result_rs = DB::select(DB::raw("SELECT distinct `dst`.`id` as `opt_id`, concat(`dst`.`code`, ' - ', `dst`.`name_e`) as `opt_text` from `user_village_assigns` `uda` inner join `districts` `dst` on `dst`.`id` = `uda`.`district_id` where `uda`.`status` = 1 and `uda`.`user_id` = $user_id order by `dst`.`code`;"));
     }
     return $result_rs;
   }
@@ -54,9 +54,9 @@ class SelectBox {
     }elseif($role_id == 2){
       $result_rs = DB::select(DB::raw("SELECT `bl`.`id` as `opt_id`, concat(`bl`.`code`, ' - ', `bl`.`name_e`) as `opt_text` from `blocks_mcs` `bl` where `bl`.`districts_id` = $d_id $condition order by `bl`.`code`;"));
     }elseif($role_id == 3){
-      $result_rs = DB::select(DB::raw("SELECT `bl`.`id` as `opt_id`, concat(`bl`.`code`, ' - ', `bl`.`name_e`) as `opt_text` from `user_block_assigns` `uba` inner join `blocks_mcs` `bl` on `uba`.`block_id` = `bl`.`id` where `uba`.`district_id` = $d_id and `uba`.`user_id` = $user_id and `status` = 1 $condition order by `bl`.`code`;"));
+      $result_rs = DB::select(DB::raw("SELECT distinct `bl`.`id` as `opt_id`, concat(`bl`.`code`, ' - ', `bl`.`name_e`) as `opt_text` from `user_block_assigns` `uba` inner join `blocks_mcs` `bl` on `uba`.`block_id` = `bl`.`id` where `uba`.`district_id` = $d_id and `uba`.`user_id` = $user_id and `status` = 1 $condition order by `bl`.`code`;"));
     }elseif($role_id == 4){
-      $result_rs = DB::select(DB::raw("SELECT `bl`.`id` as `opt_id`, concat(`bl`.`code`, ' - ', `bl`.`name_e`) as `opt_text` from `user_village_assigns` `uba` inner join `blocks_mcs` `bl` on `uba`.`block_id` = `bl`.`id` where `uba`.`district_id` = $d_id and `uba`.`user_id` = $user_id and `status` = 1 $condition order by `bl`.`code`;"));
+      $result_rs = DB::select(DB::raw("SELECT distinct `bl`.`id` as `opt_id`, concat(`bl`.`code`, ' - ', `bl`.`name_e`) as `opt_text` from `user_village_assigns` `uba` inner join `blocks_mcs` `bl` on `uba`.`block_id` = `bl`.`id` where `uba`.`district_id` = $d_id and `uba`.`user_id` = $user_id and `status` = 1 $condition order by `bl`.`code`;"));
     }
     return $result_rs;
   }

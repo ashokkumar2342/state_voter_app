@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Session;
+use Cookie;
 class LoginController extends Controller
 {
 
@@ -46,6 +47,16 @@ class LoginController extends Controller
     $iv = Session::get('CryptoRandomInfo');
     $data = hex2bin($request['password']);
     $decryptedpass = openssl_decrypt($data, 'DES-CBC', $key, OPENSSL_RAW_DATA, $iv);
+    $decryptedpass = substr($decryptedpass, 0, strlen($decryptedpass)/3);
+    // dd($request->password);
+    // dd($decryptedpass);
+
+
+
+    // $data = hex2bin($request->password);
+    // $key = hex2bin($request->passkey);
+    // $iv = hex2bin($request->passiv);
+    // $decryptedpass = openssl_decrypt($data, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 
     $email_mobile = MyFuncs::removeSpacialChr($request->email);
     $from_ip = MyFuncs::getIp();
@@ -86,10 +97,17 @@ class LoginController extends Controller
 // Logout method with guard logout for admin only
   public function logout(Request $request)
   {
+    // $rs_update = DB::select(DB::raw("call `up_change_logout_status`($user_id);"));
     $this->guard()->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
     $request->session()->flush();
     $request->session()->regenerate();
-    return redirect()->route('admin.login');
+    $cookie = Cookie::forget('login_token');
+    return redirect()->route('admin.login')->withCookie($cookie);
+
   }
 
 // defining auth  guard

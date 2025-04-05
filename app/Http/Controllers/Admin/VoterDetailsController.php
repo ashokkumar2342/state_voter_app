@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Crypt;
 use App\Helper\MyFuncs;
 use App\Helper\SelectBox;
+use App\Rules\ValidateFile;
 
 class VoterDetailsController extends Controller
 {
@@ -353,7 +354,12 @@ class VoterDetailsController extends Controller
       $condition = "";
       if ($check_type == 1) {
         $voter_id_no = substr(MyFuncs::removeSpacialChr($request->voter_id_no), 0, 20);
-        $condition = " where `vt`.`voter_card_no` = '$voter_id_no' and `vt`.`id` <> $rec_id ";
+        if($voter_id_no == ""){
+          $condition = " where `vt`.`id` = 0 ";  
+        }else{
+          $condition = " where `vt`.`voter_card_no` = '$voter_id_no' and `vt`.`id` <> $rec_id ";
+        }
+        
         
       }else{
         $d_id = intval(Crypt::decrypt($request->district_id));
@@ -413,6 +419,9 @@ class VoterDetailsController extends Controller
   public function store(Request $request)
   {
     try {
+
+      
+
       $permission_flag = MyFuncs::isPermission_route(121);
       if(!$permission_flag){
         $response=['status'=>0,'msg'=>'Something Went Wrong'];
@@ -434,8 +443,9 @@ class VoterDetailsController extends Controller
         'gender' => 'required', 
         'age' => 'required', 
         'voter_id_no' => 'required',
-        'image' => 'nullable|image|mimes:jpeg,jpg,png|max:20',
+        'image' => [ 'nullable','image','mimes:jpeg,jpg,png','max:2000', new ValidateFile(array('jpeg','jpg','png'), $request->image->getClientOriginalName(), $request->image->extension())],
       ];
+     // $rules['image'] = ['mimes:jpeg,jpg,png','max:20',new ValidateFile(array('jpeg,jpg,png'),$request->image->getClientOriginalName(),$request->image->extension())];
       $customMessages = [
         'rec_id.required'=> 'Something Went Wrong',
         'district.required'=> 'Please Select District',
@@ -465,6 +475,8 @@ class VoterDetailsController extends Controller
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
       }
+
+
 
       $d_id = intval(Crypt::decrypt($request->district));
       $permission_flag = MyFuncs::check_district_access($d_id);

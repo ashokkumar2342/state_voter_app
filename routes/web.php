@@ -25,7 +25,7 @@ Route::get('download-voter-list', 'Admin\FrontController@downloadVoterList')->na
 Route::get('stateWiseDistrict', 'Admin\FrontController@stateWiseDistrict')->name('front.stateWiseDistrict');
 Route::get('DistrictWiseBlock', 'Admin\FrontController@DistrictWiseBlock')->name('front.DistrictWiseBlock');
 Route::get('BlockWiseVoterListType', 'Admin\FrontController@BlockWiseVoterListType')->name('front.BlockWiseVoterListType');
-Route::get('download/{path}/{condition}', 'Admin\FrontController@download')->name('front.download');
+Route::get('download/{path}', 'Admin\FrontController@download')->name('front.download');
 
 
  

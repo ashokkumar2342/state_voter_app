@@ -243,16 +243,14 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 
 
 // 	    //-mapping-zp-ward---//
-// 	    Route::get('MappingVillageToZPWard', 'MasterController@MappingVillageToZPWard')->name('admin.Master.MappingVillageToZPWard');	//----OK Done-----
-// 	    Route::get('districtwiseZPWard', 'MasterController@districtwiseZPWard')->name('admin.Master.districtwiseZPWard');		//OK------------
-// 	    Route::get('districtOrZpwardWiseVillage', 'MasterController@districtOrZpwardWiseVillage')->name('admin.Master.districtOrZpwardWiseVillage');	//OK----------
-// 	    Route::post('MappingVillageToZPWardStore', 'MasterController@MappingVillageToZPWardStore')->name('admin.Master.MappingVillageToZPWardStore');	//OK----------
+	    Route::get('MappingVillageToZPWard', 'MasterController@MappingVillageToZPWard')->name('admin.Master.MappingVillageToZPWard');	//----OK Done-----
+	    Route::get('districtOrZpwardWiseVillage', 'MasterController@districtOrZpwardWiseVillage')->name('admin.Master.districtOrZpwardWiseVillage');	//OK----------
+	    Route::post('MappingVillageToZPWardStore', 'MasterController@MappingVillageToZPWardStore')->name('admin.Master.MappingVillageToZPWardStore');	//OK----------
 	    
 // 	    //mapping-PS-ward////
-// 	    Route::get('MappingVillageToPSWard', 'MasterController@MappingVillageWardToPSWard')->name('admin.Master.MappingVillageToPSWard');		//OK Done--------------
-// 	    Route::get('blockwisePsWard', 'MasterController@blockwisePsWard')->name('admin.Master.blockwisePsWard');	//OK-------------
-// 	    Route::get('BlockOrPSwardWiseVillage', 'MasterController@BlockOrPSwardWiseVillage')->name('admin.Master.BlockOrPSwardWiseVillage');		//OK-----------
-// 	    Route::post('MappingVillageToPSWardStore', 'MasterController@MappingVillageToPSWardStore')->name('admin.Master.MappingVillageToPSWardStore');	//OK-------------
+	    Route::get('MappingVillageToPSWard', 'MasterController@MappingVillageWardToPSWard')->name('admin.Master.MappingVillageToPSWard');		//OK Done--------------
+	    Route::get('BlockOrPSwardWiseVillage', 'MasterController@BlockOrPSwardWiseVillage')->name('admin.Master.BlockOrPSwardWiseVillage');		//OK-----------
+	    Route::post('MappingVillageToPSWardStore', 'MasterController@MappingVillageToPSWardStore')->name('admin.Master.MappingVillageToPSWardStore');	//OK-------------
 
 	    
 // 	    //mapping-booth-ward////
@@ -350,7 +348,8 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
 	    Route::get('DistrictWiseBlock/{print_condition?}', 'MasterController@DistrictWiseBlock')->name('admin.Master.DistrictWiseBlock');
 	    Route::get('BlockWiseVillage', 'MasterController@BlockWiseVillage')->name('admin.Master.BlockWiseVillage');	
 	    Route::get('BlockWiseVoterListType', 'MasterController@BlockWiseVoterListType')->name('admin.Master.BlockWiseVoterListType');
-
+	    Route::get('blockwisePsWard', 'MasterController@blockwisePsWard')->name('admin.Master.blockwisePsWard');	//OK-------------
+	    Route::get('districtwiseZPWard', 'MasterController@districtwiseZPWard')->name('admin.Master.districtwiseZPWard');		//OK------------
 
 
 

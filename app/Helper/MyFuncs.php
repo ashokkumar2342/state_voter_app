@@ -168,6 +168,11 @@ class MyFuncs {
     // $newString = trim(strip_tags($newString));
     // $newString = trim(htmlspecialchars($newString));
 
+    $newString = strip_tags($newString);
+    $newString = preg_replace('/<script\b[^>]>(.?)<\/script>/is', "", $newString);
+    $newString = preg_replace('/<\?php.*?\?>/i', '', $newString);
+    $newString = preg_replace('/on\w+\s*=\s*["\'].*?["\']/i', '', $newString);
+
     $newString = trim(str_replace('&lt;script&gt;', '', $newString));
     $newString = trim(str_replace('&lt;/script&gt;', '', $newString));
     

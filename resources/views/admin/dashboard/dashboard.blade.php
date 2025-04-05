@@ -29,7 +29,7 @@
               <div class="icon">
                 <i class="fa fa-university"></i>
               </div>
-              <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              {{-- <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> --}}
             </div>
           </div>
           <!-- ./col -->
@@ -44,7 +44,7 @@
               <div class="icon">
                 <i class="fa fa-university"></i>
               </div>
-              <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              {{-- <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> --}}
             </div>
           </div>
           <!-- ./col -->
@@ -58,7 +58,7 @@
               <div class="icon">
                 <i class="fa fa-university"></i>
               </div>
-              <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              {{-- <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> --}}
             </div>
           </div>
           <!-- ./col -->
@@ -73,7 +73,7 @@
               <div class="icon">
                 <i class="fa fa-university"></i>
               </div>
-              <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              {{-- <a class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> --}}
             </div>
           </div>
           </div>

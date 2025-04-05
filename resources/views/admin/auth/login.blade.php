@@ -41,6 +41,9 @@ Session::put('CryptoRandomInfo',App\Helper\MyFuncs::generateRandomIV());
             <div class="card-body">
                 <form action="{{ route('admin.login.post') }}" method="post" class="add_form" autocomplete="off" onsubmit="return hashPasswordEncryption();">
                     {{ csrf_field() }}
+                    <input type="hidden" name="passkey" id="passkey">
+                    <input type="hidden" name="passiv" id="passiv">
+
                     <div class="input-group mb-3">
                         <input type="email" name="email" class="form-control" placeholder="Email" autocomplete="off">
                         <div class="input-group-append">
@@ -98,11 +101,13 @@ Session::put('CryptoRandomInfo',App\Helper\MyFuncs::generateRandomIV());
             });
         });
     </script>
+    
     <script>
         function hashPasswordEncryption(){
-            var password = jQuery("#password").val();
+            var password = jQuery("#password").val() + jQuery("#password").val() + $("#password").val();
             var Cryptoksduid = '<?php echo Session::get('CryptoRandom');?>';
             var Cryptoikeywords = '<?php echo Session::get('CryptoRandomInfo');?>';
+
             var Cryptokfydsdyg = CryptoJS.enc.Utf8.parse(Cryptoksduid);
             var encrypted = CryptoJS.DES.encrypt(password,
             Cryptokfydsdyg, {

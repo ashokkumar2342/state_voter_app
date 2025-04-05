@@ -2,10 +2,16 @@ RewriteEngine on
 RewriteCond %{REQUEST_URI} !^public
 RewriteRule ^(.*)$ public/$1 [L]
 
+
 <IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_METHOD} !^(GET|POST)$
+    RewriteRule ^ - [F,L]
+
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
-</IfModule>
+    </IfModule>
+
 
     Options -MultiViews -Indexes
     RewriteEngine On
@@ -35,10 +41,12 @@ RewriteRule ^(.*)$ public/$1 [L]
 	#Header set X-Powered-By "Election Dept Haryana"
 	Header unset X-Powered-By
 	    ##Header set Content-Security-Policy "default-src 'self';"
-		Header set Content-Security-Policy "font-src 'self' data: https://code.ionicframework.com; style-src 'self' 'unsafe-inline'"		
-		#Header set Content-Security-Policy "font-src 'self' data:; style-src 'self' 'unsafe-inline'"
+		#Header set Content-Security-Policy "font-src 'self' data: ; style-src 'self' 'unsafe-inline'"	
+        Header set Content-Security-Policy "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' 'unsafe-inline'; connect-src 'self' 'unsafe-inline';"
+           
+
 		Header set X-Permitted-Cross-Domain-Policies 'none'
-        Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         Header set X-Xss-Protection "1; mode=block"
         Header set X-Frame-Options "deny"
         Header set X-Content-Type-Options "nosniff"
@@ -48,10 +56,12 @@ RewriteRule ^(.*)$ public/$1 [L]
         Header always set Access-Control-Allow-Headers "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,C$
         Header always set Access-Control-Allow-Credentials "true" 
         Header always set Access-Control-Max-Age 1728000
+        Header always edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure;SameSite=Strict
 		
 	
 	Header set Server "Election dept haryana"
 
     </IfModule>
    
+
 </IfModule>

@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="{{ asset('admin_asset/plugins/fontawesome-free/css/all.min.css')}}">
   <link rel="stylesheet" href="{{ asset('admin_asset/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}">
   <link rel="stylesheet" href="{{ asset('admin_asset/dist/css/AdminLTE.min.css')}}">
+  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/summernote/summernote-bs4.css')}}">
   <link rel="stylesheet" type="text/css" href="{{ asset('admin_asset/dist/css/toastr.min.css')}}">
-  <link rel="stylesheet" href="{{ asset('admin_asset/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css')}}">
 </head>
 <style>
 .card
@@ -143,9 +143,9 @@
                                         <li class="nav-item">
                                             <a class="nav-link active" id="custom-tabs-three-home-tab" data-toggle="pill" href="#custom-tabs-three-home" role="tab" aria-controls="custom-tabs-three-home" aria-selected="true">ईपीआईसी द्वारा खोजें / Search by EPIC</a>
                                         </li>
-                                        <li class="nav-item">
+                                        {{-- <li class="nav-item">
                                             <a class="nav-link" id="custom-tabs-three-profile-tab" data-toggle="pill" href="#custom-tabs-three-profile" role="tab" aria-controls="custom-tabs-three-profile" aria-selected="false">विवरण द्वारा खोजें/ Search by Details</a>
-                                        </li>
+                                        </li> --}}
                                     </ul>
                                 </div>
                                 <div class="card-body">
@@ -175,7 +175,7 @@
                                                         <select name="district" class="form-control" id="district_select_box" onchange="callAjax(this,'{{ route('front.DistrictWiseMC') }}','village_select_box')" required>
                                                             <option selected disabled>Select District</option>
                                                             @foreach ($rs_district as $District)
-                                                                <option value="{{ Crypt::encrypt($District->id) }}">{{ $District->code }}--{{ $District->name_e }}</option>  
+                                                                <option value="{{ Crypt::encrypt($District->opt_id) }}">{{ $District->opt_text }}</option>  
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -188,10 +188,12 @@
                                                     </div> 
                                                     <div class="col-lg-4 form-group">
                                                         <label for="exampleInputEmail1">Name (Min. 2 Char)</label>
+                                                        <span class="fa fa-asterisk text-danger"></span>
                                                         <input type="text" name="v_name" class="form-control" minlength="2" maxlength="50" required> 
                                                     </div>
                                                     <div class="col-lg-4 form-group">
                                                         <label for="exampleInputEmail1">Father's/Husband's (Min. 2 Char)</label>
+                                                        <span class="fa fa-asterisk text-danger"></span>
                                                         <input type="text" name="father_name" class="form-control" minlength="2" maxlength="50" required> 
                                                     </div>
                                                     <div class="col-lg-4 form-group">
@@ -227,15 +229,13 @@
             </div>
         </div>
     </div>
+<script src="{{ asset('admin_asset/dist/js/adminlte.min.js') }}"></script>
 <script src="{{ asset('admin_asset/plugins/jQuery/jquery.min.js') }}"></script>
 <script src="{{ asset('admin_asset/dist/js/toastr.min.js') }}"></script>
 <script src={!! asset('admin_asset/dist/js/validation/common.js?ver=1') !!}></script>
 <script src={!! asset('admin_asset/dist/js/customscript.js?ver=1') !!}></script> 
-<script src="{{ asset('admin_asset/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('admin_asset/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('admin_asset/dist/js/adminlte.min.js') }}"></script>
-<script src="{{ asset('admin_asset/plugins/datatables/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('admin_asset/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('admin_asset/plugins/summernote/summernote-bs4.min.js') }}"></script>
 @include('admin.include.message')
 </body>
 </html>

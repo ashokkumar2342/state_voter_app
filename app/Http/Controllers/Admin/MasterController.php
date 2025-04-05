@@ -2248,6 +2248,7 @@ class MasterController extends Controller
         $village_id = 0;
       }
       $booth_id = intval(Crypt::decrypt($request->id));
+
       $wards=DB::select(DB::raw("SELECT `id`, `ward_no`, 0 as `status` from `ward_villages` where `village_id` = $village_id and `id` not in (Select `wardId` from `booth_ward_voter_mapping`) Union select `id`, `ward_no`, 1 as `status` from `ward_villages` where `village_id` = $village_id and `id` in (Select `wardId` from `booth_ward_voter_mapping` where `boothid` = $booth_id) Order By `ward_no`;"));
 
       return view('admin.master.mappingBoothWard.ward_select_box',compact('wards'));
@@ -2611,6 +2612,153 @@ class MasterController extends Controller
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
+
+  //   //------------------------Mapping-Village Ward -To-PS Ward (75)----------
+
+  public function MappingVillageWardToPSWard()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(75);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.mappingvillageTopsward.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageWardToPSWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function BlockOrPSwardWiseVillage(Request $request)
+  {   
+    try {
+      $permission_flag = MyFuncs::isPermission_route(75);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+
+      $b_id = intval(Crypt::decrypt($request->block_id));
+      $permission_flag = MyFuncs::check_block_access($b_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
+      $ps_ward_id = intval(Crypt::decrypt($request->id));
+
+      $villages=DB::select(DB::raw("SELECT `wv`.`id`, concat(`v`.`name_e`, '-', `wv`.`ward_no`) as `ps_ward_name`, 0 as `status` From `ward_villages` `wv` Inner Join `villages` `v` on `v`.`id` = `wv`.`village_id` Where `wv`.`is_locked` = 0 and `wv`.`blocks_id` = $b_id and (`wv`.`ps_ward_id` =0 Or `wv`.`ps_ward_id` is null) Union (Select `wv`.`id`,  concat(`v`.`name_e`, '-', `wv`.`ward_no`) as `ps_ward_name` , 1 as `status` From `ward_villages` `wv` Inner Join `villages` `v` on `v`.`id` = `wv`.`village_id` Where `wv`.`is_locked` = 0 and `wv`.`blocks_id` = $b_id and `wv`.`ps_ward_id` = $ps_ward_id) Order By `ps_ward_name`;"));
+
+      return view('admin.master.mappingvillageTopsward.ward_move_select_box',compact('villages'));    
+    } catch (\Exception $e) {
+      $e_method = "BlockOrPSwardWiseVillage";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+
+  public function MappingVillageToPSWardStore(Request $request)
+  { 
+    try {
+
+      $permission_flag = MyFuncs::isPermission_route(75);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+
+
+      $ps_ward = intval(Crypt::decrypt($request->ps_ward));
+
+      $village_id = 0;
+
+      if (!empty($request->village)) {
+        $sel_villages = $request->village;
+        foreach ($sel_villages as $key => $value) {
+          $village_id = $village_id.", ".intval(Crypt::decrypt($value));
+        }
+      } 
+   
+      DB::select(DB::raw("call `up_map_ward_villages_psward` ('$ps_ward','$village_id');"));
+      $response=['status'=>1,'msg'=>'Records Saved Successfully'];
+      return response()->json($response); 
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageToPSWardStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  } 
+
+//-----Mapping Villages To ZP Ward-----------------------------------------------
+  
+  public function MappingVillageToZPWard()
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(76);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rs_district = SelectBox::get_district_access_list_v1();
+      return view('admin.master.mappingvillageTozpward.index',compact('rs_district'));
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageToZPWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function districtOrZpwardWiseVillage(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(76);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+
+      $d_id = intval(Crypt::decrypt($request->district_id));
+      $permission_flag = MyFuncs::check_district_access($d_id);
+      if($permission_flag == 0){
+        return view('admin.common.error');
+      }
+
+      $zp_ward_id = intval(Crypt::decrypt($request->id));
+
+      $villages=DB::select(DB::raw("SELECT `vil`.`id`, `bl`.`name_e` as `bl_name`, `vil`.`name_e`, 0 as `status` from `villages` `vil` inner join `blocks_mcs` `bl` on `bl`.`id` = `vil`.`blocks_id` where `vil`.`is_locked` = 0 and `vil`.`districts_id` = $d_id and `vil`.`zp_ward_id` not in (Select `id` from `ward_zp` where `districts_id` = $d_id) Union select `vil1`.`id`, `bl1`.`name_e`  as `bl_name`, `vil1`.`name_e`, 1 as `status` from `villages` `vil1` inner join `blocks_mcs` `bl1` on `bl1`.`id` = `vil1`.`blocks_id` where `vil1`.`is_locked` = 0 and `vil1`.`districts_id` = $d_id and `vil1`.`zp_ward_id` = $zp_ward_id Order By `bl_name`, `name_e`;"));
+
+      return view('admin.master.mappingvillageTozpward.village_move_select_box',compact('villages'));
+    } catch (\Exception $e) {
+      $e_method = "districtOrZpwardWiseVillage";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function MappingVillageToZPWardStore(Request $request)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(76);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+
+      $zp_ward = intval(Crypt::decrypt($request->zp_ward));
+
+      $village_id = 0;
+
+      if (!empty($request->village)) {
+        $sel_villages = $request->village;
+        foreach ($sel_villages as $key => $value) {
+          $village_id = $village_id.", ".intval(Crypt::decrypt($value));
+        }
+      } 
+   
+      DB::select(DB::raw("call `up_map_villages_zpward` ('$zp_ward','$village_id');"));
+      $response=['status'=>1,'msg'=>'Records Saved Successfully'];
+      return response()->json($response);
+
+    } catch (\Exception $e) {
+      $e_method = "MappingVillageToZPWardStore";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  } 
+
+
 
   public function changeVoterWardWithBooth()
   {
@@ -4093,6 +4241,48 @@ class MasterController extends Controller
     }
   }
 
+  public function blockwisePsWard(Request $request)
+  {
+    try {
+      $b_id = intval(Crypt::decrypt($request->id));
+      $is_permission = MyFuncs::check_block_access($b_id);
+      if($is_permission == 0){
+        $b_id = 0;
+      }
+
+      $box_caption = "PS Ward No.";
+      $show_disabled = 1;
+      $rs_records = DB::select(DB::raw("SELECT `id` as `opt_id`, `ward_no` as `opt_text` from `ward_ps` where `blocks_id` = $b_id order by `ward_no`;"));
+
+      return view('admin.common.select_box_v1',compact('rs_records', 'box_caption', 'show_disabled'));
+
+    } catch (\Exception $e) {
+      $e_method = "blockwisePsWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function districtwiseZPWard(Request $request)
+  {
+    try {
+      $d_id = intval(Crypt::decrypt($request->district_id));
+      $is_permission = MyFuncs::check_district_access($d_id);
+      if($is_permission == 0){
+        $d_id = 0;
+      }
+
+      $box_caption = "ZP Ward No.";
+      $show_disabled = 1;
+      $rs_records = DB::select(DB::raw("SELECT `id` as `opt_id`, `ward_no` as `opt_text` from `ward_zp` where `districts_id` = $d_id order by `ward_no`;"));
+
+      return view('admin.common.select_box_v1',compact('rs_records', 'box_caption', 'show_disabled'));
+
+    } catch (\Exception $e) {
+      $e_method = "districtwiseZPWard";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
   
 
   // public function BlockWiseVillage(Request $request)
@@ -4347,115 +4537,7 @@ class MasterController extends Controller
 
 // //      //------------ward-village----------------------------//
 
-  
 
-
-// //     //-----Mapping Village Assembly Part-----------------
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-// //   //------------------------Mapping-Village Ward -To-PS Ward----------
-
-//   public function MappingVillageWardToPSWard($value='')
-//   {
-//     try {
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.mappingvillageTopsward.index',compact('States'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function blockwisePsWard(Request $request)
-//   {
-//     try {
-//       $pswards = DB::select(DB::raw("select * from `ward_ps` where `blocks_id` = $request->id order by `ward_no`;"));
-//       return view('admin.master.psward.value_select_box',compact('pswards'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function BlockOrPSwardWiseVillage(Request $request)
-//   {   
-//     try {
-//       $villages=DB::select(DB::raw("(Select `wv`.`id`, concat(`v`.`name_e`, '-', `wv`.`ward_no`) as `ps_ward_name`, 0 as `status` From `ward_villages` `wv` Inner Join `villages` `v` on `v`.`id` = `wv`.`village_id` Where `wv`.`is_locked` = 0 and `wv`.`blocks_id` =$request->block_id and (`wv`.`ps_ward_id` =0 Or `wv`.`ps_ward_id` is null)) Union (Select `wv`.`id`,  concat(`v`.`name_e`, '-', `wv`.`ward_no`) as `ps_ward_name` , 1 as `status` From `ward_villages` `wv` Inner Join `villages` `v` on `v`.`id` = `wv`.`village_id` Where `wv`.`is_locked` = 0 and `wv`.`blocks_id` =$request->block_id and `wv`.`ps_ward_id` =$request->id) Order By `ps_ward_name`;"));
-
-//       return view('admin.master.mappingvillageTopsward.ward_move_select_box',compact('villages'));    
-//     } catch (Exception $e) {}
-//   }
-
-//   public function MappingVillageToPSWardStore(Request $request)
-//   { 
-//     try {
-//       if (!empty($request->village)) {
-//         $village_id=implode(',',$request->village);  
-//       }else {
-//         $village_id=0;  
-//       } 
-   
-//       DB::select(DB::raw("call `up_map_ward_villages_psward` ('$request->ps_ward','$village_id')"));
-//       $response=['status'=>1,'msg'=>'Records Saved Successfully'];
-//       return response()->json($response); 
-//     } catch (Exception $e) {}
-//   } 
-
-// //-----Mapping Villages To ZP Ward-----------------------------------------------
-  
-//   public function MappingVillageToZPWard()
-//   {
-//     try {
-//       $States = DB::select(DB::raw("select * from `states` order by `name_e`;"));
-//       return view('admin.master.mappingvillageTozpward.index',compact('States'));
-//     } catch (Exception $e) {}      
-//   }
-
-//   public function districtwiseZPWard(Request $request)
-//   {
-//     try {
-//       $zpwards = DB::select(DB::raw("select * from `ward_zp` where `districts_id` = $request->district_id order by `ward_no`;"));
-//       return view('admin.master.zpward.value_select_box',compact('zpwards'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function districtOrZpwardWiseVillage(Request $request)
-//   {
-//     try {
-//       // $villages=DB::select(DB::raw("select `id`, `name_e`, 0 as `status` from `villages`where `is_locked` = 0 and `districts_id` = $request->district_id and `zp_ward_id` not in (Select `id` from `ward_zp` where `districts_id` = $request->district_id) Union select `id`, `name_e`, 1 as `status` from `villages`where `is_locked` = 0 and `districts_id` = $request->district_id and `zp_ward_id` = $request->id Order By `name_e`;"));
-      
-//       $villages=DB::select(DB::raw("select `vil`.`id`, `bl`.`name_e` as `bl_name`, `vil`.`name_e`, 0 as `status` from `villages` `vil` inner join `blocks_mcs` `bl` on `bl`.`id` = `vil`.`blocks_id` where `vil`.`is_locked` = 0 and `vil`.`districts_id` = $request->district_id and `vil`.`zp_ward_id` not in (Select `id` from `ward_zp` where `districts_id` = $request->district_id) Union select `vil1`.`id`, `bl1`.`name_e`  as `bl_name`, `vil1`.`name_e`, 1 as `status` from `villages` `vil1` inner join `blocks_mcs` `bl1` on `bl1`.`id` = `vil1`.`blocks_id` where `vil1`.`is_locked` = 0 and `vil1`.`districts_id` = $request->district_id and `vil1`.`zp_ward_id` = $request->id Order By `bl_name`, `name_e`;"));
-
-//       return view('admin.master.mappingvillageTozpward.village_move_select_box',compact('villages'));
-//     } catch (Exception $e) {}
-//   }
-
-//   public function MappingVillageToZPWardStore(Request $request)
-//   { 
-//     try {
-//       if (!empty($request->village)) {
-//         $village_id=implode(',',$request->village);  
-//       }else {
-//         $village_id=0;  
-//       } 
-       
-//       DB::select(DB::raw("call `up_map_villages_zpward` ('$request->zp_ward','$village_id')"));
-//       $response=['status'=>1,'msg'=>'Record Saved Successfully'];
-//       return response()->json($response); 
-//     } catch (Exception $e) {}
-//   } 
 
 // //------------Poll Day Time Set ----------------
 

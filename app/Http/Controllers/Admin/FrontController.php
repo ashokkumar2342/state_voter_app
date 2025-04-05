@@ -15,7 +15,7 @@ class FrontController extends Controller
   public function searchVoter()
   {
     try{
-      $rs_district= DB::select(DB::raw("SELECT `id`, `code`, `name_e` from `districts` order by `name_e`;"));    
+      $rs_district= DB::select(DB::raw("SELECT `id` as `opt_id`, `name_e` as `opt_text` from `districts` order by `name_e`;"));    
       return view('search_voter',compact('rs_district'));
     } catch (Exception $e) {}
   }
@@ -24,7 +24,7 @@ class FrontController extends Controller
     try{ 
       $d_id = intval(Crypt::decrypt($request->id));
       $show_disabled = 0;
-      $box_caption = "MC";
+      $box_caption = "MC/Panchayat";
       $show_all = 1;
       $rs_records = DB::select(DB::raw("SELECT `vl`.`id` as `opt_id`, concat(`vl`.`code`, ' - ', `vl`.`name_e`) as `opt_text` from `villages` `vl` where `vl`.`districts_id` = $d_id order by `vl`.`name_e`;"));   
       return view('admin.common.select_box_v1',compact('rs_records', 'show_disabled', 'box_caption', 'show_all'));
@@ -106,55 +106,70 @@ class FrontController extends Controller
   public function downloadVoterList()
   {
     try{
-      $States= DB::select(DB::raw("select * from `states` order by `name_e`;"));    
+      $States = DB::select(DB::raw("SELECT * from `states` order by `name_e`;"));    
       return view('voter_list_download',compact('States'));
     } catch (Exception $e) {}
   }
-  public function stateWiseDistrict(Request $request){
+
+  public function stateWiseDistrict(Request $request)
+  {
     try{ 
-      // return $request;
-      $Districts=DB::select(DB::raw("select * from `districts` where `state_id` =$request->id"));   
-      return view('admin.master.districts.value_select_box',compact('Districts'));
+      $state_id = intval(Crypt::decrypt($request->id));
+      $show_disabled = 1;
+      $box_caption = "District";
+      $rs_records = DB::select(DB::raw("SELECT `id` as `opt_id`, `name_e` as `opt_text` from `districts` where `state_id` = $state_id order by `name_e`;"));     
+      return view('admin.common.select_box_v1',compact('rs_records', 'show_disabled', 'box_caption'));
     } catch (Exception $e) {}
   }
-  public function DistrictWiseBlock(Request $request){
-    try{ 
-      // return $request;
-      $BlocksMcs=DB::select(DB::raw("select * from `blocks_mcs` where `districts_id` =$request->id"));   
-      return view('admin.master.block.value_select_box',compact('BlocksMcs'));
+
+  public function DistrictWiseBlock(Request $request)
+  {
+    try{
+      $d_id = intval(Crypt::decrypt($request->id));
+      $show_disabled = 1;
+      $box_caption = "Block / MC's";
+      $rs_records = DB::select(DB::raw("SELECT `id` as `opt_id`, `name_e` as `opt_text` from `blocks_mcs` where `districts_id` = $d_id order by `name_e`;"));     
+      return view('admin.common.select_box_v1',compact('rs_records', 'show_disabled', 'box_caption'));
     } catch (Exception $e) {}
   }
   public function BlockWiseVoterListType(Request $request)
   {
-    try{  
+    try{
       $b_id = 0;
-      if(!empty($request->id)){$b_id = $request->id;}
-
-      $admin = Auth::guard('admin')->user(); 
-
-      $VoterListType = DB::select(DB::raw("select * from `voter_list_master` where `block_id` = $b_id;"));  
-      return view('admin.voterlistmaster.value_select_box',compact('VoterListType'));
+      if(!empty($request->id)){
+        $b_id = intval(Crypt::decrypt($request->id));
+      }
+      $show_disabled = 0;
+      $show_all = 0;
+      $box_caption = "Voter List";
+      $rs_records = DB::select(DB::raw("SELECT `id` as `opt_id`, `voter_list_name` as `opt_text` from `voter_list_master` where `block_id` = $b_id and `status` = 1 order by `voter_list_name`;"));     
+      return view('admin.common.select_box_v1',compact('rs_records', 'show_disabled', 'show_all', 'box_caption'));
     } catch (Exception $e) {}
   }
+
+
   public function tableShow(Request $request)
   { 
     try{
       $rules=[  
-      'states' => 'required',  
-      'district' => 'required',  
-      'block' => 'required',  
-      'voter_list_master_id' => 'required',
-      'captcha' => 'required|captcha'  
-    ]; 
-    $validator = Validator::make($request->all(),$rules);
-    if ($validator->fails()) {
+        'states' => 'required',  
+        'district' => 'required',  
+        'block' => 'required',  
+        'voter_list_master_id' => 'required',
+        'captcha' => 'required|captcha'  
+      ]; 
+      $validator = Validator::make($request->all(),$rules);
+      if ($validator->fails()) {
         $errors = $validator->errors()->all();
         $response=array();
         $response["status"]=0;
         $response["msg"]=$errors[0];
         return response()->json($response);// response as json
-    }
-      $voterlistprocesseds = DB::select(DB::raw("select `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`,  `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `block_id` = $request->block and `voter_list_master_id` = $request->voter_list_master_id order by `vil`.`name_e`, `wv`.`ward_no`;"));
+      }
+      $block_id = intval(Crypt::decrypt($request->block));
+      $voter_list_master_id = intval(Crypt::decrypt($request->voter_list_master_id));
+
+      $voterlistprocesseds = DB::select(DB::raw("SELECT `vil`.`name_e`, `wv`.`ward_no`, concat(`pb`.`booth_no`, ifnull(`pb`.`booth_no_c`,'')) as `booth_no`, `vlp`.`report_type`, `vlp`.`id`, `vlp`.`status`,  `vlp`.`folder_path`, `vlp`.`file_path_p`, `vlp`.`file_path_w`, `vlp`.`file_path_h`, `submit_time`, `start_time`, `finish_time`, `expected_time_start` from `voter_list_processeds` `vlp` inner join `villages` `vil` on `vil`.`id` = `vlp`.`village_id` left join `ward_villages` `wv` on `wv`.`id` = `vlp`.`ward_id` left join `polling_booths` `pb` on `pb`.`id` = `vlp`.`booth_id` where `block_id` = $block_id and `voter_list_master_id` = $voter_list_master_id and `status` = 1 order by `vil`.`name_e`, `wv`.`ward_no`;"));
 
       $response = array();
       $response['status'] = 1; 
@@ -162,20 +177,24 @@ class FrontController extends Controller
       return response()->json($response);
     } catch (Exception $e) {}
   }
-  public function download($id,$condition)
+
+  public function download($id)
   {  
     try{
-      $voterlistprocesseds = DB::select(DB::raw("select `folder_path`, `file_path_p`, `file_path_w`, `file_path_h` from `voter_list_processeds` where `id` = $id limit 1;"));
+      $id = intval(Crypt::decrypt($id));
+      $voterlistprocesseds = DB::select(DB::raw("SELECT `folder_path`, `file_path_w` from `voter_list_processeds` where `id` = $id limit 1;"));
       if(count($voterlistprocesseds)==0){
         return null;
       }
       $voterlistprocesseds = reset($voterlistprocesseds);
 
       $documentUrl = Storage_path().$voterlistprocesseds->folder_path;
-      if($condition == 'p'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_p;} 
-      elseif($condition == 'w'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_w;} 
-      elseif($condition == 'h'){$documentUrl = $documentUrl.$voterlistprocesseds->file_path_h;} 
-      return response()->file($documentUrl);          
+      $documentUrl = $documentUrl.$voterlistprocesseds->file_path_w; 
+      if(file_exists($documentUrl)){                
+        return response()->file($documentUrl);
+      }else{
+        return 'File Not Found';
+      }
     } catch (Exception $e) {}
   }
   //---search-voter--------------// 
