@@ -21,6 +21,7 @@
                 </thead>
                 @php
                     $srno = 1;
+                    $btn_counter = 1;
                 @endphp
                 <tbody> 
                     @foreach ($voterlistprocesseds as $voterlistprocessed)
@@ -33,9 +34,13 @@
                             <td>{{ $voterlistprocessed->submit_time}}</td>
                             <td>{{ $voterlistprocessed->expected_time_start}}</td>
                             @if ($voterlistprocessed->status==1)
-                                <td><a type="button" target="_blank" href="{{ route('admin.voter.VoterListDownloadPDF',[Crypt::encrypt($voterlistprocessed->id),'p']) }}" title="">Download</a></td>
-                                <td><a type="button" target="_blank" href="{{ route('admin.voter.VoterListDownloadPDF',[Crypt::encrypt($voterlistprocessed->id),'w']) }}" title="">Download</a></td>
-                                <td><a type="button" target="_blank" href="{{ route('admin.voter.VoterListDownloadPDF',[Crypt::encrypt($voterlistprocessed->id),'h']) }}" title="">Download</a></td>
+                                <td>
+                                    <a type="button" target="_blank" class="btn btn-sm btn-success" href="{{ route('admin.voter.download.captcha',[Crypt::encrypt($voterlistprocessed->id),'p']) }}">Download</a>
+                                </td>
+                                <td>
+                                    <a type="button" target="_blank" class="btn btn-sm btn-success" href="{{ route('admin.voter.download.captcha',[Crypt::encrypt($voterlistprocessed->id),'w']) }}">Download</a>
+                                </td>
+                                <td><a type="button" target="_blank" href="{{ route('admin.voter.VoterListDownloadPDFH',[Crypt::encrypt($voterlistprocessed->id),'h']) }}" title="">Download</a></td>
                             @elseif ($voterlistprocessed->status==2)
                                 <td>Processing</td>
                                 <td>Processing</td>
@@ -45,7 +50,10 @@
                                 <td>Pending</td>
                                 <td>Pending</td>
                             @endif
-                        </tr>                                     
+                        </tr>
+                        @php
+                            $btn_counter++;
+                        @endphp                                     
                     @endforeach
                 </tbody>
             </table>

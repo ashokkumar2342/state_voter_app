@@ -153,14 +153,52 @@ class VoterDetailsController extends Controller
     }
   }
 
-  public function VoterListDownloadPDF($id, $condition)
+  public function downloadCaptcha($id, $condition)
   {  
     try{
       $permission_flag = MyFuncs::isPermission_route(104);
       if(!$permission_flag){
+        return view('admin.common.error_popup');
+      }
+      
+      $rec_id = $id;
+      $condition = $condition;
+      return view('admin.master.voterlistdownload.download_captcha',compact('rec_id', 'condition'));
+    } catch (\Exception $e) {
+      $e_method = "captchaPopup";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function VoterListDownloadPDF(Request $request, $id, $condition)
+  {  
+    try{
+      
+      $permission_flag = MyFuncs::isPermission_route(104);
+      if(!$permission_flag){
         return view('admin.common.error');
       }
+      $this->validate($request, [        
+        'captcha' => 'required|captcha' 
+      ]); 
+      
+      $role_id = MyFuncs::getUserRoleId();
+      $user_id = MyFuncs::getUserId();
+      $from_ip = MyFuncs::getIp();
+
       $rec_id = intval(Crypt::decrypt($id));
+      
+      $download_type = 0;
+      if($condition == 'p'){
+        $download_type = 1;
+      }elseif($condition == 'w'){
+        $download_type = 2;
+      }
+      if($download_type > 0){
+        $rs_update = DB::select(DB::raw("call `up_log_voter_list_download`($role_id, $user_id, '$from_ip', $rec_id, $download_type);"));  
+      }
+      
+
       $voterlistprocesseds = DB::select(DB::raw("SELECT `folder_path`, `file_path_p`, `file_path_w`, `file_path_h` from `voter_list_processeds` where `id` = $rec_id limit 1;"));
       if(count($voterlistprocesseds)==0){
         return null;
@@ -177,8 +215,39 @@ class VoterDetailsController extends Controller
       }else{
         return 'File Not Found';
       }          
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       $e_method = "VoterListDownloadPDF";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }
+
+  public function VoterListDownloadPDFH($id, $condition)
+  {  
+    try{
+      
+      $permission_flag = MyFuncs::isPermission_route(104);
+      if(!$permission_flag){
+        return view('admin.common.error');
+      }
+      $rec_id = intval(Crypt::decrypt($id));
+      $voterlistprocesseds = DB::select(DB::raw("SELECT `folder_path`, `file_path_p`, `file_path_w`, `file_path_h` from `voter_list_processeds` where `id` = $rec_id limit 1;"));
+      if(count($voterlistprocesseds)==0){
+        return null;
+      }
+      $voterlistprocesseds = reset($voterlistprocesseds);
+
+      $documentUrl = Storage_path().$voterlistprocesseds->folder_path;
+      if($condition == 'h'){
+        $documentUrl = $documentUrl.$voterlistprocesseds->file_path_p;
+      } 
+      
+      if(file_exists($documentUrl)){                
+        return response()->file($documentUrl);
+      }else{
+        return 'File Not Found';
+      }          
+    } catch (Exception $e) {
+      $e_method = "VoterListDownloadPDFH";
       return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
     }
   }
@@ -443,9 +512,13 @@ class VoterDetailsController extends Controller
         'gender' => 'required', 
         'age' => 'required', 
         'voter_id_no' => 'required',
-        'image' => [ 'nullable','image','mimes:jpeg,jpg,png','max:2000', new ValidateFile(array('jpeg','jpg','png'), $request->image->getClientOriginalName(), $request->image->extension())],
+        // 'image' => [ 'nullable','image','mimes:jpeg,jpg,png','max:20', new ValidateFile(array('jpeg','jpg','png'), $request->image->getClientOriginalName(), $request->image->extension())],
       ];
-     // $rules['image'] = ['mimes:jpeg,jpg,png','max:20',new ValidateFile(array('jpeg,jpg,png'),$request->image->getClientOriginalName(),$request->image->extension())];
+      if ($request->hasFile('image')){
+        $rules=[
+          'image' => [ 'nullable','image','mimes:jpeg,jpg,png','max:20', new ValidateFile(array('jpeg','jpg', 'png'), $request->image->getClientOriginalName(), $request->image->extension())],    
+        ];      
+      }
       $customMessages = [
         'rec_id.required'=> 'Something Went Wrong',
         'district.required'=> 'Please Select District',

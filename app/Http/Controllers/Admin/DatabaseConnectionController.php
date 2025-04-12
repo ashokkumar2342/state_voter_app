@@ -84,6 +84,26 @@ class DatabaseConnectionController extends Controller
   } 
 
 
+  public function processDelete($ac_id,$part_id)
+  {
+    try {
+      $permission_flag = MyFuncs::isPermission_route(31);
+      if(!$permission_flag){
+        $response=['status'=>0,'msg'=>'Something Went Wrong'];
+        return response()->json($response);
+      }
+      
+      $ac_id = intval($ac_id);
+      $part_id = intval($part_id);
+      $rs_update = DB::select(DB::raw("call `up_delete_part_port_voter` ('$ac_id','$part_id')"));
+      return redirect()->back()->with(['message'=>'Record Deleted Successfully','class'=>'success']); 
+    } catch (\Exception $e) {
+      $e_method = "processDelete";
+      return MyFuncs::Exception_error_handler($this->e_controller, $e_method, $e->getMessage());
+    }
+  }  
+
+
 //   public function DatabaseConnection()
 //   {
 //     try {
@@ -138,11 +158,7 @@ class DatabaseConnectionController extends Controller
 
   
 
-// public function processDelete($ac_id,$part_id)
-// {  
-//   $rs_update = DB::select(DB::raw("call up_delete_part_port_voter ('$ac_id','$part_id')"));
-//   return redirect()->back()->with(['message'=>'Record Deleted Successfully','class'=>'success']);
-// }  
+
 
 
 

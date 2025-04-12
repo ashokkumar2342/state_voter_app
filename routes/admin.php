@@ -440,7 +440,11 @@ Route::group(['middleware' => ['preventBackHistory','admin','web']], function() 
             
            Route::get('VoterListDownload', 'VoterDetailsController@VoterListDownload')->name('admin.voter.VoterListDownload');
            Route::get('BlockWiseDownloadTable', 'VoterDetailsController@BlockWiseDownloadTable')->name('admin.voter.BlockWiseDownloadTable');
-           Route::get('VoterListDownloadPDF/{path}/{condition}', 'VoterDetailsController@VoterListDownloadPDF')->name('admin.voter.VoterListDownloadPDF');
+           
+           Route::get('download-captcha/{path}/{condition}', 'VoterDetailsController@downloadCaptcha')->name('admin.voter.download.captcha');          
+           Route::post('VoterListDownloadPDF/{path}/{condition}', 'VoterDetailsController@VoterListDownloadPDF')->name('admin.voter.VoterListDownloadPDF');
+           Route::get('VoterListDownloadPDFH/{path}/{condition}', 'VoterDetailsController@VoterListDownloadPDFH')->name('admin.voter.VoterListDownloadPDFH');
+
            Route::get('processing-status', 'VoterDetailsController@processingStatus')->name('admin.voter.processing.status');		//OK ------------
 
 
