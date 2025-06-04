@@ -238,7 +238,7 @@ class VoterDetailsController extends Controller
 
       $documentUrl = Storage_path().$voterlistprocesseds->folder_path;
       if($condition == 'h'){
-        $documentUrl = $documentUrl.$voterlistprocesseds->file_path_p;
+        $documentUrl = $documentUrl.$voterlistprocesseds->file_path_h;
       } 
       
       if(file_exists($documentUrl)){                

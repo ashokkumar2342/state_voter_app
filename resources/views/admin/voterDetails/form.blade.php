@@ -76,9 +76,15 @@
 </div>
 <div class="col-lg-3 form-group text-center">
     @php
-    $image_path = 'vimage/'.@$rs_record[0]->data_list_id.'/'.@$rs_record[0]->assembly_id.'/'.@$rs_record[0]->assembly_part_id.'/'.@$rs_record[0]->sr_no.'.jpg';
+        if (count($rs_record) == 0) {
+            $image_path = "";
+        }else{
+            $image_path = 'vimage/'.@$rs_record[0]->data_list_id.'/'.@$rs_record[0]->assembly_id.'/'.@$rs_record[0]->assembly_part_id.'/'.@$rs_record[0]->sr_no.'.jpg';
+        }
     @endphp
-    <img src="{{ route('admin.Master.pollingDayTimesignature',Crypt::encrypt($image_path)) }}" alt="Image" style="height: 110px;width: 150;">
+    @if ($image_path != "")
+        <img src="{{ route('admin.Master.pollingDayTimesignature',Crypt::encrypt($image_path)) }}" alt="Image" style="height: 110px;width: 150;">
+    @endif
 </div>
 <div class="col-lg-12 form-group" style="margin-top: 30px;">
     <button type="submit" class="btn btn-primary form-control">Submit</button>
